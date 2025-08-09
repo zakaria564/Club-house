@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
+import Image from "next/image";
 
 export function MainSidebar() {
   const pathname = usePathname();
@@ -32,7 +33,7 @@ export function MainSidebar() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <Shield className="w-8 h-8 text-primary" />
+          <Image src="https://i.ibb.co/3kL2vC6/logo.png" alt="logo" width={32} height={32} />
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold font-headline">
               Clubhouse Hub
