@@ -9,8 +9,6 @@ import { Plus, MoreVertical, Edit, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ClubEvent } from "@/types"
-import { Badge } from "./ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
 interface ClubCalendarProps {
@@ -56,7 +54,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                     <div
                         key={day.toString()}
                         className={cn(
-                            "relative flex flex-col min-h-[140px] bg-card p-2",
+                            "relative flex flex-col min-h-[140px] bg-card p-2 group",
                              !isSameMonth(day, monthStart) && "bg-muted/50 text-muted-foreground"
                         )}
                     >
@@ -67,7 +65,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => onAddEvent(day)}
                         >
                            <Plus className="h-4 w-4" />
@@ -75,7 +73,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                         
                         <div className="mt-2 flex-grow space-y-1 overflow-y-auto">
                             {visibleEvents.map(event => (
-                                <div key={event.id} className="relative group/event">
+                                <div key={event.id} className="relative">
                                     <div 
                                       className={cn(
                                         "text-xs p-1.5 rounded-md text-white truncate cursor-pointer",
@@ -88,7 +86,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                                     </div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                             <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 text-white opacity-0 group-hover/event:opacity-100 focus-visible:opacity-100">
+                                             <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 text-white">
                                                 <MoreVertical className="h-4 w-4" />
                                              </Button>
                                         </DropdownMenuTrigger>
@@ -102,7 +100,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                              {hiddenEventsCount > 0 && (
                                 <Popover>
                                   <PopoverTrigger asChild>
-                                     <Button variant="link" className="text-xs p-0 h-auto w-full justify-start mt-1">
+                                     <Button variant="link" className="text-xs p-0 h-auto w-full justify-start mt-1 text-primary">
                                         + {hiddenEventsCount} de plus
                                     </Button>
                                   </PopoverTrigger>
