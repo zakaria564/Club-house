@@ -1,19 +1,161 @@
 
 "use client"
 import * as React from "react"
-import { ArrowLeft } from "lucide-react"
+import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { coaches } from "@/lib/mock-data"
+import { coaches as initialCoaches } from "@/lib/mock-data"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import type { Coach } from "@/types"
+import AddCoachDialog from "@/components/add-coach-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+
+
+const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
+
+// Helper function to convert array of objects to CSV
+const convertToCSV = (objArray: any[]) => {
+  const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+  if (array.length === 0) return '';
+  let str = '';
+  const header = Object.keys(array[0]).join(',') + '\r\n';
+  str += header;
+
+  for (let i = 0; i < array.length; i++) {
+    let line = '';
+    for (let index in array[i]) {
+      if (line !== '') line += ','
+      line += `"${array[i][index]}"`; // a little safer with quotes
+    }
+    str += line + '\r\n';
+  }
+  return str;
+}
+
+// Helper function to trigger download
+const downloadCSV = (csvStr: string, fileName: string) => {
+  const blob = new Blob([`\uFEFF${csvStr}`], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
+  const link = document.createElement("a");
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
 
 export default function CoachesPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [coaches, setCoaches] = React.useState<Coach[]>([]);
+  const [isClient, setIsClient] = React.useState(false);
+  const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
+  const [selectedCoach, setSelectedCoach] = React.useState<Coach | null>(null);
+  const [coachToDelete, setCoachToDelete] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setIsClient(true);
+    try {
+        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
+        let storedCoaches: Coach[] = [];
+        if (storedCoachesRaw) {
+            storedCoaches = JSON.parse(storedCoachesRaw);
+        }
+        
+        const allCoachesMap = new Map<string, Coach>();
+        initialCoaches.forEach(c => allCoachesMap.set(c.id, c));
+        storedCoaches.forEach(c => allCoachesMap.set(c.id, c)); 
+
+        const mergedCoaches = Array.from(allCoachesMap.values());
+        setCoaches(mergedCoaches);
+
+    } catch (error) {
+        console.error("Failed to load coaches:", error);
+        setCoaches(initialCoaches);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+        if (isClient) {
+          localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(coaches));
+        }
+    } catch (error) {
+        console.error("Failed to save coaches to localStorage", error);
+    }
+  }, [coaches, isClient]);
+
+  const handleCoachUpdate = (updatedCoach: Coach) => {
+    setCoaches(prevCoaches => {
+        const existingCoachIndex = prevCoaches.findIndex(c => c.id === updatedCoach.id);
+        if (existingCoachIndex > -1) {
+            const newCoaches = [...prevCoaches];
+            newCoaches[existingCoachIndex] = updatedCoach;
+            return newCoaches;
+        } else {
+            return [...prevCoaches, updatedCoach];
+        }
+    });
+  };
+
+  const handleEditCoach = (coach: Coach) => {
+    setSelectedCoach(coach);
+    setCoachDialogOpen(true);
+  }
+
+  const handleAddNewCoach = () => {
+    setSelectedCoach(null);
+    setCoachDialogOpen(true);
+  }
+
+  const handleDeleteInitiate = (coachId: string) => {
+    setCoachToDelete(coachId);
+  }
+
+  const handleDeleteConfirm = () => {
+    if (coachToDelete) {
+      setCoaches(coaches.filter(c => c.id !== coachToDelete));
+      setCoachToDelete(null);
+      toast({
+        title: "Entraîneur supprimé",
+        description: "L'entraîneur a été supprimé avec succès.",
+      })
+    }
+  }
+
+  const handleExport = () => {
+    if (coaches.length > 0) {
+      const csvData = convertToCSV(coaches);
+      downloadCSV(csvData, `entraineurs-${new Date().toISOString().split('T')[0]}.csv`);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Aucune donnée à exporter",
+            description: "Il n'y a aucun entraîneur à exporter.",
+        })
+    }
+  }
+
 
   return (
     <>
@@ -22,6 +164,14 @@ export default function CoachesPage() {
             <Button variant="outline" onClick={() => router.back()}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
+            </Button>
+            <Button variant="outline" onClick={handleExport}>
+                <File className="mr-2 h-4 w-4" />
+                Exporter
+            </Button>
+            <Button onClick={handleAddNewCoach}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Ajouter un entraîneur
             </Button>
         </div>
       </PageHeader>
@@ -39,6 +189,9 @@ export default function CoachesPage() {
                 <TableHead>Nom</TableHead>
                 <TableHead>Spécialité</TableHead>
                 <TableHead className="hidden md:table-cell">Contact</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -60,12 +213,66 @@ export default function CoachesPage() {
                     <div className="font-medium">{coach.email}</div>
                     <div className="text-sm text-muted-foreground">{coach.phone}</div>
                   </TableCell>
+                  <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Ouvrir le menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleEditCoach(coach)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
+        <CardFooter>
+            <div className="text-xs text-muted-foreground">
+                Affichage de <strong>1-{coaches.length}</strong> sur <strong>{coaches.length}</strong> entraîneurs
+            </div>
+        </CardFooter>
       </Card>
+      
+      <AddCoachDialog 
+        open={isCoachDialogOpen} 
+        onOpenChange={setCoachDialogOpen} 
+        coach={selectedCoach} 
+        onCoachUpdate={handleCoachUpdate} 
+        coaches={coaches} 
+       />
+
+      <AlertDialog open={!!coachToDelete} onOpenChange={(open) => !open && setCoachToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Elle supprimera définitivement le profil de l'entraîneur.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setCoachToDelete(null)}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteConfirm}>Supprimer</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
