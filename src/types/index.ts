@@ -13,6 +13,8 @@ export type Player = {
   position: string;
   playerNumber: number;
   email: string;
+  clubEntryDate: Date;
+  clubExitDate?: Date;
 };
 
 export type Payment = {

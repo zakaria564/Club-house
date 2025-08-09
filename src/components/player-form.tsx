@@ -45,6 +45,10 @@ const playerFormSchema = z.object({
   guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
   position: z.string().min(1, "Le poste est requis."),
   playerNumber: z.coerce.number().min(1, "Le numéro de joueur est requis."),
+  clubEntryDate: z.date({
+    required_error: "Une date d'entrée est requise.",
+  }),
+  clubExitDate: z.date().optional(),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -64,6 +68,8 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     defaultValues: player ? {
       ...player,
       dateOfBirth: new Date(player.dateOfBirth),
+      clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : undefined,
+      clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
     } : {
       firstName: '',
       lastName: '',
@@ -78,6 +84,8 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
       guardianPhone: '',
       position: '',
       playerNumber: undefined,
+      clubEntryDate: undefined,
+      clubExitDate: undefined,
     },
   })
 
@@ -85,7 +93,9 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     if (player) {
       form.reset({
         ...player,
-        dateOfBirth: new Date(player.dateOfBirth) 
+        dateOfBirth: new Date(player.dateOfBirth),
+        clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
+        clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
       });
     } else {
       form.reset({
@@ -103,6 +113,8 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         guardianPhone: '',
         position: '',
         playerNumber: undefined,
+        clubEntryDate: new Date(),
+        clubExitDate: undefined,
       });
     }
   }, [player, form]);
@@ -129,6 +141,8 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
         playerNumber: Number(data.playerNumber),
+        clubEntryDate: data.clubEntryDate,
+        clubExitDate: data.clubExitDate,
     };
     
     onSave(newPlayerData);
@@ -216,6 +230,84 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                         disabled={(date) =>
                           date > new Date() || date < new Date("1950-01-01")
                         }
+                        initialFocus
+                        locale={fr}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="clubEntryDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date d'entrée au club</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: fr })
+                          ) : (
+                            <span>Choisissez une date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        locale={fr}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="clubExitDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date de sortie du club</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: fr })
+                          ) : (
+                            <span>Choisissez une date (optionnel)</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
                         initialFocus
                         locale={fr}
                       />
@@ -381,5 +473,3 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     </Form>
   )
 }
-
-    
