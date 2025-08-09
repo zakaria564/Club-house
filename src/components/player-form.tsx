@@ -184,7 +184,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Informations du Club</h3>
+                  <h3 className="text-lg font-medium">données de joueur</h3>
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                           control={form.control}
