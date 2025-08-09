@@ -260,7 +260,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           control={form.control}
                           name="clubEntryDate"
                           render={({ field }) => (
-                            <FormItem className="flex flex-col pt-2">
+                            <FormItem className="flex flex-col">
                               <FormLabel>Date d'entrée</FormLabel>
                                <Popover>
                                 <PopoverTrigger asChild>
@@ -288,6 +288,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                     onSelect={field.onChange}
                                     initialFocus
                                     locale={fr}
+                                    captionLayout="dropdown-buttons"
+                                    fromYear={new Date().getFullYear() - 20}
+                                    toYear={new Date().getFullYear()}
                                   />
                                 </PopoverContent>
                               </Popover>
@@ -299,7 +302,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             control={form.control}
                             name="clubExitDate"
                             render={({ field }) => (
-                              <FormItem className="flex flex-col pt-2">
+                              <FormItem className="flex flex-col">
                                 <FormLabel>Date de sortie (optionnel)</FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
@@ -327,6 +330,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                       onSelect={field.onChange}
                                       initialFocus
                                       locale={fr}
+                                      captionLayout="dropdown-buttons"
+                                      fromYear={new Date().getFullYear() - 20}
+                                      toYear={new Date().getFullYear() + 5}
                                     />
                                   </PopoverContent>
                                 </Popover>
@@ -370,7 +376,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         control={form.control}
                         name="dateOfBirth"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col pt-2">
+                          <FormItem className="flex flex-col">
                             <FormLabel>Date de naissance</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
@@ -539,3 +545,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    

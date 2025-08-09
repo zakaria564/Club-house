@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -74,7 +75,7 @@ function Calendar({
               }))
             )
           } else if (props.name === "years") {
-            const earliestYear = fromYear || fromDate?.getFullYear() || new Date().getFullYear()
+            const earliestYear = fromYear || fromDate?.getFullYear() || new Date().getFullYear() - 100
             const latestYear = toYear || toDate?.getFullYear() || new Date().getFullYear()
             if (earliestYear && latestYear) {
               for (let i = latestYear; i >= earliestYear; i--) {
@@ -117,8 +118,8 @@ function Calendar({
         },
       }}
       captionLayout="dropdown-buttons"
-      fromYear={1950}
-      toYear={new Date().getFullYear() + 5}
+      fromYear={props.fromYear || 1950}
+      toYear={props.toYear || new Date().getFullYear() + 10}
       {...props}
     />
   )
