@@ -2,7 +2,7 @@
 'use client';
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Edit, Printer, Mail, Phone, Calendar as CalendarIcon, User } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, Mail, Phone, User } from 'lucide-react';
 import type { Coach, Payment } from '@/types';
 import { coaches as initialCoaches, payments as initialPayments } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
@@ -13,13 +13,11 @@ import AddCoachDialog from '@/components/add-coach-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { format, differenceInYears } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
-
-const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
@@ -49,12 +47,6 @@ const statusTranslations: { [key in Payment['status']]: string } = {
     'Overdue': 'En retard'
 };
 
-const parseCoachData = (coach: any): Coach => ({
-    ...coach,
-    dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : undefined,
-});
-
-
 export default function CoachDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -69,11 +61,11 @@ export default function CoachDetailPage() {
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
         let storedCoaches: Coach[] = [];
         if (storedCoachesRaw) {
-            storedCoaches = JSON.parse(storedCoachesRaw).map(parseCoachData);
+            storedCoaches = JSON.parse(storedCoachesRaw);
         }
         
         const allCoachesMap = new Map<string, Coach>();
-        initialCoaches.map(parseCoachData).forEach(c => allCoachesMap.set(c.id, c));
+        initialCoaches.forEach(c => allCoachesMap.set(c.id, c));
         storedCoaches.forEach(c => allCoachesMap.set(c.id, c)); 
 
         const mergedCoaches = Array.from(allCoachesMap.values());
@@ -92,15 +84,14 @@ export default function CoachDetailPage() {
 
     } catch (error) {
         console.error("Failed to load data:", error);
-        setCoaches(initialCoaches.map(parseCoachData));
+        setCoaches(initialCoaches);
     }
   }, [coachId]);
 
   const coach = coaches.find((p) => p.id === coachId);
   
   const handleCoachUpdate = (updatedCoach: Coach) => {
-    const coachWithDate = parseCoachData(updatedCoach);
-    const updatedCoaches = coaches.map((c) => (c.id === coachWithDate.id ? coachWithDate : c));
+    const updatedCoaches = coaches.map((c) => (c.id === updatedCoach.id ? updatedCoach : c));
     setCoaches(updatedCoaches);
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(updatedCoaches));
@@ -118,8 +109,6 @@ export default function CoachDetailPage() {
     return <div>Chargement du profil de l'entraîneur...</div>;
   }
   
-  const age = coach.dateOfBirth && isValidDate(coach.dateOfBirth) ? differenceInYears(new Date(), coach.dateOfBirth) : coach.age;
-
   return (
     <>
       <div className="no-print">
@@ -169,15 +158,7 @@ export default function CoachDetailPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                    <div className="flex items-center gap-3">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <span>{age ? `${age} ans` : 'N/A'} ({coach.gender})</span>
-                  </div>
-                   <div className="flex items-center gap-3">
-                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                     <span>
-                        {coach.dateOfBirth && isValidDate(coach.dateOfBirth)
-                        ? format(coach.dateOfBirth, 'PPP', { locale: fr })
-                        : 'Date de naissance non spécifiée'}
-                    </span>
+                    <span>{coach.age ? `${coach.age} ans` : 'N/A'} ({coach.gender})</span>
                   </div>
                   <div className="flex items-center gap-3 col-span-full">
                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -264,3 +245,5 @@ export default function CoachDetailPage() {
     </>
   );
 }
+
+    
