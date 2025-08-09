@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -177,6 +177,12 @@ function PaymentsPageContent() {
   const handleViewPlayer = (playerId: string) => {
     router.push(`/players/${playerId}`);
   }
+  
+  const handlePrintReceipt = (paymentId: string) => {
+    const url = `/payments/${paymentId}/receipt`;
+    window.open(url, '_blank');
+  }
+
 
   return (
     <>
@@ -226,6 +232,7 @@ function PaymentsPageContent() {
                 statusTranslations={statusTranslations} 
                 onMarkAsPaid={handleMarkAsPaid} 
                 onViewPlayer={handleViewPlayer}
+                onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
             <TabsContent value="paid">
@@ -234,6 +241,7 @@ function PaymentsPageContent() {
                 statusTranslations={statusTranslations}
                 onMarkAsPaid={handleMarkAsPaid} 
                 onViewPlayer={handleViewPlayer}
+                onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
             <TabsContent value="pending">
@@ -242,6 +250,7 @@ function PaymentsPageContent() {
                 statusTranslations={statusTranslations}
                 onMarkAsPaid={handleMarkAsPaid} 
                 onViewPlayer={handleViewPlayer}
+                onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
             <TabsContent value="overdue">
@@ -250,6 +259,7 @@ function PaymentsPageContent() {
                 statusTranslations={statusTranslations} 
                 onMarkAsPaid={handleMarkAsPaid} 
                 onViewPlayer={handleViewPlayer}
+                onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
         </CardContent>
@@ -275,10 +285,11 @@ interface PaymentTableProps {
   statusTranslations: { [key in Payment['status']]: string };
   onMarkAsPaid: (paymentId: string) => void;
   onViewPlayer: (playerId: string) => void;
+  onPrintReceipt: (paymentId: string) => void;
 }
 
 
-function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer }: PaymentTableProps) {
+function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer, onPrintReceipt }: PaymentTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -342,6 +353,10 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
                   {payment.status !== 'Paid' && (
                     <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
                   )}
+                  <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Imprimer le reçu
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
