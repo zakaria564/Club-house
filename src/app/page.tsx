@@ -53,7 +53,7 @@ const normalizeString = (str: string) => {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [players, setPlayers] = React.useState<Player[]>(initialPlayers.map(parsePlayerDates));
+  const [players, setPlayers] = React.useState<Player[]>([]);
   const [isClient, setIsClient] = React.useState(false)
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
   
@@ -64,24 +64,37 @@ export default function Dashboard() {
   React.useEffect(() => {
     setIsClient(true)
     try {
-        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        if (storedPlayers) {
-            setPlayers(JSON.parse(storedPlayers).map(parsePlayerDates));
+        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
+        let storedPlayers: Player[] = [];
+        if (storedPlayersRaw) {
+            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
         }
+        
+        // Merge initialPlayers with storedPlayers, avoiding duplicates
+        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
+        const allPlayersMap = new Map<string, Player>();
+
+        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
+        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); // stored players overwrite initial ones if IDs match
+
+        const mergedPlayers = Array.from(allPlayersMap.values());
+        setPlayers(mergedPlayers);
+
     } catch (error) {
-        console.error("Failed to parse players from localStorage", error);
+        console.error("Failed to load or merge players:", error);
+        setPlayers(initialPlayers.map(parsePlayerDates));
     }
   }, []);
   
   React.useEffect(() => {
     try {
-        if (typeof window !== 'undefined') {
+        if (isClient) {
           localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(players));
         }
     } catch (error) {
         console.error("Failed to save players to localStorage", error);
     }
-  }, [players]);
+  }, [players, isClient]);
 
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
@@ -103,7 +116,7 @@ export default function Dashboard() {
     setOpenCombobox(false);
   }
 
-  const totalPlayers = isClient ? players.length : initialPlayers.length;
+  const totalPlayers = players.length;
 
   const commandFilter = (value: string, search: string) => {
       const normalizedValue = normalizeString(value);

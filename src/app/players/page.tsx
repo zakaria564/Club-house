@@ -40,20 +40,8 @@ const parsePlayerDates = (player: any): Player => ({
 
 export default function PlayersPage() {
   const router = useRouter();
-  const [players, setPlayers] = React.useState<Player[]>(() => {
-    if (typeof window === 'undefined') {
-      return initialPlayers.map(parsePlayerDates);
-    }
-    try {
-        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        if (storedPlayers) {
-            return JSON.parse(storedPlayers).map(parsePlayerDates);
-        }
-    } catch (error) {
-        console.error("Failed to parse players from localStorage", error);
-    }
-    return initialPlayers.map(parsePlayerDates);
-  });
+  const [players, setPlayers] = React.useState<Player[]>([]);
+  const [isClient, setIsClient] = React.useState(false);
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
@@ -61,14 +49,38 @@ export default function PlayersPage() {
   const [playerToDelete, setPlayerToDelete] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    setIsClient(true);
     try {
-        if (typeof window !== 'undefined') {
+        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
+        let storedPlayers: Player[] = [];
+        if (storedPlayersRaw) {
+            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
+        }
+        
+        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
+        const allPlayersMap = new Map<string, Player>();
+
+        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
+        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); 
+
+        const mergedPlayers = Array.from(allPlayersMap.values());
+        setPlayers(mergedPlayers);
+
+    } catch (error) {
+        console.error("Failed to load or merge players:", error);
+        setPlayers(initialPlayers.map(parsePlayerDates));
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+        if (isClient) {
           localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(players));
         }
     } catch (error) {
         console.error("Failed to save players to localStorage", error);
     }
-  }, [players]);
+  }, [players, isClient]);
 
   const handleDeleteInitiate = (playerId: string) => {
     setPlayerToDelete(playerId);
@@ -116,7 +128,7 @@ export default function PlayersPage() {
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
     setPlayers(prevPlayers => {
-        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === selectedPlayer?.id);
+        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
         if (existingPlayerIndex > -1) {
             const newPlayers = [...prevPlayers];
             newPlayers[existingPlayerIndex] = playerWithDates;

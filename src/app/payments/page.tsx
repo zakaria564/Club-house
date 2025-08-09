@@ -70,21 +70,34 @@ function PaymentsPageContent() {
   const playerId = searchParams.get('playerId')
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
   
-  const [players, setPlayers] = React.useState<Player[]>(() => {
-    if (typeof window === 'undefined') {
-      return initialPlayers.map(parsePlayerDates);
-    }
+  const [players, setPlayers] = React.useState<Player[]>([]);
+
+  React.useEffect(() => {
+    setIsClient(true);
     try {
-        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        if (storedPlayers) {
-            return JSON.parse(storedPlayers).map(parsePlayerDates);
+        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
+        let storedPlayers: Player[] = [];
+        if (storedPlayersRaw) {
+            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
         }
+        
+        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
+        const allPlayersMap = new Map<string, Player>();
+
+        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
+        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); 
+
+        const mergedPlayers = Array.from(allPlayersMap.values());
+        setPlayers(mergedPlayers);
+
     } catch (error) {
-        console.error("Failed to parse players from localStorage", error);
+        console.error("Failed to load or merge players:", error);
+        setPlayers(initialPlayers.map(parsePlayerDates));
     }
-    return initialPlayers.map(parsePlayerDates);
-  });
+  }, []);
+
 
   const [payments, setPayments] = React.useState<Payment[]>(() => {
     if (typeof window === 'undefined') {
@@ -101,13 +114,13 @@ function PaymentsPageContent() {
 
    React.useEffect(() => {
     try {
-        if (typeof window !== 'undefined') {
+        if (isClient) {
           localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(payments));
         }
     } catch (error) {
         console.error("Failed to save payments to localStorage", error);
     }
-  }, [payments]);
+  }, [payments, isClient]);
 
 
   const statusTranslations: { [key in Payment['status']]: string } = {

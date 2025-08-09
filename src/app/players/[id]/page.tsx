@@ -28,19 +28,33 @@ export default function PlayerDetailPage() {
   const router = useRouter();
   const params = useParams();
   const playerId = params.id as string;
+  const [isClient, setIsClient] = React.useState(false);
 
-  const [players, setPlayers] = React.useState<Player[]>(() => {
-    if (typeof window === 'undefined') {
-      return initialPlayers.map(parsePlayerDates);
-    }
+  const [players, setPlayers] = React.useState<Player[]>([]);
+
+  React.useEffect(() => {
+    setIsClient(true);
     try {
-      const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return storedPlayers ? JSON.parse(storedPlayers).map(parsePlayerDates) : initialPlayers.map(parsePlayerDates);
+        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        let storedPlayers: Player[] = [];
+        if (storedPlayersRaw) {
+            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
+        }
+        
+        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
+        const allPlayersMap = new Map<string, Player>();
+
+        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
+        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); 
+
+        const mergedPlayers = Array.from(allPlayersMap.values());
+        setPlayers(mergedPlayers);
+
     } catch (error) {
-      console.error('Failed to parse players from localStorage', error);
-      return initialPlayers.map(parsePlayerDates);
+        console.error("Failed to load or merge players:", error);
+        setPlayers(initialPlayers.map(parsePlayerDates));
     }
-  });
+  }, []);
 
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
 
@@ -144,6 +158,7 @@ export default function PlayerDetailPage() {
         onOpenChange={setPlayerDialogOpen}
         player={player}
         onPlayerUpdate={handlePlayerUpdate}
+        players={players}
       />
     </>
   );
