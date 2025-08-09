@@ -37,7 +37,7 @@ export function MainSidebar() {
             <h2 className="text-lg font-semibold font-headline">
               Clubhouse Hub
             </h2>
-            <p className="text-sm text-muted-foreground">FC Firecoders</p>
+            <p className="text-sm text-muted-foreground">clubcaos2011</p>
           </div>
         </div>
       </SidebarHeader>
