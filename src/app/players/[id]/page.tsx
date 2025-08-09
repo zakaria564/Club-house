@@ -113,7 +113,10 @@ export default function PlayerDetailPage() {
   };
 
   const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = "Fiche d'identification du joueur";
     window.print();
+    document.title = originalTitle;
   };
 
   if (!player) {
