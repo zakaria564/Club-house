@@ -24,7 +24,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 export default function PlayersPage() {
@@ -33,14 +32,22 @@ export default function PlayersPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
   const [selectedPlayer, setSelectedPlayer] = React.useState<Player | null>(null);
+  const [playerToDelete, setPlayerToDelete] = React.useState<string | null>(null);
 
   const handlePrint = () => {
     // Une fonction d'impression plus sophistiquée formaterait mieux cela.
     window.print();
   }
 
-  const handleDeletePlayer = (playerId: string) => {
-    setPlayers(players.filter(p => p.id !== playerId));
+  const handleDeleteInitiate = (playerId: string) => {
+    setPlayerToDelete(playerId);
+  }
+
+  const handleDeleteConfirm = () => {
+    if (playerToDelete) {
+      setPlayers(players.filter(p => p.id !== playerToDelete));
+      setPlayerToDelete(null);
+    }
   }
 
   const handleEditPlayer = (player: Player) => {
@@ -56,6 +63,21 @@ export default function PlayersPage() {
   const handleViewPayments = (playerId: string) => {
     router.push(`/payments?playerId=${playerId}`);
   }
+  
+  const handlePlayerUpdate = (updatedPlayer: Player) => {
+    setPlayers(prevPlayers => {
+        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
+        if (existingPlayerIndex > -1) {
+            // Update existing player
+            const newPlayers = [...prevPlayers];
+            newPlayers[existingPlayerIndex] = updatedPlayer;
+            return newPlayers;
+        } else {
+            // Add new player
+            return [...prevPlayers, updatedPlayer];
+        }
+    });
+  };
 
   const filteredPlayers = players.filter(player =>
     `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,10 +140,9 @@ export default function PlayersPage() {
                     <Badge variant="secondary">{player.category}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {player.dateOfBirth.toLocaleDateString('fr-FR')}
+                    {new Date(player.dateOfBirth).toLocaleDateString('fr-FR')}
                   </TableCell>
                   <TableCell>
-                    <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -141,27 +162,12 @@ export default function PlayersPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>Voir les paiements</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                           <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Supprimer
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
+                          <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(player.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Supprimer
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action est irréversible. Cela supprimera définitivement le profil du joueur.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDeletePlayer(player.id)}>Supprimer</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}
@@ -174,7 +180,21 @@ export default function PlayersPage() {
           </div>
         </CardFooter>
       </Card>
-      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} />
+      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} onPlayerUpdate={handlePlayerUpdate} />
+      <AlertDialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Cela supprimera définitivement le profil du joueur.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setPlayerToDelete(null)}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteConfirm}>Supprimer</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

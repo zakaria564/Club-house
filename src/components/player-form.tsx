@@ -7,6 +7,7 @@ import { z } from "zod"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { CalendarIcon, Upload } from "lucide-react"
+import * as React from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -24,11 +25,11 @@ import { cn } from "@/lib/utils"
 import { Calendar } from "./ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar"
 import type { Player } from "@/types"
-import { useEffect } from "react"
 
 const playerFormSchema = z.object({
+  id: z.string().optional(),
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
   dateOfBirth: z.date({
@@ -42,38 +43,62 @@ type PlayerFormValues = z.infer<typeof playerFormSchema>
 
 interface PlayerFormProps {
   onFinished: () => void;
+  onSave: (player: Player) => void;
   player?: Player | null;
 }
 
-export function PlayerForm({ onFinished, player }: PlayerFormProps) {
+export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
   const { toast } = useToast()
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
-    defaultValues: player || {},
+    defaultValues: player ? {
+      ...player,
+      dateOfBirth: new Date(player.dateOfBirth),
+    } : {
+      firstName: '',
+      lastName: '',
+      dateOfBirth: undefined,
+      category: '',
+      photoUrl: 'https://placehold.co/200x200.png',
+    },
   })
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (player) {
-      form.reset(player);
+      form.reset({
+        ...player,
+        dateOfBirth: new Date(player.dateOfBirth) 
+      });
     } else {
       form.reset({
+        id: undefined,
         firstName: '',
         lastName: '',
         dateOfBirth: undefined,
         category: '',
-        photoUrl: '',
+        photoUrl: 'https://placehold.co/200x200.png',
       });
     }
   }, [player, form]);
 
 
   function onSubmit(data: PlayerFormValues) {
+    const isEditing = !!player;
+
+    const newPlayerData: Player = {
+        ...data,
+        id: player?.id || `p${Date.now()}`,
+        dateOfBirth: data.dateOfBirth,
+        photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
+        category: data.category as Player['category'],
+    };
+    
+    onSave(newPlayerData);
     toast({
-      title: player ? "Profil du joueur mis à jour" : "Profil du joueur créé",
-      description: `Le joueur ${data.firstName} ${data.lastName} a été ${player ? 'mis à jour' : 'ajouté'} avec succès.`,
+      title: isEditing ? "Profil du joueur mis à jour" : "Profil du joueur créé",
+      description: `Le joueur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
     })
-    console.log(data) // Here you would typically call an API to save the data
     onFinished()
   }
 
@@ -160,7 +185,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez une catégorie" />
-                            </SelectTrigger>
+                            </Trigger>
                             </FormControl>
                             <SelectContent>
                                 <SelectItem value="U9">U9</SelectItem>

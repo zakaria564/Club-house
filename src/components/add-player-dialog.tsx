@@ -15,9 +15,10 @@ interface AddPlayerDialogProps {
   open: boolean;
   onOpenChange: Dispatch<SetStateAction<boolean>>;
   player?: Player | null;
+  onPlayerUpdate: (player: Player) => void;
 }
 
-export default function AddPlayerDialog({ open, onOpenChange, player }: AddPlayerDialogProps) {
+export default function AddPlayerDialog({ open, onOpenChange, player, onPlayerUpdate }: AddPlayerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -27,7 +28,11 @@ export default function AddPlayerDialog({ open, onOpenChange, player }: AddPlaye
              {player ? 'Modifiez les informations ci-dessous.' : 'Remplissez les détails ci-dessous pour créer un nouveau profil de joueur.'}
           </DialogDescription>
         </DialogHeader>
-        <PlayerForm onFinished={() => onOpenChange(false)} player={player} />
+        <PlayerForm 
+          onFinished={() => onOpenChange(false)} 
+          player={player}
+          onSave={onPlayerUpdate}
+        />
       </DialogContent>
     </Dialog>
   );
