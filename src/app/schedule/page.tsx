@@ -212,7 +212,7 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
     const handleSubmit = () => {
         const finalTitle = title === "Autre..." ? customTitle : title;
 
-        if (!finalTitle || !date || !type || !time || !location || (type === 'Match' && !opponent)) {
+        if (!type || !date || !time || !location || (type !== 'Match' && !finalTitle) || (type === 'Match' && !opponent)) {
             toast({
                 variant: "destructive",
                 title: "Informations manquantes",
