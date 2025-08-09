@@ -132,11 +132,13 @@ export const players: Player[] = [
 ];
 
 export const payments: Payment[] = [
-  { id: 'p1', playerId: '1', playerName: 'John Doe', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-01'), status: 'Paid' },
-  { id: 'p2', playerId: '2', playerName: 'Jane Smith', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-05'), status: 'Paid' },
-  { id: 'p3', playerId: '3', playerName: 'Mike Johnson', totalAmount: 300, advance: 150, remaining: 150, date: new Date('2023-09-10'), status: 'Pending' },
-  { id: 'p4', playerId: '4', playerName: 'Emily Brown', totalAmount: 300, advance: 0, remaining: 300, date: new Date('2023-08-15'), status: 'Overdue' },
-  { id: 'p5', playerId: '5', playerName: 'Chris Davis', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-02'), status: 'Paid' },
+  { id: 'p1', memberId: '1', memberName: 'John Doe', memberType: 'player', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-01'), status: 'Paid' },
+  { id: 'p2', memberId: '2', memberName: 'Jane Smith', memberType: 'player', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-05'), status: 'Paid' },
+  { id: 'p3', memberId: '3', memberName: 'Mike Johnson', memberType: 'player', totalAmount: 300, advance: 150, remaining: 150, date: new Date('2023-09-10'), status: 'Pending' },
+  { id: 'p4', memberId: '4', memberName: 'Emily Brown', memberType: 'player', totalAmount: 300, advance: 0, remaining: 300, date: new Date('2023-08-15'), status: 'Overdue' },
+  { id: 'p5', memberId: '5', memberName: 'Chris Davis', memberType: 'player', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-02'), status: 'Paid' },
+  { id: 'p6', memberId: 'c1', memberName: 'Didier Deschamps', memberType: 'coach', totalAmount: 500, advance: 500, remaining: 0, date: new Date('2023-10-01'), status: 'Paid' },
+  { id: 'p7', memberId: 'c2', memberName: 'Zinedine Zidane', memberType: 'coach', totalAmount: 500, advance: 250, remaining: 250, date: new Date('2023-10-05'), status: 'Pending' },
 ];
 
 export const clubEvents: ClubEvent[] = [

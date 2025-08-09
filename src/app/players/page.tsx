@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -96,7 +96,7 @@ export default function PlayersPage() {
         if (typeof window !== 'undefined') {
             const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
             let payments: Payment[] = storedPayments ? JSON.parse(storedPayments) : initialPayments;
-            const updatedPayments = payments.filter(p => p.playerId !== playerToDelete);
+            const updatedPayments = payments.filter(p => p.memberId !== playerToDelete);
             localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
         }
       } catch (error) {
@@ -122,7 +122,7 @@ export default function PlayersPage() {
   };
 
   const handleViewPayments = (playerId: string) => {
-    router.push(`/payments?playerId=${playerId}`);
+    router.push(`/payments?memberId=${playerId}`);
   }
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
@@ -230,7 +230,10 @@ export default function PlayersPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>Voir les paiements</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Voir les paiements
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(player.id)}>
                               <Trash2 className="mr-2 h-4 w-4" />

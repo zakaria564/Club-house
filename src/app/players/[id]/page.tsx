@@ -91,7 +91,7 @@ export default function PlayerDetailPage() {
         } else {
             allPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
         }
-        setPayments(allPayments.filter(p => p.playerId === playerId));
+        setPayments(allPayments.filter(p => p.memberType === 'player' && p.memberId === playerId));
 
     } catch (error) {
         console.error("Failed to load or merge data:", error);
@@ -221,7 +221,7 @@ export default function PlayerDetailPage() {
                             {payments.length > 0 ? (
                                 payments.map(payment => (
                                     <TableRow key={payment.id}>
-                                        <TableCell>{format(payment.date, 'dd/MM/yyyy', { locale: fr })}</TableCell>
+                                        <TableCell>{isValidDate(payment.date) ? format(payment.date, 'dd/MM/yyyy', { locale: fr }) : 'N/A'}</TableCell>
                                         <TableCell>
                                             <Badge
                                                 className={cn({

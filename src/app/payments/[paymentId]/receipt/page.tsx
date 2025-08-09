@@ -6,11 +6,12 @@ import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-import type { Payment, Player } from '@/types';
-import { payments as initialPayments, players as initialPlayers } from '@/lib/mock-data';
+import type { Payment, Player, Coach } from '@/types';
+import { payments as initialPayments, players as initialPlayers, coaches as initialCoaches } from '@/lib/mock-data';
 
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 
 const parsePlayerDates = (player: any): Player => ({
   ...player,
@@ -19,12 +20,20 @@ const parsePlayerDates = (player: any): Player => ({
   clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
 });
 
+type Member = {
+    name: string;
+    address: string;
+    city: string;
+    phone: string;
+    email: string;
+}
+
 const ReceiptPage = () => {
   const params = useParams();
   const paymentId = params.paymentId as string;
   
   const [payment, setPayment] = React.useState<Payment | null>(null);
-  const [player, setPlayer] = React.useState<Player | null>(null);
+  const [member, setMember] = React.useState<Member | null>(null);
 
   React.useEffect(() => {
     try {
@@ -37,13 +46,37 @@ const ReceiptPage = () => {
       setPayment(currentPayment);
 
       if (currentPayment) {
-        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        const players: Player[] = storedPlayersRaw
-          ? JSON.parse(storedPlayersRaw).map(parsePlayerDates)
-          : initialPlayers.map(parsePlayerDates);
-        
-        const currentPlayer = players.find(p => p.id === currentPayment.playerId) || null;
-        setPlayer(currentPlayer);
+        if (currentPayment.memberType === 'player') {
+            const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
+            const players: Player[] = storedPlayersRaw
+            ? JSON.parse(storedPlayersRaw).map(parsePlayerDates)
+            : initialPlayers.map(parsePlayerDates);
+            const currentPlayer = players.find(p => p.id === currentPayment.memberId);
+            if (currentPlayer) {
+                setMember({
+                    name: `${currentPlayer.firstName} ${currentPlayer.lastName}`,
+                    address: currentPlayer.address,
+                    city: currentPlayer.city,
+                    phone: currentPlayer.phone,
+                    email: currentPlayer.email,
+                })
+            }
+        } else { // coach
+            const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
+            const coaches: Coach[] = storedCoachesRaw
+            ? JSON.parse(storedCoachesRaw)
+            : initialCoaches;
+            const currentCoach = coaches.find(c => c.id === currentPayment.memberId);
+             if (currentCoach) {
+                setMember({
+                    name: `${currentCoach.firstName} ${currentCoach.lastName}`,
+                    address: `${currentCoach.city}, ${currentCoach.country}`,
+                    city: currentCoach.city,
+                    phone: currentCoach.phone,
+                    email: currentCoach.email,
+                })
+            }
+        }
       }
     } catch (error) {
         console.error("Failed to load data for receipt:", error);
@@ -51,10 +84,11 @@ const ReceiptPage = () => {
   }, [paymentId]);
   
   React.useEffect(() => {
-    if (payment && player) {
+    if (payment && member) {
       document.body.classList.add('print-receipt');
       setTimeout(() => {
         window.print();
+        // window.close(); // Optional: close tab after print dialog
       }, 500);
     }
     
@@ -62,9 +96,9 @@ const ReceiptPage = () => {
     return () => {
       document.body.classList.remove('print-receipt');
     }
-  }, [payment, player]);
+  }, [payment, member]);
 
-  if (!payment || !player) {
+  if (!payment || !member) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>Chargement du reçu...</p>
@@ -104,11 +138,11 @@ const ReceiptPage = () => {
         <section className="grid grid-cols-2 gap-8 my-8">
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-2">Payé par :</h3>
-            <p className="font-bold">{player.firstName} {player.lastName}</p>
-            <p>{player.address}</p>
-            <p>{player.city}</p>
-            <p>{player.phone}</p>
-            <p>{player.email}</p>
+            <p className="font-bold">{member.name}</p>
+            <p>{member.address}</p>
+            <p>{member.city}</p>
+            <p>{member.phone}</p>
+            <p>{member.email}</p>
           </div>
           <div className="text-right">
              <h3 className="text-lg font-semibold text-gray-700 mb-2">Payé à :</h3>
@@ -130,7 +164,7 @@ const ReceiptPage = () => {
             </thead>
             <tbody>
               <tr className="border-b border-gray-200">
-                <td className="p-3">Adhésion saison 2023-2024</td>
+                <td className="p-3">Adhésion saison 2023-2024 ({payment.memberType === 'player' ? 'Joueur' : 'Entraîneur'})</td>
                 <td className="p-3 text-right">{payment.totalAmount.toFixed(2)} DH</td>
               </tr>
             </tbody>

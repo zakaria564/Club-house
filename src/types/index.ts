@@ -21,8 +21,9 @@ export type Player = {
 
 export type Payment = {
   id: string;
-  playerId: string;
-  playerName: string;
+  memberId: string; // Can be playerId or coachId
+  memberName: string;
+  memberType: 'player' | 'coach';
   totalAmount: number;
   advance: number;
   remaining: number;

@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search } from "lucide-react"
+import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search, DollarSign } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { coaches as initialCoaches } from "@/lib/mock-data"
+import { coaches as initialCoaches, payments as initialPayments } from "@/lib/mock-data"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { Coach } from "@/types"
+import type { Coach, Payment } from "@/types"
 import AddCoachDialog from "@/components/add-coach-dialog"
 import {
   AlertDialog,
@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input"
 
 
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
+const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
@@ -137,6 +138,18 @@ export default function CoachesPage() {
   const handleDeleteConfirm = () => {
     if (coachToDelete) {
       setCoaches(coaches.filter(c => c.id !== coachToDelete));
+
+      try {
+        if (typeof window !== 'undefined') {
+            const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+            let payments: Payment[] = storedPayments ? JSON.parse(storedPayments) : initialPayments;
+            const updatedPayments = payments.filter(p => p.memberId !== coachToDelete);
+            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
+        }
+      } catch (error) {
+         console.error("Failed to update payments in localStorage", error);
+      }
+
       setCoachToDelete(null);
       toast({
         title: "Entraîneur supprimé",
@@ -161,6 +174,10 @@ export default function CoachesPage() {
   const handleViewCoach = (coachId: string) => {
     router.push(`/coaches/${coachId}`);
   };
+
+  const handleViewPayments = (coachId: string) => {
+    router.push(`/payments?memberId=${coachId}`);
+  }
 
   const filteredCoaches = coaches.filter(coach =>
     `${coach.firstName} ${coach.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -251,6 +268,10 @@ export default function CoachesPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Modifier
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}>
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Voir les paiements
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}>
                               <Trash2 className="mr-2 h-4 w-4" />
@@ -284,7 +305,7 @@ export default function CoachesPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Cette action est irréversible. Elle supprimera définitivement le profil de l'entraîneur.
+                        Cette action est irréversible. Elle supprimera définitivement le profil de l'entraîneur et tous ses paiements associés.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

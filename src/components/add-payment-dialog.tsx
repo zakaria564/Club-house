@@ -21,27 +21,42 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
-import type { Player, Payment } from "@/types"
+import type { Player, Payment, Coach } from "@/types"
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 
 interface AddPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddPayment: (payment: Omit<Payment, 'id'>) => void;
   players: Player[];
+  coaches: Coach[];
 }
 
-export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, players }: AddPaymentDialogProps) {
+export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, players, coaches }: AddPaymentDialogProps) {
   const { toast } = useToast();
-  const [selectedPlayerId, setSelectedPlayerId] = React.useState<string | null>(null);
+  const [memberType, setMemberType] = React.useState<'player' | 'coach'>('player');
+  const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(null);
   const [totalAmount, setTotalAmount] = React.useState<string>("300");
   const [advance, setAdvance] = React.useState<string>("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+
+  const members = React.useMemo(() => {
+    if (memberType === 'player') {
+      return players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`}));
+    }
+    return coaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}`}));
+  }, [memberType, players, coaches]);
+
+  React.useEffect(() => {
+    setSelectedMemberId(null); // Reset selection when type changes
+  }, [memberType]);
+
 
   const handleSubmit = () => {
     const totalAmountNum = parseFloat(totalAmount);
     const advanceNum = parseFloat(advance);
     
-    if (!selectedPlayerId || isNaN(totalAmountNum) || isNaN(advanceNum) || !date) {
+    if (!selectedMemberId || isNaN(totalAmountNum) || isNaN(advanceNum) || !date) {
       toast({
         variant: "destructive",
         title: "Informations manquantes ou incorrectes",
@@ -59,9 +74,9 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
       return;
     }
 
-    const selectedPlayer = players.find(p => p.id === selectedPlayerId);
-    if (!selectedPlayer) {
-        toast({ variant: "destructive", title: "Joueur non trouvé" })
+    const selectedMember = members.find(m => m.id === selectedMemberId);
+    if (!selectedMember) {
+        toast({ variant: "destructive", title: "Membre non trouvé" })
         return;
     }
     
@@ -70,8 +85,9 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
 
 
     onAddPayment({
-      playerId: selectedPlayerId,
-      playerName: `${selectedPlayer.firstName} ${selectedPlayer.lastName}`,
+      memberId: selectedMemberId,
+      memberName: selectedMember.name,
+      memberType,
       totalAmount: totalAmountNum,
       advance: advanceNum,
       remaining: remaining,
@@ -81,11 +97,12 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
 
     toast({
       title: "Paiement ajouté",
-      description: `Le paiement pour ${selectedPlayer.firstName} ${selectedPlayer.lastName} a été ajouté.`,
+      description: `Le paiement pour ${selectedMember.name} a été ajouté.`,
     });
 
     // Reset form and close dialog
-    setSelectedPlayerId(null);
+    setMemberType('player');
+    setSelectedMemberId(null);
     setTotalAmount("300");
     setAdvance("");
     setDate(new Date());
@@ -103,13 +120,33 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="player" className="text-right">
-              Joueur
+            <Label htmlFor="memberType" className="text-right">
+              Type
             </Label>
-            <PlayerCombobox 
-              players={players}
-              value={selectedPlayerId}
-              onValueChange={setSelectedPlayerId}
+            <RadioGroup
+              defaultValue="player"
+              onValueChange={(value: 'player' | 'coach') => setMemberType(value)}
+              className="col-span-3 flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="player" id="r-player" />
+                <Label htmlFor="r-player">Joueur</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="coach" id="r-coach" />
+                <Label htmlFor="r-coach">Entraîneur</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="player" className="text-right">
+              Membre
+            </Label>
+            <MemberCombobox 
+              members={members}
+              value={selectedMemberId}
+              onValueChange={setSelectedMemberId}
+              memberType={memberType}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -176,7 +213,15 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   )
 }
 
-function PlayerCombobox({ players, value, onValueChange }: { players: Player[], value: string | null, onValueChange: (value: string | null) => void }) {
+interface MemberComboboxProps {
+    members: { id: string, name: string }[];
+    value: string | null;
+    onValueChange: (value: string | null) => void;
+    memberType: 'player' | 'coach';
+}
+
+
+function MemberCombobox({ members, value, onValueChange, memberType }: MemberComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -189,33 +234,33 @@ function PlayerCombobox({ players, value, onValueChange }: { players: Player[], 
           className="w-full justify-between col-span-3"
         >
           {value
-            ? players.find((player) => player.id === value)?.firstName + ' ' + players.find((player) => player.id === value)?.lastName
-            : "Sélectionnez un joueur..."}
+            ? members.find((member) => member.id === value)?.name
+            : `Sélectionnez un ${memberType === 'player' ? 'joueur' : 'entraîneur'}...`}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder="Rechercher un joueur..." />
-          <CommandEmpty>Aucun joueur trouvé.</CommandEmpty>
+          <CommandInput placeholder={`Rechercher un ${memberType === 'player' ? 'joueur' : 'entraîneur'}...`} />
+          <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
           <CommandGroup>
             <CommandList>
-                {players.map((player) => (
+                {members.map((member) => (
                 <CommandItem
-                    key={player.id}
-                    value={`${player.firstName} ${player.lastName}`}
+                    key={member.id}
+                    value={member.name}
                     onSelect={() => {
-                      onValueChange(player.id)
+                      onValueChange(member.id)
                       setOpen(false)
                     }}
                 >
                     <Check
                     className={cn(
                         "mr-2 h-4 w-4",
-                        value === player.id ? "opacity-100" : "opacity-0"
+                        value === member.id ? "opacity-100" : "opacity-0"
                     )}
                     />
-                    {player.firstName} {player.lastName}
+                    {member.name}
                 </CommandItem>
                 ))}
             </CommandList>

@@ -10,15 +10,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { payments as initialPayments, players as initialPlayers } from "@/lib/mock-data"
+import { payments as initialPayments, players as initialPlayers, coaches as initialCoaches } from "@/lib/mock-data"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import type { Payment, Player } from "@/types"
+import type { Payment, Player, Coach } from "@/types"
 import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 
@@ -41,7 +42,7 @@ const convertToCSV = (objArray: any[]) => {
     let line = '';
     for (let index in array[i]) {
       if (line !== '') line += ','
-      line += array[i][index];
+      line += `"${array[i][index]}"`;
     }
     str += line + '\r\n';
   }
@@ -50,7 +51,7 @@ const convertToCSV = (objArray: any[]) => {
 
 // Helper function to trigger download
 const downloadCSV = (csvStr: string, fileName: string) => {
-  const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([`\uFEFF${csvStr}`], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
   const link = document.createElement("a");
   if (link.download !== undefined) {
     const url = URL.createObjectURL(blob);
@@ -67,42 +68,46 @@ function PaymentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams()
   const { toast } = useToast();
-  const playerId = searchParams.get('playerId')
+  const memberId = searchParams.get('memberId')
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
+  const [memberTypeFilter, setMemberTypeFilter] = React.useState<'all' | 'player' | 'coach'>('all');
   
   const [players, setPlayers] = React.useState<Player[]>([]);
+  const [coaches, setCoaches] = React.useState<Coach[]>([]);
 
   React.useEffect(() => {
     setIsClient(true);
+    // Load Players
     try {
         const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        let storedPlayers: Player[] = [];
-        if (storedPlayersRaw) {
-            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-        }
-        
-        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
+        const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : [];
         const allPlayersMap = new Map<string, Player>();
-
-        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
+        initialPlayers.map(parsePlayerDates).forEach(p => allPlayersMap.set(p.id, p));
         storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); 
-
-        const mergedPlayers = Array.from(allPlayersMap.values());
-        setPlayers(mergedPlayers);
-
+        setPlayers(Array.from(allPlayersMap.values()));
     } catch (error) {
-        console.error("Failed to load or merge players:", error);
+        console.error("Failed to load players:", error);
         setPlayers(initialPlayers.map(parsePlayerDates));
+    }
+    // Load Coaches
+    try {
+        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
+        const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : [];
+        const allCoachesMap = new Map<string, Coach>();
+        initialCoaches.forEach(c => allCoachesMap.set(c.id, c));
+        storedCoaches.forEach(c => allCoachesMap.set(c.id, c));
+        setCoaches(Array.from(allCoachesMap.values()));
+    } catch (error) {
+        console.error("Failed to load coaches:", error);
+        setCoaches(initialCoaches);
     }
   }, []);
 
 
   const [payments, setPayments] = React.useState<Payment[]>(() => {
-    if (typeof window === 'undefined') {
-        return initialPayments.map(p => ({...p, date: new Date(p.date)}));
-    }
+    if (typeof window === 'undefined') return initialPayments.map(p => ({...p, date: new Date(p.date)}));
     try {
         const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
         return storedPayments ? JSON.parse(storedPayments).map((p: any) => ({...p, date: new Date(p.date)})) : initialPayments.map(p => ({...p, date: new Date(p.date)}));
@@ -129,10 +134,12 @@ function PaymentsPageContent() {
     'Overdue': 'En retard'
   }
 
-  const basePayments = playerId ? payments.filter(p => p.playerId === playerId) : payments;
+  const basePayments = memberId ? payments.filter(p => p.memberId === memberId) : payments;
   
-  const filteredPayments = basePayments.filter(payment =>
-    payment.playerName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredByMemberType = basePayments.filter(p => memberTypeFilter === 'all' || p.memberType === memberTypeFilter);
+
+  const filteredPayments = filteredByMemberType.filter(payment =>
+    payment.memberName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleExport = () => {
@@ -170,12 +177,12 @@ function PaymentsPageContent() {
     const payment = payments.find(p => p.id === paymentId);
     toast({
         title: "Paiement mis à jour",
-        description: `Le paiement de ${payment?.playerName} a été marqué comme payé.`,
+        description: `Le paiement de ${payment?.memberName} a été marqué comme payé.`,
     })
   }
 
-  const handleViewPlayer = (playerId: string) => {
-    router.push(`/players/${playerId}`);
+  const handleViewMember = (memberId: string, memberType: 'player' | 'coach') => {
+    router.push(`/${memberType}s/${memberId}`);
   }
   
   const handlePrintReceipt = (paymentId: string) => {
@@ -202,27 +209,34 @@ function PaymentsPageContent() {
             </Button>
         </div>
       </PageHeader>
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="all-status">
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-4">
             <div>
               <CardTitle>Historique des paiements</CardTitle>
               <CardDescription>
-                Suivez et gérez tous les paiements des adhésions des joueurs.
+                Suivez et gérez tous les paiements des adhésions.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+                <Tabs value={memberTypeFilter} onValueChange={(value) => setMemberTypeFilter(value as any)}>
+                    <TabsList>
+                        <TabsTrigger value="all">Tous</TabsTrigger>
+                        <TabsTrigger value="player">Joueurs</TabsTrigger>
+                        <TabsTrigger value="coach">Entraîneurs</TabsTrigger>
+                    </TabsList>
+                </Tabs>
                <div className="relative">
                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                  <Input 
-                   placeholder="Rechercher par joueur..." 
+                   placeholder="Rechercher par nom..." 
                    className="pl-8 w-48" 
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
                  />
                </div>
                 <TabsList>
-                  <TabsTrigger value="all">Tous</TabsTrigger>
+                  <TabsTrigger value="all-status">Tous</TabsTrigger>
                   <TabsTrigger value="paid">Payé</TabsTrigger>
                   <TabsTrigger value="pending">En attente</TabsTrigger>
                   <TabsTrigger value="overdue">En retard</TabsTrigger>
@@ -230,12 +244,12 @@ function PaymentsPageContent() {
             </div>
         </CardHeader>
         <CardContent>
-            <TabsContent value="all">
+            <TabsContent value="all-status">
               <PaymentTable 
                 payments={filteredPayments} 
                 statusTranslations={statusTranslations} 
                 onMarkAsPaid={handleMarkAsPaid} 
-                onViewPlayer={handleViewPlayer}
+                onViewMember={handleViewMember}
                 onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
@@ -244,7 +258,7 @@ function PaymentsPageContent() {
                 payments={filteredPayments.filter(p => p.status === 'Paid')} 
                 statusTranslations={statusTranslations}
                 onMarkAsPaid={handleMarkAsPaid} 
-                onViewPlayer={handleViewPlayer}
+                onViewMember={handleViewMember}
                 onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
@@ -253,7 +267,7 @@ function PaymentsPageContent() {
                 payments={filteredPayments.filter(p => p.status === 'Pending')} 
                 statusTranslations={statusTranslations}
                 onMarkAsPaid={handleMarkAsPaid} 
-                onViewPlayer={handleViewPlayer}
+                onViewMember={handleViewMember}
                 onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
@@ -262,14 +276,14 @@ function PaymentsPageContent() {
                 payments={filteredPayments.filter(p => p.status === 'Overdue')} 
                 statusTranslations={statusTranslations} 
                 onMarkAsPaid={handleMarkAsPaid} 
-                onViewPlayer={handleViewPlayer}
+                onViewMember={handleViewMember}
                 onPrintReceipt={handlePrintReceipt}
               />
             </TabsContent>
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Affichage de <strong>1-{filteredPayments.length}</strong> sur <strong>{payments.length}</strong> paiements
+            Affichage de <strong>1-{filteredPayments.length}</strong> sur <strong>{basePayments.length}</strong> paiements
           </div>
         </CardFooter>
       </Card>
@@ -279,6 +293,7 @@ function PaymentsPageContent() {
         onOpenChange={setAddPaymentOpen}
         onAddPayment={handleAddPayment}
         players={players}
+        coaches={coaches}
        />
     </>
   )
@@ -288,17 +303,17 @@ interface PaymentTableProps {
   payments: Payment[];
   statusTranslations: { [key in Payment['status']]: string };
   onMarkAsPaid: (paymentId: string) => void;
-  onViewPlayer: (playerId: string) => void;
+  onViewMember: (memberId: string, memberType: 'player' | 'coach') => void;
   onPrintReceipt: (paymentId: string) => void;
 }
 
 
-function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer, onPrintReceipt }: PaymentTableProps) {
+function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember, onPrintReceipt }: PaymentTableProps) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Joueur</TableHead>
+          <TableHead>Membre</TableHead>
           <TableHead>Statut</TableHead>
           <TableHead className="hidden md:table-cell">Total</TableHead>
           <TableHead className="hidden md:table-cell">Avance</TableHead>
@@ -313,8 +328,8 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
         {payments.map(payment => (
           <TableRow key={payment.id}>
             <TableCell>
-              <div className="font-medium">{payment.playerName}</div>
-              <div className="text-sm text-muted-foreground">ID joueur : {payment.playerId}</div>
+              <div className="font-medium">{payment.memberName}</div>
+              <div className="text-sm text-muted-foreground capitalize">{payment.memberType === 'player' ? 'Joueur' : 'Entraîneur'}</div>
             </TableCell>
             <TableCell>
               <Badge 
@@ -353,7 +368,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onViewPlayer(payment.playerId)}>Voir le joueur</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.memberType)}>Voir le profil</DropdownMenuItem>
                   {payment.status !== 'Paid' && (
                     <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
                   )}

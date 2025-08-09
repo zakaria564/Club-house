@@ -3,15 +3,21 @@
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Edit, Printer, Mail, Phone } from 'lucide-react';
-import type { Coach } from '@/types';
-import { coaches as initialCoaches } from '@/lib/mock-data';
+import type { Coach, Payment } from '@/types';
+import { coaches as initialCoaches, payments as initialPayments } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import AddCoachDialog from '@/components/add-coach-dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
+const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
@@ -35,12 +41,20 @@ const PrintHeader = () => (
     </div>
 );
 
+const statusTranslations: { [key in Payment['status']]: string } = {
+    'Paid': 'Payé',
+    'Pending': 'En attente',
+    'Overdue': 'En retard'
+};
+
+
 export default function CoachDetailPage() {
   const router = useRouter();
   const params = useParams();
   const coachId = params.id as string;
 
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
+  const [payments, setPayments] = React.useState<Payment[]>([]);
   const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
 
    React.useEffect(() => {
@@ -58,11 +72,22 @@ export default function CoachDetailPage() {
         const mergedCoaches = Array.from(allCoachesMap.values());
         setCoaches(mergedCoaches);
 
+        // Load payments
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        let allPayments: Payment[] = [];
+        if (storedPaymentsRaw) {
+            allPayments = JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}));
+        } else {
+            allPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
+        }
+        setPayments(allPayments.filter(p => p.memberType === 'coach' && p.memberId === coachId));
+
+
     } catch (error) {
-        console.error("Failed to load coaches:", error);
+        console.error("Failed to load data:", error);
         setCoaches(initialCoaches);
     }
-  }, []);
+  }, [coachId]);
 
   const coach = coaches.find((p) => p.id === coachId);
   
@@ -162,6 +187,58 @@ export default function CoachDetailPage() {
               </div>
           </CardContent>
         </Card>
+         <div className="no-print">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Historique des paiements</CardTitle>
+                    <CardDescription>
+                        Liste de tous les paiements enregistrés pour cet entraîneur.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead className="text-right">Montant Total</TableHead>
+                                <TableHead className="text-right">Avance</TableHead>
+                                <TableHead className="text-right">Reste</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {payments.length > 0 ? (
+                                payments.map(payment => (
+                                    <TableRow key={payment.id}>
+                                        <TableCell>{format(payment.date, 'dd/MM/yyyy', { locale: fr })}</TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={cn({
+                                                    'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
+                                                    'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
+                                                    'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
+                                                })}
+                                            >
+                                                {statusTranslations[payment.status]}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
+                                        <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
+                                        <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">
+                                        Aucun paiement trouvé pour cet entraîneur.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
       </div>
 
       <AddCoachDialog
