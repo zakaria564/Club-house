@@ -163,6 +163,23 @@ export default function SchedulePage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
             </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  Rechercher par date
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                  locale={fr}
+                />
+              </PopoverContent>
+            </Popover>
             <Button onClick={handleAddNew}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Ajouter un événement
@@ -227,7 +244,7 @@ export default function SchedulePage() {
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                           <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-2 right-2">
+                           <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-2 right-2 flex opacity-100 group-hover:opacity-100">
                             <MoreVertical className="h-4 w-4" />
                             <span className="sr-only">Ouvrir le menu</span>
                            </Button>
