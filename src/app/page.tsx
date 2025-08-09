@@ -1,9 +1,18 @@
+
 "use client"
+import * as React from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, ArrowRight } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { players as initialPlayers } from '@/lib/mock-data'
+import type { Player } from '@/types'
+
+const LOCAL_STORAGE_KEY = 'clubhouse-players';
 
 const chartData = [
   { category: "U9", players: 18 },
@@ -21,7 +30,35 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
+const parsePlayerDates = (player: any): Player => ({
+    ...player,
+    dateOfBirth: new Date(player.dateOfBirth),
+    clubEntryDate: new Date(player.clubEntryDate),
+    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+});
+
 export default function Dashboard() {
+  const [players, setPlayers] = React.useState<Player[]>(() => {
+    if (typeof window === 'undefined') {
+      return initialPlayers.map(parsePlayerDates);
+    }
+    try {
+        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedPlayers) {
+            return JSON.parse(storedPlayers).map(parsePlayerDates);
+        }
+    } catch (error) {
+        console.error("Failed to parse players from localStorage", error);
+    }
+    return initialPlayers.map(parsePlayerDates);
+  });
+
+  const recentPlayers = React.useMemo(() => {
+    return [...players]
+      .sort((a, b) => b.clubEntryDate.getTime() - a.clubEntryDate.getTime())
+      .slice(0, 5);
+  }, [players]);
+
   return (
     <>
       <PageHeader title="Tableau de bord" />
@@ -32,7 +69,7 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">130</div>
+            <div className="text-2xl font-bold">{players.length}</div>
             <p className="text-xs text-muted-foreground">+5 depuis la saison dernière</p>
           </CardContent>
         </Card>
@@ -94,32 +131,28 @@ export default function Dashboard() {
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Événements à venir</CardTitle>
-            <CardDescription>Les prochains événements programmés de votre club.</CardDescription>
+            <CardTitle>Derniers Inscrits</CardTitle>
+            <CardDescription>Les derniers joueurs ayant rejoint le club.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center">
-                <Calendar className="h-6 w-6 mr-4 text-primary" />
-                <div>
-                  <p className="font-semibold">Match : contre Titans FC</p>
-                  <p className="text-sm text-muted-foreground">Samedi, 16h00</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="h-6 w-6 mr-4 text-accent" />
-                <div>
-                  <p className="font-semibold">Entraînement U13</p>
-                  <p className="text-sm text-muted-foreground">Mardi, 18h00</p>
-                </div>
-              </div>
-               <div className="flex items-center">
-                <Calendar className="h-6 w-6 mr-4 text-primary" />
-                <div>
-                  <p className="font-semibold">Match : contre Rovers</p>
-                  <p className="text-sm text-muted-foreground">Samedi prochain, 14h00</p>
-                </div>
-              </div>
+                {recentPlayers.map(player => (
+                    <div key={player.id} className="flex items-center">
+                        <Avatar className="h-9 w-9">
+                            <AvatarImage src={player.photoUrl} alt="Avatar" data-ai-hint="player profile" />
+                            <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="ml-4 space-y-1">
+                            <p className="text-sm font-medium leading-none">{player.firstName} {player.lastName}</p>
+                            <p className="text-sm text-muted-foreground">{player.category}</p>
+                        </div>
+                        <div className="ml-auto">
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href={`/players/${player.id}`}>Voir</Link>
+                            </Button>
+                        </div>
+                    </div>
+                ))}
             </div>
           </CardContent>
         </Card>
