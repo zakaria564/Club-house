@@ -5,15 +5,19 @@ import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ArrowLeft, Edit, Printer } from 'lucide-react';
-import type { Player } from '@/types';
-import { players as initialPlayers } from '@/lib/mock-data';
+import type { Player, Payment } from '@/types';
+import { players as initialPlayers, payments as initialPayments } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import AddPlayerDialog from '@/components/add-player-dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const LOCAL_STORAGE_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
@@ -46,6 +50,12 @@ const parsePlayerDates = (player: any): Player => ({
 
 const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 
+const statusTranslations: { [key in Payment['status']]: string } = {
+    'Paid': 'Payé',
+    'Pending': 'En attente',
+    'Overdue': 'En retard'
+};
+
 export default function PlayerDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -53,6 +63,7 @@ export default function PlayerDetailPage() {
   const [isClient, setIsClient] = React.useState(false);
 
   const [players, setPlayers] = React.useState<Player[]>([]);
+  const [payments, setPayments] = React.useState<Payment[]>([]);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -72,11 +83,21 @@ export default function PlayerDetailPage() {
         const mergedPlayers = Array.from(allPlayersMap.values());
         setPlayers(mergedPlayers);
 
+        // Load payments
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        let allPayments: Payment[] = [];
+        if (storedPaymentsRaw) {
+            allPayments = JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}));
+        } else {
+            allPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
+        }
+        setPayments(allPayments.filter(p => p.playerId === playerId));
+
     } catch (error) {
-        console.error("Failed to load or merge players:", error);
+        console.error("Failed to load or merge data:", error);
         setPlayers(initialPlayers.map(parsePlayerDates));
     }
-  }, []);
+  }, [playerId]);
 
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
 
@@ -120,7 +141,7 @@ export default function PlayerDetailPage() {
         </PageHeader>
       </div>
 
-      <div className="printable-area">
+      <div className="space-y-8 printable-area">
         <PrintHeader />
         <Card className="shadow-none border-0 print:border print:shadow-lg">
           <CardHeader className="flex flex-col items-center text-center">
@@ -174,6 +195,60 @@ export default function PlayerDetailPage() {
             </div>
           </CardContent>
         </Card>
+        
+        <div className="no-print">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Historique des paiements</CardTitle>
+                    <CardDescription>
+                        Liste de tous les paiements enregistrés pour ce joueur.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead className="text-right">Montant Total</TableHead>
+                                <TableHead className="text-right">Avance</TableHead>
+                                <TableHead className="text-right">Reste</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {payments.length > 0 ? (
+                                payments.map(payment => (
+                                    <TableRow key={payment.id}>
+                                        <TableCell>{format(payment.date, 'dd/MM/yyyy', { locale: fr })}</TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={cn({
+                                                    'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
+                                                    'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
+                                                    'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
+                                                })}
+                                            >
+                                                {statusTranslations[payment.status]}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
+                                        <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
+                                        <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">
+                                        Aucun paiement trouvé pour ce joueur.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+
       </div>
 
       <AddPlayerDialog

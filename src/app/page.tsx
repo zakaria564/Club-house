@@ -32,7 +32,7 @@ const chartData = [
 const chartConfig = {
   players: {
     label: "Joueurs",
-    color: "hsl(var(--primary))",
+    color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig
 
