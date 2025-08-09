@@ -26,13 +26,41 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+const LOCAL_STORAGE_KEY = 'clubhouse-players';
+
 export default function PlayersPage() {
   const router = useRouter();
-  const [players, setPlayers] = React.useState<Player[]>(initialPlayers);
+  const [players, setPlayers] = React.useState<Player[]>(() => {
+    // We need to check for window because this is a client component
+    // but it still gets rendered on the server first.
+    if (typeof window === 'undefined') {
+      return initialPlayers;
+    }
+    try {
+        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedPlayers) {
+            // Need to parse dates back from strings
+            return JSON.parse(storedPlayers).map((p: Player) => ({...p, dateOfBirth: new Date(p.dateOfBirth)}));
+        }
+    } catch (error) {
+        console.error("Failed to parse players from localStorage", error);
+    }
+    return initialPlayers;
+  });
+
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
   const [selectedPlayer, setSelectedPlayer] = React.useState<Player | null>(null);
   const [playerToDelete, setPlayerToDelete] = React.useState<string | null>(null);
+
+  // Effect to update localStorage whenever players change
+  React.useEffect(() => {
+    try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(players));
+    } catch (error) {
+        console.error("Failed to save players to localStorage", error);
+    }
+  }, [players]);
 
   const handlePrint = () => {
     // Une fonction d'impression plus sophistiquée formaterait mieux cela.

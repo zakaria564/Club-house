@@ -1,12 +1,12 @@
 import type { Player, Payment, ClubEvent } from "@/types";
 
 export const players: Player[] = [
-  { id: '1', firstName: 'John', lastName: 'Doe', dateOfBirth: new Date('2010-05-12'), category: 'U15', photoUrl: 'https://placehold.co/100x100.png' },
-  { id: '2', firstName: 'Jane', lastName: 'Smith', dateOfBirth: new Date('2012-08-20'), category: 'U13', photoUrl: 'https://placehold.co/100x100.png' },
-  { id: '3', firstName: 'Mike', lastName: 'Johnson', dateOfBirth: new Date('1998-02-01'), category: 'Senior', photoUrl: 'https://placehold.co/100x100.png' },
-  { id: '4', firstName: 'Emily', lastName: 'Brown', dateOfBirth: new Date('2014-11-30'), category: 'U11', photoUrl: 'https://placehold.co/100x100.png' },
-  { id: '5', firstName: 'Chris', lastName: 'Davis', dateOfBirth: new Date('2008-07-22'), category: 'U17', photoUrl: 'https://placehold.co/100x100.png' },
-  { id: '6', firstName: 'Sarah', lastName: 'Miller', dateOfBirth: new Date('2016-01-15'), category: 'U9', photoUrl: 'https://placehold.co/100x100.png' },
+  { id: '1', firstName: 'John', lastName: 'Doe', dateOfBirth: new Date('2010-05-12T00:00:00'), category: 'U15', photoUrl: 'https://placehold.co/100x100.png' },
+  { id: '2', firstName: 'Jane', lastName: 'Smith', dateOfBirth: new Date('2012-08-20T00:00:00'), category: 'U13', photoUrl: 'https://placehold.co/100x100.png' },
+  { id: '3', firstName: 'Mike', lastName: 'Johnson', dateOfBirth: new Date('1998-02-01T00:00:00'), category: 'Senior', photoUrl: 'https://placehold.co/100x100.png' },
+  { id: '4', firstName: 'Emily', lastName: 'Brown', dateOfBirth: new Date('2014-11-30T00:00:00'), category: 'U11', photoUrl: 'https://placehold.co/100x100.png' },
+  { id: '5', firstName: 'Chris', lastName: 'Davis', dateOfBirth: new Date('2008-07-22T00:00:00'), category: 'U17', photoUrl: 'https://placehold.co/100x100.png' },
+  { id: '6', firstName: 'Sarah', lastName: 'Miller', dateOfBirth: new Date('2016-01-15T00:00:00'), category: 'U9', photoUrl: 'https://placehold.co/100x100.png' },
 ];
 
 export const payments: Payment[] = [
