@@ -96,6 +96,10 @@ body {
     background: white !important;
     color: black !important;
   }
+
+  .no-print, .no-print * {
+      display: none !important;
+  }
   
   body:not(.print-receipt) .printable-area {
     display: block !important;
