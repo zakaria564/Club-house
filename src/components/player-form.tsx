@@ -72,6 +72,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
     } : {
+      id: undefined,
       firstName: '',
       lastName: '',
       email: '',
@@ -138,7 +139,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
     const newPlayerData: Player = {
         ...data,
-        id: player?.id || getNextId(),
+        id: data.id || getNextId(),
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png', // Don't save base64 to localStorage
         category: data.category as Player['category'],
@@ -161,7 +162,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-               {player && (
+               {(player || form.watch('id')) && (
                  <FormField
                     control={form.control}
                     name="id"
@@ -169,7 +170,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       <FormItem>
                         <FormLabel>ID joueur</FormLabel>
                         <FormControl>
-                          <Input {...field} readOnly className="bg-muted" />
+                          <Input {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
