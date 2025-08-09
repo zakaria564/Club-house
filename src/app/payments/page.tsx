@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { MoreHorizontal, PlusCircle, Search, File, Check, ChevronsUpDown } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -16,10 +16,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import type { Payment } from "@/types"
 import AddPaymentDialog from "@/components/add-payment-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
   const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+  if (array.length === 0) return '';
   let str = '';
   const header = Object.keys(array[0]).join(',') + '\r\n';
   str += header;
@@ -51,15 +53,17 @@ const downloadCSV = (csvStr: string, fileName: string) => {
 }
 
 function PaymentsPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams()
+  const { toast } = useToast();
   const playerId = searchParams.get('playerId')
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
 
   // In a real app, this would likely be persisted in a database or state management solution
-  const [payments, setPayments] = React.useState<Payment[]>(allPayments);
+  const [payments, setPayments] = React.useState<Payment[]>(allPayments.map(p => ({...p, date: new Date(p.date)})));
 
-  const statusTranslations = {
+  const statusTranslations: { [key in Payment['status']]: string } = {
     'Paid': 'Payé',
     'Pending': 'En attente',
     'Overdue': 'En retard'
@@ -75,12 +79,35 @@ function PaymentsPageContent() {
     if (filteredPayments.length > 0) {
       const csvData = convertToCSV(filteredPayments.map(({ id, ...rest }) => ({ ...rest, date: rest.date.toISOString().split('T')[0] })));
       downloadCSV(csvData, `paiements-${new Date().toISOString().split('T')[0]}.csv`);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Aucune donnée à exporter",
+            description: "Il n'y a aucun paiement à exporter dans la vue actuelle.",
+        })
     }
   }
 
   const handleAddPayment = (newPayment: Omit<Payment, 'id'>) => {
     const paymentWithId = { ...newPayment, id: `p${payments.length + 1}` };
     setPayments([...payments, paymentWithId]);
+  }
+  
+  const handleMarkAsPaid = (paymentId: string) => {
+    setPayments(currentPayments =>
+      currentPayments.map(p =>
+        p.id === paymentId ? { ...p, status: 'Paid' } : p
+      )
+    );
+    const payment = payments.find(p => p.id === paymentId);
+    toast({
+        title: "Paiement mis à jour",
+        description: `Le paiement de ${payment?.playerName} a été marqué comme payé.`,
+    })
+  }
+
+  const handleViewPlayer = (playerId: string) => {
+    router.push(`/players/${playerId}`);
   }
 
   return (
@@ -126,16 +153,36 @@ function PaymentsPageContent() {
         </CardHeader>
         <CardContent>
             <TabsContent value="all">
-              <PaymentTable payments={filteredPayments} statusTranslations={statusTranslations} />
+              <PaymentTable 
+                payments={filteredPayments} 
+                statusTranslations={statusTranslations} 
+                onMarkAsPaid={handleMarkAsPaid} 
+                onViewPlayer={handleViewPlayer}
+              />
             </TabsContent>
             <TabsContent value="paid">
-              <PaymentTable payments={filteredPayments.filter(p => p.status === 'Paid')} statusTranslations={statusTranslations} />
+              <PaymentTable 
+                payments={filteredPayments.filter(p => p.status === 'Paid')} 
+                statusTranslations={statusTranslations}
+                onMarkAsPaid={handleMarkAsPaid} 
+                onViewPlayer={handleViewPlayer}
+              />
             </TabsContent>
             <TabsContent value="pending">
-              <PaymentTable payments={filteredPayments.filter(p => p.status === 'Pending')} statusTranslations={statusTranslations} />
+              <PaymentTable 
+                payments={filteredPayments.filter(p => p.status === 'Pending')} 
+                statusTranslations={statusTranslations}
+                onMarkAsPaid={handleMarkAsPaid} 
+                onViewPlayer={handleViewPlayer}
+              />
             </TabsContent>
             <TabsContent value="overdue">
-              <PaymentTable payments={filteredPayments.filter(p => p.status === 'Overdue')} statusTranslations={statusTranslations} />
+              <PaymentTable 
+                payments={filteredPayments.filter(p => p.status === 'Overdue')} 
+                statusTranslations={statusTranslations} 
+                onMarkAsPaid={handleMarkAsPaid} 
+                onViewPlayer={handleViewPlayer}
+              />
             </TabsContent>
         </CardContent>
         <CardFooter>
@@ -155,7 +202,15 @@ function PaymentsPageContent() {
   )
 }
 
-function PaymentTable({ payments, statusTranslations }: { payments: (typeof allPayments), statusTranslations: any }) {
+interface PaymentTableProps {
+  payments: Payment[];
+  statusTranslations: { [key in Payment['status']]: string };
+  onMarkAsPaid: (paymentId: string) => void;
+  onViewPlayer: (playerId: string) => void;
+}
+
+
+function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer }: PaymentTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -179,9 +234,9 @@ function PaymentTable({ payments, statusTranslations }: { payments: (typeof allP
             <TableCell>
               <Badge 
                 className={cn({
-                  'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80': payment.status === 'Paid',
-                  'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80': payment.status === 'Pending',
-                  'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80': payment.status === 'Overdue'
+                  'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
+                  'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
+                  'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
                 })}
               >
                 {statusTranslations[payment.status]}
@@ -191,7 +246,7 @@ function PaymentTable({ payments, statusTranslations }: { payments: (typeof allP
               ${payment.amount.toFixed(2)}
             </TableCell>
             <TableCell className="hidden md:table-cell">
-              {payment.date.toLocaleDateString('fr-FR')}
+              {new Date(payment.date).toLocaleDateString('fr-FR')}
             </TableCell>
             <TableCell>
               <DropdownMenu>
@@ -207,8 +262,10 @@ function PaymentTable({ payments, statusTranslations }: { payments: (typeof allP
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem>Voir les détails</DropdownMenuItem>
-                  <DropdownMenuItem>Marquer comme payé</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewPlayer(payment.playerId)}>Voir le joueur</DropdownMenuItem>
+                  {payment.status !== 'Paid' && (
+                    <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
