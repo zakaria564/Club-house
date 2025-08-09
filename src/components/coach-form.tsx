@@ -68,7 +68,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
 
   const defaultValues: Partial<CoachFormValues> = coach ? { 
     ...coach,
-    dateOfBirth: new Date(coach.dateOfBirth),
+    dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : undefined,
    } : {
       id: getNextId(coaches),
       firstName: '',
@@ -95,17 +95,18 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     if (coach) {
       form.reset({ 
           ...coach,
-          dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : new Date(),
+          dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : undefined,
       });
        setPhotoPreview(coach.photoUrl || 'https://placehold.co/200x200.png');
     } else {
       form.reset({
         ...defaultValues,
+        id: getNextId(coaches),
         dateOfBirth: undefined,
       } as CoachFormValues);
       setPhotoPreview('https://placehold.co/200x200.png');
     }
-  }, [coach, form, defaultValues]);
+  }, [coach, form, coaches]);
 
 
   function onSubmit(data: CoachFormValues) {
