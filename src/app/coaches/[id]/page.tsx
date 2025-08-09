@@ -113,15 +113,15 @@ export default function CoachDetailPage() {
         <PageHeader title="Fiche de l'Entraîneur">
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Retour
             </Button>
             <Button onClick={() => setCoachDialogOpen(true)}>
-              <Edit className="mr-2" />
+              <Edit className="mr-2 h-4 w-4" />
               Modifier
             </Button>
             <Button onClick={handlePrint}>
-              <Printer className="mr-2" />
+              <Printer className="mr-2 h-4 w-4" />
               Imprimer
             </Button>
           </div>
