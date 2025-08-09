@@ -33,7 +33,7 @@ export function MainSidebar() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <Image src="https://i.ibb.co/3kL2vC6/logo.png" alt="logo" width={32} height={32} />
+          <Image src="https://i.ibb.co/9v0F7Yc/logo.png" alt="logo" width={32} height={32} />
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold font-headline">
               Clubhouse Hub
