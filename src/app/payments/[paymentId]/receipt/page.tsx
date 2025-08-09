@@ -85,16 +85,19 @@ const ReceiptPage = () => {
   
   React.useEffect(() => {
     if (payment && member) {
+      const originalTitle = document.title;
+      document.title = payment.memberType === 'coach' ? 'Attestation de Paiement' : 'Reçu de Paiement';
       document.body.classList.add('print-receipt');
       setTimeout(() => {
         window.print();
         // window.close(); // Optional: close tab after print dialog
       }, 500);
-    }
-    
-    // Cleanup function to remove the class when the component unmounts
-    return () => {
-      document.body.classList.remove('print-receipt');
+      
+      // Cleanup function
+      return () => {
+        document.title = originalTitle;
+        document.body.classList.remove('print-receipt');
+      }
     }
   }, [payment, member]);
 
@@ -212,3 +215,5 @@ export default function ReceiptPageWrapper() {
     </React.Suspense>
   )
 }
+
+    
