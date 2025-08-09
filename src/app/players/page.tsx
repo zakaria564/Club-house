@@ -156,7 +156,7 @@ export default function PlayersPage() {
               </TableHeader>
               <TableBody>
                 {filteredPlayers.map(player => (
-                  <TableRow key={player.id}>
+                  <TableRow key={player.id} onClick={() => handleEditPlayer(player)} className="cursor-pointer">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
