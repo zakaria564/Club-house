@@ -77,6 +77,18 @@ export function MainSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/coaches")}
+              tooltip="Entraîneurs"
+            >
+              <Link href="/coaches">
+                <Shield />
+                <span>Entraîneurs</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild

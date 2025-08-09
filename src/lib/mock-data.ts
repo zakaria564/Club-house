@@ -1,5 +1,5 @@
 
-import type { Player, Payment, ClubEvent } from "@/types";
+import type { Player, Payment, ClubEvent, Coach } from "@/types";
 
 export const players: Player[] = [
   { 
@@ -144,4 +144,43 @@ export const clubEvents: ClubEvent[] = [
   { id: 'e2', title: 'Entraînement U15', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 1)) },
   { id: 'e3', title: 'Entraînement équipe senior', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 2)) },
   { id: 'e4', title: 'Tournoi U11', type: 'Match', date: new Date(new Date().setDate(new Date().getDate() + 10)) },
+];
+
+export const coaches: Coach[] = [
+  {
+    id: 'c1',
+    firstName: 'Didier',
+    lastName: 'Deschamps',
+    email: 'didier.d@example.com',
+    phone: '0611223344',
+    specialty: 'Entraîneur principal (Senior)',
+    photoUrl: 'https://placehold.co/100x100.png',
+  },
+  {
+    id: 'c2',
+    firstName: 'Zinedine',
+    lastName: 'Zidane',
+    email: 'zizou@example.com',
+    phone: '0622334455',
+    specialty: 'Entraîneur adjoint (Technique)',
+    photoUrl: 'https://placehold.co/100x100.png',
+  },
+  {
+    id: 'c3',
+    firstName: 'Hervé',
+    lastName: 'Renard',
+    email: 'herve.r@example.com',
+    phone: '0633445566',
+    specialty: 'Entraîneur (U17 & U19)',
+    photoUrl: 'https://placehold.co/100x100.png',
+  },
+  {
+    id: 'c4',
+    firstName: 'Corinne',
+    lastName: 'Diacre',
+    email: 'corinne.d@example.com',
+    phone: '0644556677',
+    specialty: 'Entraîneur (Équipes féminines)',
+    photoUrl: 'https://placehold.co/100x100.png',
+  }
 ];

@@ -36,3 +36,13 @@ export type ClubEvent = {
   date: Date;
   description?: string;
 };
+
+export type Coach = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  specialty: string;
+  photoUrl: string;
+};
