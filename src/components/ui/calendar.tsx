@@ -2,10 +2,12 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, DropdownProps } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
+import { ScrollArea } from "./scroll-area"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -61,6 +63,58 @@ function Calendar({
         IconRight: ({ className, ...props }) => (
           <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
+        Dropdown: (props: DropdownProps) => {
+          const { fromYear, toYear, fromMonth, toMonth, fromDate, toDate } = props
+          const options: { label: string, value: string }[] = []
+          if (props.name === "months") {
+            options.push(
+              ...Array.from({ length: 12 }, (_, i) => ({
+                label: format(new Date(new Date().getFullYear(), i, 1), "MMMM"),
+                value: i.toString(),
+              }))
+            )
+          } else if (props.name === "years") {
+            const earliestYear = fromYear || fromDate?.getFullYear() || new Date().getFullYear()
+            const latestYear = toYear || toDate?.getFullYear() || new Date().getFullYear()
+            if (earliestYear && latestYear) {
+              for (let i = latestYear; i >= earliestYear; i--) {
+                options.push({ label: i.toString(), value: i.toString() })
+              }
+            }
+          }
+
+          const { name, onChange, value } = props
+          return (
+            <Select
+              onValueChange={(newValue) => {
+                if (onChange) {
+                  const event = {
+                    target: { value: newValue },
+                  } as React.ChangeEvent<HTMLSelectElement>
+                  onChange(event)
+                }
+              }}
+              value={value?.toString()}
+            >
+              <SelectTrigger className="h-7 w-20 text-xs">
+                <SelectValue placeholder={name === 'years' ? 'Année' : 'Mois'}>
+                  {name === 'months'
+                    ? format(new Date(new Date().getFullYear(), Number(value), 1), 'MMMM')
+                    : value}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <ScrollArea className="h-48">
+                  {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </ScrollArea>
+              </SelectContent>
+            </Select>
+          )
+        },
       }}
       captionLayout="dropdown-buttons"
       fromYear={1950}
@@ -71,4 +125,11 @@ function Calendar({
 }
 Calendar.displayName = "Calendar"
 
+// Helper function to format month name, assuming locale is already loaded
+function format(date: Date, fmt: string) {
+  return date.toLocaleString('fr-FR', { month: 'long' })
+}
+
 export { Calendar }
+
+    
