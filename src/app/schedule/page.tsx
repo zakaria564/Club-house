@@ -227,7 +227,7 @@ export default function SchedulePage() {
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                           <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-2 right-2 transition-opacity">
                             <MoreVertical className="h-4 w-4" />
                             <span className="sr-only">Ouvrir le menu</span>
                            </Button>
@@ -521,5 +521,3 @@ function EventTypeCombobox({ value, onValueChange }: { value: string, onValueCha
     </Popover>
   )
 }
-
-    
