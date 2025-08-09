@@ -32,7 +32,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-body antialiased",
+          "min-h-screen font-body antialiased",
           fontPoppins.variable,
           fontPTSans.variable
         )}
@@ -42,7 +42,7 @@ export default function RootLayout({
             <MainSidebar />
           </Sidebar>
           <SidebarInset>
-            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-sm min-h-screen">
+            <div className="p-4 sm:p-6 lg:p-8">
               {children}
             </div>
           </SidebarInset>
