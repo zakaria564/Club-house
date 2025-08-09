@@ -50,22 +50,8 @@ export default function Dashboard() {
         }
     } catch (error) {
         console.error("Failed to parse players from localStorage", error);
-        // Keep initial players if there's an error
     }
   }, []);
-
-
-  const recentPlayers = React.useMemo(() => {
-    if (!isClient) {
-      // Return a sorted list based on initial data for SSR to match client
-      return [...initialPlayers.map(parsePlayerDates)]
-        .sort((a, b) => b.clubEntryDate.getTime() - a.clubEntryDate.getTime())
-        .slice(0, 5);
-    }
-    return [...players]
-      .sort((a, b) => b.clubEntryDate.getTime() - a.clubEntryDate.getTime())
-      .slice(0, 5);
-  }, [players, isClient]);
 
   const totalPlayers = isClient ? players.length : initialPlayers.length;
 
@@ -114,8 +100,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-6">
-        <Card className="lg:col-span-4">
+      <div className="grid gap-4 mt-6">
+        <Card>
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
             <CardDescription>Nombre de joueurs par catégorie.</CardDescription>
@@ -137,33 +123,6 @@ export default function Dashboard() {
                   </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Derniers Inscrits</CardTitle>
-            <CardDescription>Les derniers joueurs ayant rejoint le club.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-                {recentPlayers.map(player => (
-                    <div key={player.id} className="flex items-center">
-                        <Avatar className="h-9 w-9">
-                            <AvatarImage src={player.photoUrl} alt="Avatar" data-ai-hint="player profile" />
-                            <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="ml-4 space-y-1">
-                            <p className="text-sm font-medium leading-none">{player.firstName} {player.lastName}</p>
-                            <p className="text-sm text-muted-foreground">{player.category}</p>
-                        </div>
-                        <div className="ml-auto">
-                            <Button asChild variant="ghost" size="sm">
-                                <Link href={`/players/${player.id}`}>Voir</Link>
-                            </Button>
-                        </div>
-                    </div>
-                ))}
-            </div>
           </CardContent>
         </Card>
       </div>
