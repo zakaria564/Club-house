@@ -32,6 +32,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 
 const eventTypes = [
     { value: "Match", label: "Match" },
@@ -49,18 +50,58 @@ const eventTypeColors: { [key in ClubEvent['type']]: string } = {
   'Autre': 'bg-gray-500',
 };
 
+const parseEventDates = (event: any): ClubEvent => ({
+  ...event,
+  date: new Date(event.date),
+});
+
 export default function SchedulePage() {
   const router = useRouter();
   const [date, setDate] = React.useState<Date | undefined>(new Date())
-  const [events, setEvents] = React.useState<ClubEvent[]>(initialClubEvents)
+  const [events, setEvents] = React.useState<ClubEvent[]>([])
   const [isAddEventOpen, setAddEventOpen] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
+  
+  React.useEffect(() => {
+      setIsClient(true);
+      try {
+        const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
+        let storedEvents: ClubEvent[] = [];
+        if (storedEventsRaw) {
+            storedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
+        }
+        
+        const initialEventsWithDates = initialClubEvents.map(parseEventDates);
+        const allEventsMap = new Map<string, ClubEvent>();
+
+        initialEventsWithDates.forEach(e => allEventsMap.set(e.id, e));
+        storedEvents.forEach(e => allEventsMap.set(e.id, e)); 
+
+        const mergedEvents = Array.from(allEventsMap.values());
+        setEvents(mergedEvents);
+
+    } catch (error) {
+        console.error("Failed to load or merge events:", error);
+        setEvents(initialClubEvents.map(parseEventDates));
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+        if (isClient) {
+          localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(events));
+        }
+    } catch (error) {
+        console.error("Failed to save events to localStorage", error);
+    }
+  }, [events, isClient]);
 
   const selectedDayEvents = events.filter(
     (event) => date && format(new Date(event.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
   ).sort((a,b) => a.time.localeCompare(b.time));
 
   const handleAddEvent = (newEvent: Omit<ClubEvent, 'id'>) => {
-    const eventWithId = { ...newEvent, id: `e${events.length + 1}`};
+    const eventWithId = { ...newEvent, id: `e${Date.now()}`};
     setEvents([...events, eventWithId]);
   }
   
@@ -402,5 +443,3 @@ function EventTypeCombobox({ value, onValueChange }: { value: string, onValueCha
     </Popover>
   )
 }
-
-    
