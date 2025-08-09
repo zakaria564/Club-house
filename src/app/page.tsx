@@ -6,13 +6,16 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, Search, PlusCircle } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { players as initialPlayers } from '@/lib/mock-data'
 import type { Player } from '@/types'
 import AddPlayerDialog from "@/components/add-player-dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
@@ -45,7 +48,10 @@ export default function Dashboard() {
   const [players, setPlayers] = React.useState<Player[]>(initialPlayers.map(parsePlayerDates));
   const [isClient, setIsClient] = React.useState(false)
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
+  
+  const [openCombobox, setOpenCombobox] = React.useState(false)
+  const [selectedPlayerId, setSelectedPlayerId] = React.useState<string | null>(null)
+
 
   React.useEffect(() => {
     setIsClient(true)
@@ -83,17 +89,11 @@ export default function Dashboard() {
     });
   };
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      router.push(`/players?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-  
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleSearch();
-    }
-  };
+  const handlePlayerSelect = (playerId: string) => {
+    setSelectedPlayerId(playerId);
+    router.push(`/players/${playerId}`);
+    setOpenCombobox(false);
+  }
 
   const totalPlayers = isClient ? players.length : initialPlayers.length;
 
@@ -101,16 +101,47 @@ export default function Dashboard() {
     <>
       <PageHeader title="Tableau de bord">
         <div className="flex items-center gap-2">
-            <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Rechercher un joueur..." 
-                    className="pl-8"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                />
-            </div>
+            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                <PopoverTrigger asChild>
+                    <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openCombobox}
+                    className="w-[200px] justify-between"
+                    >
+                    {selectedPlayerId
+                        ? players.find((player) => player.id === selectedPlayerId)?.firstName + ' ' + players.find((player) => player.id === selectedPlayerId)?.lastName
+                        : "Rechercher un joueur..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                    <CommandInput placeholder="Rechercher un joueur..." />
+                    <CommandList>
+                        <CommandEmpty>Aucun joueur trouvé.</CommandEmpty>
+                        <CommandGroup>
+                        {players.map((player) => (
+                            <CommandItem
+                            key={player.id}
+                            value={`${player.firstName} ${player.lastName}`}
+                            onSelect={() => handlePlayerSelect(player.id)}
+                            >
+                            <Check
+                                className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedPlayerId === player.id ? "opacity-100" : "opacity-0"
+                                )}
+                            />
+                            {player.firstName} {player.lastName}
+                            </CommandItem>
+                        ))}
+                        </CommandGroup>
+                    </CommandList>
+                    </Command>
+                </PopoverContent>
+            </Popover>
+
             <Button onClick={() => setPlayerDialogOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Ajouter un joueur
