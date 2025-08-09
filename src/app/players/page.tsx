@@ -149,7 +149,7 @@ export default function PlayersPage() {
             </TableHeader>
             <TableBody>
               {filteredPlayers.map(player => (
-                <TableRow key={player.id}>
+                <TableRow key={player.id} className="cursor-pointer" onClick={() => handleEditPlayer(player)}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -171,7 +171,7 @@ export default function PlayersPage() {
                   <TableCell className="hidden md:table-cell">
                     {player.id}
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
