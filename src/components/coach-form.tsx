@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
 const coachFormSchema = z.object({
   id: z.string().min(1, "L'ID est requis."),
@@ -31,6 +32,9 @@ const coachFormSchema = z.object({
   phone: z.string().min(1, "Le téléphone est requis."),
   specialty: z.string().min(2, "La spécialité est requise."),
   photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional(),
+  gender: z.enum(["Homme", "Femme"], { required_error: "Veuillez sélectionner un genre." }),
+  country: z.string().min(2, "Le pays est requis."),
+  city: z.string().min(2, "La ville est requise."),
 })
 
 type CoachFormValues = z.infer<typeof coachFormSchema>
@@ -54,9 +58,7 @@ const getNextId = (coaches: Coach[]) => {
 export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
   const { toast } = useToast()
 
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    defaultValues: coach ? { ...coach } : {
+  const defaultValues: CoachFormValues = coach ? { ...coach } : {
       id: getNextId(coaches),
       firstName: '',
       lastName: '',
@@ -64,7 +66,14 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       phone: '',
       specialty: '',
       photoUrl: 'https://placehold.co/200x200.png',
-    },
+      gender: undefined,
+      country: '',
+      city: ''
+  };
+
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    defaultValues,
   })
 
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(form.watch('photoUrl') || null);
@@ -74,15 +83,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       form.reset({ ...coach });
        setPhotoPreview(coach.photoUrl || 'https://placehold.co/200x200.png');
     } else {
-      form.reset({
-        id: getNextId(coaches),
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        specialty: '',
-        photoUrl: 'https://placehold.co/200x200.png',
-      });
+      form.reset(defaultValues);
       setPhotoPreview('https://placehold.co/200x200.png');
     }
   }, [coach, form, coaches]);
@@ -164,7 +165,53 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                           </FormItem>
                         )}
                       />
-                      
+                      <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Genre</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Sélectionnez un genre" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Homme">Homme</SelectItem>
+                                <SelectItem value="Femme">Femme</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Pays</FormLabel>
+                            <FormControl>
+                              <Input placeholder="France" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ville</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Paris" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={form.control}
                         name="email"

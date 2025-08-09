@@ -155,6 +155,9 @@ export const coaches: Coach[] = [
     phone: '0611223344',
     specialty: 'Entraîneur principal (Senior)',
     photoUrl: 'https://placehold.co/100x100.png',
+    gender: 'Homme',
+    country: 'France',
+    city: 'Bayonne'
   },
   {
     id: 'c2',
@@ -164,6 +167,9 @@ export const coaches: Coach[] = [
     phone: '0622334455',
     specialty: 'Entraîneur adjoint (Technique)',
     photoUrl: 'https://placehold.co/100x100.png',
+    gender: 'Homme',
+    country: 'France',
+    city: 'Marseille'
   },
   {
     id: 'c3',
@@ -173,6 +179,9 @@ export const coaches: Coach[] = [
     phone: '0633445566',
     specialty: 'Entraîneur (U17 & U19)',
     photoUrl: 'https://placehold.co/100x100.png',
+    gender: 'Homme',
+    country: 'France',
+    city: 'Aix-les-Bains'
   },
   {
     id: 'c4',
@@ -182,5 +191,8 @@ export const coaches: Coach[] = [
     phone: '0644556677',
     specialty: 'Entraîneur (Équipes féminines)',
     photoUrl: 'https://placehold.co/100x100.png',
+    gender: 'Femme',
+    country: 'France',
+    city: 'Croix'
   }
 ];

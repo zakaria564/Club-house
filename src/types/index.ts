@@ -45,4 +45,7 @@ export type Coach = {
   phone: string;
   specialty: string;
   photoUrl: string;
+  gender: 'Homme' | 'Femme';
+  country: string;
+  city: string;
 };

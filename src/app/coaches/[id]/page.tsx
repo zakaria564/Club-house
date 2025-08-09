@@ -128,7 +128,24 @@ export default function CoachDetailPage() {
                 </div>
             </div>
           </CardHeader>
-          <CardContent className="mt-6">
+          <CardContent className="mt-6 space-y-6">
+             <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-[120px,1fr] gap-1">
+                    <span className="font-medium text-muted-foreground">Genre:</span>
+                    <span>{coach.gender}</span>
+                  </div>
+                  <div className="grid grid-cols-[120px,1fr] gap-1">
+                    <span className="font-medium text-muted-foreground">Ville:</span>
+                    <span>{coach.city}</span>
+                  </div>
+                   <div className="grid grid-cols-[120px,1fr] gap-1">
+                    <span className="font-medium text-muted-foreground">Pays:</span>
+                    <span>{coach.country}</span>
+                  </div>
+                </div>
+              </div>
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations de Contact</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
