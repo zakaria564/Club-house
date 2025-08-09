@@ -55,6 +55,23 @@ const getNextId = (coaches: Coach[]) => {
     return `c${maxId >= 0 ? maxId + 1 : 1}`;
 };
 
+const specialties = [
+    "Directeur technique",
+    "Entraîneur principal (Senior)",
+    "Entraîneur adjoint",
+    "Entraîneur des gardiens",
+    "Préparateur physique",
+    "Analyste vidéo",
+    "Entraîneur (Équipes féminines)",
+    "Entraîneur (U23)",
+    "Entraîneur (U19)",
+    "Entraîneur (U17)",
+    "Entraîneur (U15)",
+    "Entraîneur (U13)",
+    "Entraîneur (U11)",
+    "Entraîneur (U9)",
+    "Entraîneur (U7)",
+]
 
 export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
   const { toast } = useToast()
@@ -143,9 +160,18 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Spécialité</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Entraîneur principal" {...field} />
-                            </FormControl>
+                             <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionnez une spécialité" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {specialties.map(specialty => (
+                                      <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             <FormMessage />
                           </FormItem>
                         )}
