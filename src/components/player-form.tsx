@@ -49,7 +49,7 @@ const playerFormSchema = z.object({
   clubEntryDate: z.date({
     required_error: "Une date d'entrée est requise.",
   }),
-  clubExitDate: z.date().optional(),
+  clubExitDate: z.date().optional().nullable(),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -66,32 +66,37 @@ const getNextId = (players: Player[]) => {
       return "1";
     }
     const maxId = Math.max(...players.map(p => parseInt(p.id, 10)).filter(id => !isNaN(id)));
-    return (maxId + 1).toString();
+    return (maxId >= 0 ? maxId + 1 : 1).toString();
 };
 
 const positions = [
     "Gardien de but",
     "Défenseur central",
-    "Arrière latéral",
+    "Arrière latéral gauche",
+    "Arrière latéral droit",
     "Milieu défensif",
+    "Milieu central",
     "Milieu relayeur",
     "Milieu offensif",
-    "Ailier",
-    "Attaquant",
+    "Ailier gauche",
+    "Ailier droit",
+    "Attaquant de pointe",
+    "Attaquant de soutien"
 ]
 
-const categories = ["U9", "U11", "U13", "U15", "U17", "Senior"]
+const categories = ["U7", "U9", "U11", "U13", "U15", "U17", "Senior", "Vétéran"]
 
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
-  
+  const originalId = React.useRef(player?.id);
+
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
     defaultValues: player ? {
       ...player,
       dateOfBirth: new Date(player.dateOfBirth),
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
-      clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+      clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
     } : {
       id: getNextId(players),
       firstName: '',
@@ -108,12 +113,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       position: '',
       playerNumber: '' as any,
       clubEntryDate: new Date(),
-      clubExitDate: undefined,
+      clubExitDate: null,
     },
   })
 
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(form.watch('photoUrl') || null);
-  const originalId = React.useRef(player?.id);
 
 
   React.useEffect(() => {
@@ -123,7 +127,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         ...player,
         dateOfBirth: new Date(player.dateOfBirth),
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
-        clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+        clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
       });
        setPhotoPreview(player.photoUrl || 'https://placehold.co/200x200.png');
     } else {
@@ -144,7 +148,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         position: '',
         playerNumber: '' as any,
         clubEntryDate: new Date(),
-        clubExitDate: undefined,
+        clubExitDate: null,
       });
       setPhotoPreview('https://placehold.co/200x200.png');
     }
@@ -156,7 +160,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
     const newPlayerData: Player = {
         ...data,
-        id: isEditing ? originalId.current! : getNextId(players),
+        id: isEditing ? originalId.current! : data.id,
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
@@ -342,7 +346,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             {field.value ? (
                               format(field.value, "PPP", { locale: fr })
                             ) : (
-                              <span>Choisissez une date</span>
+                              <span>Choisissez une date (optionnel)</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -351,7 +355,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                           onSelect={field.onChange}
                           initialFocus
                           locale={fr}
