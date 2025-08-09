@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ArrowLeft, Edit, Printer } from 'lucide-react';
@@ -24,9 +24,10 @@ const parsePlayerDates = (player: any): Player => ({
 
 const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 
-export default function PlayerDetailPage({ params }: { params: { id: string } }) {
+export default function PlayerDetailPage() {
   const router = useRouter();
-  const { id: playerId } = params;
+  const params = useParams();
+  const playerId = params.id as string;
 
   const [players, setPlayers] = React.useState<Player[]>(() => {
     if (typeof window === 'undefined') {
