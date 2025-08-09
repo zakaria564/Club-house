@@ -131,7 +131,7 @@ export default function SchedulePage() {
                        <div className={`absolute top-3 left-[-5px] h-3/4 w-1.5 rounded-r-full ${eventTypeColors[event.type]}`} />
                       <div className="pl-4 flex-grow">
                         <div className="flex justify-between items-start">
-                           <h3 className="font-semibold">{event.type === 'Match' ? `Club CAOS 2011 vs. ${event.opponent}` : event.title}</h3>
+                           <h3 className="font-semibold">{event.title}</h3>
                            <Badge variant="secondary" className={cn("capitalize", eventTypeColors[event.type], "text-white")}>{event.type}</Badge>
                         </div>
                          {event.category && (
@@ -233,7 +233,7 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
 
         if (type === 'Match') {
             eventData.opponent = opponent;
-            eventData.title = `Club CAOS 2011 vs. ${opponent}`;
+            eventData.title = `CAOS vs. ${opponent}`;
         }
 
 
@@ -402,3 +402,5 @@ function EventTypeCombobox({ value, onValueChange }: { value: string, onValueCha
     </Popover>
   )
 }
+
+    
