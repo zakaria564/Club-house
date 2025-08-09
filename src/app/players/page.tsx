@@ -31,15 +31,12 @@ const LOCAL_STORAGE_KEY = 'clubhouse-players';
 export default function PlayersPage() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(() => {
-    // We need to check for window because this is a client component
-    // but it still gets rendered on the server first.
     if (typeof window === 'undefined') {
       return initialPlayers;
     }
     try {
         const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (storedPlayers) {
-            // Need to parse dates back from strings
             return JSON.parse(storedPlayers).map((p: Player) => ({...p, dateOfBirth: new Date(p.dateOfBirth)}));
         }
     } catch (error) {
@@ -53,7 +50,6 @@ export default function PlayersPage() {
   const [selectedPlayer, setSelectedPlayer] = React.useState<Player | null>(null);
   const [playerToDelete, setPlayerToDelete] = React.useState<string | null>(null);
 
-  // Effect to update localStorage whenever players change
   React.useEffect(() => {
     try {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(players));
@@ -63,7 +59,6 @@ export default function PlayersPage() {
   }, [players]);
 
   const handlePrint = () => {
-    // Une fonction d'impression plus sophistiquée formaterait mieux cela.
     window.print();
   }
 
@@ -96,12 +91,10 @@ export default function PlayersPage() {
     setPlayers(prevPlayers => {
         const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
         if (existingPlayerIndex > -1) {
-            // Update existing player
             const newPlayers = [...prevPlayers];
             newPlayers[existingPlayerIndex] = updatedPlayer;
             return newPlayers;
         } else {
-            // Add new player
             return [...prevPlayers, updatedPlayer];
         }
     });
@@ -146,7 +139,9 @@ export default function PlayersPage() {
               <TableRow>
                 <TableHead>Nom</TableHead>
                 <TableHead>Catégorie</TableHead>
-                <TableHead className="hidden md:table-cell">Date de naissance</TableHead>
+                <TableHead className="hidden md:table-cell">Poste</TableHead>
+                <TableHead className="hidden md:table-cell">N°</TableHead>
+                <TableHead className="hidden md:table-cell">ID Joueur</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -168,7 +163,13 @@ export default function PlayersPage() {
                     <Badge variant="secondary">{player.category}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Date(player.dateOfBirth).toLocaleDateString('fr-FR')}
+                    {player.position}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {player.playerNumber}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {player.id}
                   </TableCell>
                   <TableCell>
                       <DropdownMenu>

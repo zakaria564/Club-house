@@ -32,11 +32,19 @@ const playerFormSchema = z.object({
   id: z.string().optional(),
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
+  email: z.string().email({ message: "Adresse e-mail invalide." }),
   dateOfBirth: z.date({
     required_error: "Une date de naissance est requise.",
   }),
   category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
   photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional(),
+  address: z.string().min(1, "L'adresse est requise."),
+  city: z.string().min(1, "La ville est requise."),
+  phone: z.string().min(1, "Le téléphone est requis."),
+  guardianName: z.string().min(1, "Le nom du tuteur est requis."),
+  guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
+  position: z.string().min(1, "Le poste est requis."),
+  playerNumber: z.coerce.number().min(1, "Le numéro de joueur est requis."),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -58,9 +66,17 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     } : {
       firstName: '',
       lastName: '',
+      email: '',
       dateOfBirth: undefined,
       category: '',
       photoUrl: 'https://placehold.co/200x200.png',
+      address: '',
+      city: '',
+      phone: '',
+      guardianName: '',
+      guardianPhone: '',
+      position: '',
+      playerNumber: undefined,
     },
   })
 
@@ -75,9 +91,17 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         id: undefined,
         firstName: '',
         lastName: '',
+        email: '',
         dateOfBirth: undefined,
         category: '',
         photoUrl: 'https://placehold.co/200x200.png',
+        address: '',
+        city: '',
+        phone: '',
+        guardianName: '',
+        guardianPhone: '',
+        position: '',
+        playerNumber: undefined,
       });
     }
   }, [player, form]);
@@ -92,6 +116,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         dateOfBirth: data.dateOfBirth,
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
+        playerNumber: Number(data.playerNumber),
     };
     
     onSave(newPlayerData);
@@ -105,8 +130,8 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="flex items-start gap-8">
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col md:flex-row items-start gap-8">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="firstName"
@@ -128,6 +153,19 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                   <FormLabel>Nom de famille</FormLabel>
                   <FormControl>
                     <Input placeholder="Dupont" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="jean.dupont@email.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -177,6 +215,71 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
             />
             <FormField
               control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Adresse</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Rue de la République" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ville</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Paris" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Téléphone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="06 12 34 56 78" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="guardianName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom Tuteur</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Jacques Dupont" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="guardianPhone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Téléphone Tuteur</FormLabel>
+                  <FormControl>
+                    <Input placeholder="07 87 65 43 21" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
               name="category"
               render={({ field }) => (
                 <FormItem>
@@ -200,8 +303,34 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="position"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Poste</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Attaquant" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="playerNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>N° Joueur</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="10" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 mt-4 md:mt-0">
             <FormLabel>Photo de profil</FormLabel>
             <div className="relative group">
               <Avatar className="h-32 w-32">

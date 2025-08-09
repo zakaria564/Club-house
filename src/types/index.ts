@@ -5,6 +5,14 @@ export type Player = {
   dateOfBirth: Date;
   category: 'U9' | 'U11' | 'U13' | 'U15' | 'U17' | 'Senior';
   photoUrl: string;
+  address: string;
+  city: string;
+  phone: string;
+  guardianName: string;
+  guardianPhone: string;
+  position: string;
+  playerNumber: number;
+  email: string;
 };
 
 export type Payment = {
