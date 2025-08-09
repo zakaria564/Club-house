@@ -58,9 +58,10 @@ interface PlayerFormProps {
   onFinished: () => void;
   onSave: (player: Player) => void;
   player?: Player | null;
+  players: Player[];
 }
 
-export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
+export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   
   const form = useForm<PlayerFormValues>({
@@ -123,9 +124,17 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
   function onSubmit(data: PlayerFormValues) {
     const isEditing = !!player;
 
+    const getNextId = () => {
+      if (!players || players.length === 0) {
+        return "1";
+      }
+      const maxId = Math.max(...players.map(p => parseInt(p.id, 10)));
+      return (maxId + 1).toString();
+    }
+
     const newPlayerData: Player = {
         ...data,
-        id: player?.id || `p${Date.now()}`,
+        id: player?.id || getNextId(),
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],

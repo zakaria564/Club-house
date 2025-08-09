@@ -1,3 +1,4 @@
+
 import type { Player, Payment, ClubEvent } from "@/types";
 
 export const players: Player[] = [
