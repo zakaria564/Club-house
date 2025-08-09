@@ -2,7 +2,8 @@
 "use client"
 
 import * as React from "react"
-import { format, fr } from "date-fns"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
