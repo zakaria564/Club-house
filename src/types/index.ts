@@ -3,7 +3,7 @@ export type Player = {
   firstName: string;
   lastName: string;
   dateOfBirth: Date;
-  category: 'U7' | 'U9' | 'U11' | 'U13' | 'U15' | 'U17' | 'U19' | 'U23' | 'Senior' | 'Vétéran';
+  category: 'U7' | 'U9' | 'U11' | 'U13' | 'U14' | 'U15' | 'U16' | 'U17' | 'U18' | 'U19' | 'U20' | 'U23' | 'Senior' | 'Vétéran';
   photoUrl: string;
   address: string;
   city: string;
@@ -35,3 +35,5 @@ export type ClubEvent = {
   date: Date;
   description?: string;
 };
+
+    

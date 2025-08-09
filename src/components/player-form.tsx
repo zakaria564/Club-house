@@ -84,7 +84,7 @@ const positions = [
     "Attaquant de soutien"
 ]
 
-const categories = ["U7", "U9", "U11", "U13", "U15", "U17", "U19", "U23", "Senior", "Vétéran"]
+const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"]
 
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
@@ -160,7 +160,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
     const newPlayerData: Player = {
         ...data,
-        id: isEditing ? originalId.current! : data.id,
+        id: data.id,
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
@@ -168,11 +168,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: new Date(data.clubEntryDate),
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
     };
-    
-    if(isEditing) {
-        newPlayerData.id = data.id;
-    }
-
 
     onSave(newPlayerData);
 
