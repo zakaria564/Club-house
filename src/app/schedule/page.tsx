@@ -30,6 +30,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 
 const eventTypes = [
@@ -166,9 +167,21 @@ interface AddEventDialogProps {
   onAddEvent: (event: Omit<ClubEvent, 'id'>) => void;
 }
 
+
+const eventTitleTemplates: Record<ClubEvent['type'], string[]> = {
+    'Match': ['Match de championnat', 'Match amical', 'Match de coupe', 'Autre...'],
+    'Entraînement': ['Entraînement technique', 'Entraînement tactique', 'Entraînement physique', 'Entraînement des gardiens', 'Autre...'],
+    'Réunion': ["Réunion d'équipe", "Réunion des éducateurs", "Réunion du comité directeur", 'Autre...'],
+    'Événement': ['Tournoi', 'Journée portes ouvertes', 'Soirée du club', 'Stage de vacances', 'Autre...'],
+    'Autre': ['Autre...'],
+};
+
+const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran", "Éducateurs", "Tous les membres"];
+
 function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps) {
     const { toast } = useToast();
     const [title, setTitle] = React.useState("");
+    const [customTitle, setCustomTitle] = React.useState("");
     const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [time, setTime] = React.useState("");
     const [location, setLocation] = React.useState("");
@@ -176,8 +189,27 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
     const [description, setDescription] = React.useState("");
     const [type, setType] = React.useState<ClubEvent['type'] | "">("");
 
+    const titleOptions = type ? eventTitleTemplates[type] : [];
+
+    React.useEffect(() => {
+        setTitle(""); // Reset title when type changes
+    }, [type]);
+
+    const resetForm = () => {
+        setTitle("");
+        setCustomTitle("");
+        setDate(new Date());
+        setTime("");
+        setLocation("");
+        setCategory("");
+        setDescription("");
+        setType("");
+    }
+
     const handleSubmit = () => {
-        if (!title || !date || !type || !time || !location) {
+        const finalTitle = title === "Autre..." ? customTitle : title;
+
+        if (!finalTitle || !date || !type || !time || !location) {
             toast({
                 variant: "destructive",
                 title: "Informations manquantes",
@@ -185,20 +217,13 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
             })
             return;
         }
-        onAddEvent({ title, date, type, time, location, category, description });
+        onAddEvent({ title: finalTitle, date, type, time, location, category, description });
         toast({
             title: "Événement créé",
-            description: `"${title}" a été ajouté au calendrier avec succès.`,
+            description: `"${finalTitle}" a été ajouté au calendrier avec succès.`,
         });
         onOpenChange(false);
-        // Reset form
-        setTitle("");
-        setDate(new Date());
-        setTime("");
-        setLocation("");
-        setCategory("");
-        setDescription("");
-        setType("");
+        resetForm();
     }
 
     return (
@@ -217,14 +242,32 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                 </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Type</Label>
+                        <EventTypeCombobox value={type} onValueChange={(value) => setType(value as ClubEvent['type'] | "")} />
+                    </div>
+
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="title" className="text-right">Titre</Label>
-                        <Input id="title" placeholder="ex: Entraînement U15" className="col-span-3" value={title} onChange={(e) => setTitle(e.target.value)} />
+                         <Select onValueChange={setTitle} value={title} disabled={!type}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Sélectionnez un titre" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {titleOptions.map(option => (
+                                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Type</Label>
-                        <EventTypeCombobox value={type} onValueChange={setType} />
-                    </div>
+
+                    {title === 'Autre...' && (
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="custom-title" className="text-right">Titre perso.</Label>
+                            <Input id="custom-title" placeholder="Titre personnalisé..." className="col-span-3" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
+                        </div>
+                    )}
+                   
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Date</Label>
                         <Popover>
@@ -252,7 +295,16 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="category" className="text-right">Catégorie</Label>
-                        <Input id="category" placeholder="ex: U17, Senior" className="col-span-3" value={category} onChange={(e) => setCategory(e.target.value)} />
+                        <Select onValueChange={setCategory} value={category}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Sélectionnez une catégorie (optionnel)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map(cat => (
+                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
                         <Label htmlFor="description" className="text-right pt-2">Description</Label>
