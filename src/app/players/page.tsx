@@ -29,6 +29,15 @@ import PrintablePlayerList from "@/components/printable-player-list"
 
 const LOCAL_STORAGE_KEY = 'clubhouse-players';
 
+// Helper to convert string dates to Date objects
+const parsePlayerDates = (player: any): Player => ({
+    ...player,
+    dateOfBirth: new Date(player.dateOfBirth),
+    clubEntryDate: new Date(player.clubEntryDate),
+    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+});
+
+
 export default function PlayersPage() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(() => {
@@ -38,12 +47,9 @@ export default function PlayersPage() {
     try {
         const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (storedPlayers) {
-            return JSON.parse(storedPlayers).map((p: any) => ({
-              ...p, 
-              dateOfBirth: new Date(p.dateOfBirth),
-              clubEntryDate: new Date(p.clubEntryDate),
-              clubExitDate: p.clubExitDate ? new Date(p.clubExitDate) : undefined,
-            }));
+            const parsedPlayers = JSON.parse(storedPlayers);
+            // Ensure all dates are proper Date objects
+            return parsedPlayers.map(parsePlayerDates);
         }
     } catch (error) {
         console.error("Failed to parse players from localStorage", error);
