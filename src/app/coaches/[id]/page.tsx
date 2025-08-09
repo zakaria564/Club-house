@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Edit, Printer, Mail, Phone, Shield } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import type { Coach } from '@/types';
 import { coaches as initialCoaches } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
@@ -37,6 +39,23 @@ const PrintHeader = () => (
     </div>
 );
 
+const parseCoachDates = (coach: any): Coach => ({
+  ...coach,
+  dateOfBirth: new Date(coach.dateOfBirth),
+});
+
+const calculateAge = (birthDate: Date) => {
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
+
 
 export default function CoachDetailPage() {
   const router = useRouter();
@@ -51,11 +70,11 @@ export default function CoachDetailPage() {
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
         let storedCoaches: Coach[] = [];
         if (storedCoachesRaw) {
-            storedCoaches = JSON.parse(storedCoachesRaw);
+            storedCoaches = JSON.parse(storedCoachesRaw).map(parseCoachDates);
         }
         
         const allCoachesMap = new Map<string, Coach>();
-        initialCoaches.forEach(c => allCoachesMap.set(c.id, c));
+        initialCoaches.map(parseCoachDates).forEach(c => allCoachesMap.set(c.id, c));
         storedCoaches.forEach(c => allCoachesMap.set(c.id, c)); 
 
         const mergedCoaches = Array.from(allCoachesMap.values());
@@ -63,14 +82,15 @@ export default function CoachDetailPage() {
 
     } catch (error) {
         console.error("Failed to load coaches:", error);
-        setCoaches(initialCoaches);
+        setCoaches(initialCoaches.map(parseCoachDates));
     }
   }, []);
 
   const coach = coaches.find((p) => p.id === coachId);
   
   const handleCoachUpdate = (updatedCoach: Coach) => {
-    const updatedCoaches = coaches.map((c) => (c.id === updatedCoach.id ? updatedCoach : c));
+    const coachWithDate = parseCoachDates(updatedCoach);
+    const updatedCoaches = coaches.map((c) => (c.id === coachWithDate.id ? coachWithDate : c));
     setCoaches(updatedCoaches);
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(updatedCoaches));
@@ -84,6 +104,8 @@ export default function CoachDetailPage() {
   if (!coach) {
     return <div>Chargement du profil de l'entraîneur...</div>;
   }
+  
+  const age = isValidDate(coach.dateOfBirth) ? calculateAge(coach.dateOfBirth) : null;
 
   return (
     <>
@@ -132,15 +154,23 @@ export default function CoachDetailPage() {
              <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <div className="grid grid-cols-[120px,1fr] gap-1">
+                  <div className="grid grid-cols-[150px,1fr] gap-1">
+                    <span className="font-medium text-muted-foreground">Date de naissance:</span>
+                    <span>{isValidDate(coach.dateOfBirth) ? format(coach.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                  </div>
+                   <div className="grid grid-cols-[150px,1fr] gap-1">
+                    <span className="font-medium text-muted-foreground">Âge:</span>
+                    <span>{age !== null ? `${age} ans` : 'N/A'}</span>
+                  </div>
+                  <div className="grid grid-cols-[150px,1fr] gap-1">
                     <span className="font-medium text-muted-foreground">Genre:</span>
                     <span>{coach.gender}</span>
                   </div>
-                  <div className="grid grid-cols-[120px,1fr] gap-1">
+                  <div className="grid grid-cols-[150px,1fr] gap-1">
                     <span className="font-medium text-muted-foreground">Ville:</span>
                     <span>{coach.city}</span>
                   </div>
-                   <div className="grid grid-cols-[120px,1fr] gap-1">
+                   <div className="grid grid-cols-[150px,1fr] gap-1">
                     <span className="font-medium text-muted-foreground">Pays:</span>
                     <span>{coach.country}</span>
                   </div>

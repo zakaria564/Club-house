@@ -157,7 +157,8 @@ export const coaches: Coach[] = [
     photoUrl: 'https://placehold.co/100x100.png',
     gender: 'Homme',
     country: 'France',
-    city: 'Bayonne'
+    city: 'Bayonne',
+    dateOfBirth: new Date('1968-10-15'),
   },
   {
     id: 'c2',
@@ -169,7 +170,8 @@ export const coaches: Coach[] = [
     photoUrl: 'https://placehold.co/100x100.png',
     gender: 'Homme',
     country: 'France',
-    city: 'Marseille'
+    city: 'Marseille',
+    dateOfBirth: new Date('1972-06-23'),
   },
   {
     id: 'c3',
@@ -181,7 +183,8 @@ export const coaches: Coach[] = [
     photoUrl: 'https://placehold.co/100x100.png',
     gender: 'Homme',
     country: 'France',
-    city: 'Aix-les-Bains'
+    city: 'Aix-les-Bains',
+    dateOfBirth: new Date('1968-09-30'),
   },
   {
     id: 'c4',
@@ -193,6 +196,7 @@ export const coaches: Coach[] = [
     photoUrl: 'https://placehold.co/100x100.png',
     gender: 'Femme',
     country: 'France',
-    city: 'Croix'
+    city: 'Croix',
+    dateOfBirth: new Date('1974-08-04'),
   }
 ];

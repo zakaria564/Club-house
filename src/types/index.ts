@@ -48,4 +48,5 @@ export type Coach = {
   gender: 'Homme' | 'Femme';
   country: string;
   city: string;
+  dateOfBirth: Date;
 };
