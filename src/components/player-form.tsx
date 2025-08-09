@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { cn } from "@/lib/utils"
 import { Calendar } from "./ui/calendar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player } from "@/types"
@@ -57,6 +57,7 @@ interface PlayerFormProps {
 
 export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
   const { toast } = useToast()
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
@@ -105,6 +106,17 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
       });
     }
   }, [player, form]);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue('photoUrl', reader.result as string, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
 
   function onSubmit(data: PlayerFormValues) {
@@ -340,9 +352,23 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                   {form.watch('lastName')?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <Button type="button" size="icon" className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button 
+                type="button" 
+                size="icon" 
+                className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <Upload className="h-4 w-4" />
               </Button>
+              <FormControl>
+                 <Input 
+                   type="file" 
+                   className="hidden" 
+                   ref={fileInputRef} 
+                   onChange={handlePhotoUpload} 
+                   accept="image/*"
+                 />
+              </FormControl>
             </div>
             <FormDescription className="text-center">Télécharger une photo</FormDescription>
           </div>
@@ -355,3 +381,5 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     </Form>
   )
 }
+
+    
