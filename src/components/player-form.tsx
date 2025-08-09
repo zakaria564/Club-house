@@ -44,7 +44,7 @@ const playerFormSchema = z.object({
   phone: z.string().min(1, "Le téléphone est requis."),
   guardianName: z.string().min(1, "Le nom du tuteur est requis."),
   guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
-  position: z.string().min(1, "Le poste est requis."),
+  position: z.string({ required_error: "Veuillez sélectionner un poste." }),
   playerNumber: z.coerce.number().min(1, "Le numéro de joueur est requis."),
   clubEntryDate: z.date({
     required_error: "Une date d'entrée est requise.",
@@ -68,6 +68,19 @@ const getNextId = (players: Player[]) => {
     const maxId = Math.max(...players.map(p => parseInt(p.id, 10)).filter(id => !isNaN(id)));
     return (maxId + 1).toString();
 };
+
+const positions = [
+    "Gardien de but",
+    "Défenseur central",
+    "Arrière latéral",
+    "Milieu défensif",
+    "Milieu relayeur",
+    "Milieu offensif",
+    "Ailier",
+    "Attaquant",
+]
+
+const categories = ["U9", "U11", "U13", "U15", "U17", "Senior"]
 
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
@@ -152,7 +165,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
     };
     
-    // If user has changed the ID field during an edit, we apply it.
     if(isEditing) {
         newPlayerData.id = data.id;
     }
@@ -431,12 +443,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="U9">U9</SelectItem>
-                        <SelectItem value="U11">U11</SelectItem>
-                        <SelectItem value="U13">U13</SelectItem>
-                        <SelectItem value="U15">U15</SelectItem>
-                        <SelectItem value="U17">U17</SelectItem>
-                        <SelectItem value="Senior">Senior</SelectItem>
+                        {categories.map(category => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -449,9 +458,18 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Poste</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Attaquant" {...field} />
-                    </FormControl>
+                     <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez un poste" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {positions.map(position => (
+                            <SelectItem key={position} value={position}>{position}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
