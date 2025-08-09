@@ -15,12 +15,13 @@ const PrintablePlayerCard = React.forwardRef<HTMLDivElement, PrintablePlayerCard
 
   const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
   
-  const dateOfBirth = new Date(player.dateOfBirth);
-  const clubEntryDate = new Date(player.clubEntryDate);
-  const clubExitDate = player.clubExitDate ? new Date(player.clubExitDate) : null;
+  // Ensure dates are valid Date objects before formatting
+  const dateOfBirth = player.dateOfBirth instanceof Date ? player.dateOfBirth : new Date(player.dateOfBirth);
+  const clubEntryDate = player.clubEntryDate instanceof Date ? player.clubEntryDate : new Date(player.clubEntryDate);
+  const clubExitDate = player.clubExitDate ? (player.clubExitDate instanceof Date ? player.clubExitDate : new Date(player.clubExitDate)) : null;
 
   return (
-    <div ref={ref} className="p-8 font-sans">
+    <div ref={ref} className="p-8 font-sans bg-white text-black">
       <h1 className="text-3xl font-bold font-headline mb-8 text-center">Fiche Joueur - FC Firecoders</h1>
       <div className="p-6 border-2 border-gray-400 rounded-lg">
         <div className="flex items-start gap-6">
@@ -73,7 +74,7 @@ const PrintablePlayerCard = React.forwardRef<HTMLDivElement, PrintablePlayerCard
                 <span>{isValidDate(clubEntryDate) ? format(clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
                 
                 <span className="font-medium text-gray-700">Date de sortie:</span>
-                <span>{isValidDate(clubExitDate) ? format(clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
+                <span>{clubExitDate && isValidDate(clubExitDate) ? format(clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
              </div>
           </div>
         </div>

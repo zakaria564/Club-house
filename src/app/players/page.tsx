@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, Printer } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -90,6 +90,11 @@ export default function PlayersPage() {
   const handleViewPayments = (playerId: string) => {
     router.push(`/payments?playerId=${playerId}`);
   }
+
+  const handlePrintPlayer = (playerId: string) => {
+    const url = `/players/${playerId}/print`;
+    window.open(url, '_blank');
+  }
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
@@ -151,7 +156,7 @@ export default function PlayersPage() {
               </TableHeader>
               <TableBody>
                 {filteredPlayers.map(player => (
-                  <TableRow key={player.id} className="cursor-pointer" onClick={() => handleEditPlayer(player)}>
+                  <TableRow key={player.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
@@ -192,6 +197,10 @@ export default function PlayersPage() {
                               Modifier
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>Voir les paiements</DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => handlePrintPlayer(player.id)}>
+                              <Printer className="mr-2 h-4 w-4" />
+                              Imprimer la fiche
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(player.id)}>
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -212,7 +221,9 @@ export default function PlayersPage() {
           </CardFooter>
         </Card>
       </div>
+      
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} onPlayerUpdate={handlePlayerUpdate} />
+      
       <AlertDialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>

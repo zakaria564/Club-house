@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { CalendarIcon, Upload, Printer } from "lucide-react"
+import { CalendarIcon, Upload } from "lucide-react"
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -27,7 +27,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player } from "@/types"
-import PrintablePlayerCard from "./printable-player-card"
 
 const playerFormSchema = z.object({
   id: z.string().optional(),
@@ -63,7 +62,6 @@ interface PlayerFormProps {
 export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
   const { toast } = useToast()
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const printableRef = React.useRef<HTMLDivElement>(null);
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
@@ -155,17 +153,9 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     onFinished()
   }
 
-  const handlePrint = () => {
-    window.print();
-  }
-
   return (
-    <>
-      <div className="printable-area">
-        {player && <PrintablePlayerCard ref={printableRef} player={player} />}
-      </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 no-print">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <FormField
@@ -484,22 +474,11 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
               <FormDescription className="text-center">Télécharger une photo</FormDescription>
             </div>
           </div>
-          <div className="flex justify-between items-center">
-            <div>
-              {player && (
-                 <Button type="button" variant="outline" onClick={handlePrint}>
-                   <Printer className="mr-2 h-4 w-4" />
-                   Imprimer
-                 </Button>
-              )}
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
-              <Button type="submit">{player ? "Sauvegarder les modifications" : "Créer le joueur"}</Button>
-            </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
+            <Button type="submit">{player ? "Sauvegarder les modifications" : "Créer le joueur"}</Button>
           </div>
         </form>
       </Form>
-    </>
   )
 }

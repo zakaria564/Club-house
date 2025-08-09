@@ -92,17 +92,15 @@ body {
     background: white !important;
     color: black !important;
   }
-  .no-print {
+  .no-print, .no-print * {
     display: none !important;
   }
-  .printable-area {
+  .printable-area, .printable-area * {
     display: block !important;
+    visibility: visible !important;
   }
   body * {
     visibility: hidden;
-  }
-  .printable-area, .printable-area * {
-    visibility: visible;
   }
   .printable-area {
     position: absolute;
