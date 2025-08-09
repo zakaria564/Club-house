@@ -42,7 +42,7 @@ export default function RootLayout({
             <MainSidebar />
           </Sidebar>
           <SidebarInset>
-            <div className="p-4 sm:p-6 lg:p-8">
+            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-sm min-h-screen">
               {children}
             </div>
           </SidebarInset>
