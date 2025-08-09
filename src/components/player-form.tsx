@@ -148,6 +148,21 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+               {player && (
+                 <FormField
+                    control={form.control}
+                    name="id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Numéros furtifs</FormLabel>
+                        <FormControl>
+                          <Input {...field} readOnly className="bg-muted" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+               )}
               <FormField
                 control={form.control}
                 name="firstName"
