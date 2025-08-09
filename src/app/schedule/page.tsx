@@ -4,7 +4,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown, ArrowLeft } from "lucide-react"
+import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown, ArrowLeft, Users, MapPin, Clock } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
@@ -13,7 +13,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
 import { ClubEvent } from "@/types"
-import { clubEvents } from "@/lib/mock-data"
+import { clubEvents as initialClubEvents } from "@/lib/mock-data"
 import {
   Dialog,
   DialogContent,
@@ -28,31 +28,60 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { useToast } from "@/hooks/use-toast"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 
 
 const eventTypes = [
-  { value: "match", label: "Match" },
-  { value: "training", label: "Entraînement" },
+    { value: "Match", label: "Match" },
+    { value: "Entraînement", label: "Entraînement" },
+    { value: "Réunion", label: "Réunion" },
+    { value: "Événement", label: "Événement" },
+    { value: "Autre", label: "Autre" },
 ]
+
+const eventTypeColors: { [key in ClubEvent['type']]: string } = {
+  'Match': 'bg-red-500',
+  'Entraînement': 'bg-blue-500',
+  'Réunion': 'bg-yellow-500',
+  'Événement': 'bg-green-500',
+  'Autre': 'bg-gray-500',
+};
 
 export default function SchedulePage() {
   const router = useRouter();
   const [date, setDate] = React.useState<Date | undefined>(new Date())
-  const [events, setEvents] = React.useState<ClubEvent[]>(clubEvents)
+  const [events, setEvents] = React.useState<ClubEvent[]>(initialClubEvents)
   const [isAddEventOpen, setAddEventOpen] = React.useState(false);
 
   const selectedDayEvents = events.filter(
-    (event) => date && format(event.date, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-  )
+    (event) => date && format(new Date(event.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+  ).sort((a,b) => a.time.localeCompare(b.time));
 
   const handleAddEvent = (newEvent: Omit<ClubEvent, 'id'>) => {
     const eventWithId = { ...newEvent, id: `e${events.length + 1}`};
     setEvents([...events, eventWithId]);
   }
+  
+  const DayContent = (day: Date) => {
+    const dayEvents = events.filter(e => format(new Date(e.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd"));
+    return (
+      <div className="relative h-full w-full">
+        <span>{format(day, "d")}</span>
+        {dayEvents.length > 0 && (
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex space-x-1">
+            {dayEvents.slice(0, 3).map(event => (
+               <div key={event.id} className={`h-1.5 w-1.5 rounded-full ${eventTypeColors[event.type]}`} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
-      <PageHeader title="Calendrier">
+      <PageHeader title="Calendrier du Club">
         <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => router.back()}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -62,7 +91,7 @@ export default function SchedulePage() {
         </div>
       </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2">
            <Card>
             <CardContent className="p-0">
@@ -72,14 +101,15 @@ export default function SchedulePage() {
                 onSelect={setDate}
                 className="w-full"
                 locale={fr}
-                modifiers={{
-                  events: events.map(e => e.date)
+                components={{
+                  DayContent: ({ date }) => DayContent(date),
                 }}
-                modifiersStyles={{
-                  events: {
-                    color: 'hsl(var(--primary-foreground))',
-                    backgroundColor: 'hsl(var(--primary))',
-                  }
+                 classNames={{
+                    day_cell: "h-16 w-full text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                    day: cn(
+                      buttonVariants({ variant: "ghost" }),
+                      "h-16 w-full p-0 font-normal aria-selected:opacity-100"
+                    ),
                 }}
               />
             </CardContent>
@@ -89,24 +119,38 @@ export default function SchedulePage() {
           <Card>
             <CardHeader>
               <CardTitle>
-                Événements pour {date ? format(date, "d MMMM yyyy", { locale: fr }) : "..."}
+                Planning du {date ? format(date, "d MMMM yyyy", { locale: fr }) : "..."}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {selectedDayEvents.length > 0 ? (
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {selectedDayEvents.map(event => (
-                    <li key={event.id} className="flex items-start gap-3 p-3 rounded-lg bg-secondary">
-                       <div className={`mt-1 p-1.5 rounded-full ${event.type === 'Match' ? 'bg-primary' : 'bg-accent'}`} />
-                      <div>
-                        <p className="font-semibold">{event.title}</p>
-                        <p className="text-sm text-muted-foreground">{event.type === 'Match' ? 'Match' : 'Entraînement'}</p>
+                    <li key={event.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card relative">
+                       <div className={`absolute top-3 left-[-5px] h-3/4 w-1.5 rounded-r-full ${eventTypeColors[event.type]}`} />
+                      <div className="pl-4 flex-grow">
+                        <div className="flex justify-between items-start">
+                           <h3 className="font-semibold">{event.title}</h3>
+                           <Badge variant="secondary" className={cn("capitalize", eventTypeColors[event.type], "text-white")}>{event.type}</Badge>
+                        </div>
+                         {event.category && (
+                            <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1"><Users className="w-3.5 h-3.5" />{event.category}</p>
+                         )}
+                         <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{event.time}</span>
+                         </div>
+                         <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>{event.location}</span>
+                         </div>
+                         {event.description && <p className="text-sm mt-2 pt-2 border-t">{event.description}</p>}
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-muted-foreground text-sm">Aucun événement prévu pour ce jour.</p>
+                <p className="text-muted-foreground text-sm text-center py-8">Aucun événement prévu pour cette date.</p>
               )}
             </CardContent>
           </Card>
@@ -126,18 +170,22 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
     const { toast } = useToast();
     const [title, setTitle] = React.useState("");
     const [date, setDate] = React.useState<Date | undefined>(new Date());
-    const [type, setType] = React.useState("");
+    const [time, setTime] = React.useState("");
+    const [location, setLocation] = React.useState("");
+    const [category, setCategory] = React.useState("");
+    const [description, setDescription] = React.useState("");
+    const [type, setType] = React.useState<ClubEvent['type'] | "">("");
 
     const handleSubmit = () => {
-        if (!title || !date || !type) {
+        if (!title || !date || !type || !time || !location) {
             toast({
                 variant: "destructive",
                 title: "Informations manquantes",
-                description: "Veuillez remplir tous les champs pour créer un événement.",
+                description: "Veuillez remplir tous les champs obligatoires.",
             })
             return;
         }
-        onAddEvent({ title, date, type: type === 'match' ? 'Match' : 'Training' });
+        onAddEvent({ title, date, type, time, location, category, description });
         toast({
             title: "Événement créé",
             description: `"${title}" a été ajouté au calendrier avec succès.`,
@@ -146,6 +194,10 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
         // Reset form
         setTitle("");
         setDate(new Date());
+        setTime("");
+        setLocation("");
+        setCategory("");
+        setDescription("");
         setType("");
     }
 
@@ -157,54 +209,55 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                 Ajouter un événement
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                 <DialogTitle>Ajouter un nouvel événement</DialogTitle>
                 <DialogDescription>
-                    Ajoutez un nouveau match ou une nouvelle session d'entraînement au calendrier.
+                    Ajoutez un nouveau match, entraînement, réunion ou autre au calendrier.
                 </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right">
-                    Titre
-                    </Label>
-                    <Input id="title" placeholder="ex: Entraînement U15" className="col-span-3" value={title} onChange={(e) => setTitle(e.target.value)} />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">
-                    Date
-                    </Label>
-                    <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant={"outline"}
-                        className={cn(
-                            "col-span-3 justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                        )}
-                        >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                        locale={fr}
-                        />
-                    </PopoverContent>
-                    </Popover>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">
-                    Type
-                    </Label>
-                    <EventTypeCombobox value={type} onValueChange={setType} />
-                </div>
+                <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="title" className="text-right">Titre</Label>
+                        <Input id="title" placeholder="ex: Entraînement U15" className="col-span-3" value={title} onChange={(e) => setTitle(e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Type</Label>
+                        <EventTypeCombobox value={type} onValueChange={setType} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Date</Label>
+                        <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant={"outline"}
+                            className={cn( "col-span-3 justify-start text-left font-normal", !date && "text-muted-foreground")}
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar mode="single" selected={date} onSelect={setDate} initialFocus locale={fr} />
+                        </PopoverContent>
+                        </Popover>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="time" className="text-right">Heure</Label>
+                        <Input id="time" type="time" className="col-span-3" value={time} onChange={(e) => setTime(e.target.value)} />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="location" className="text-right">Lieu</Label>
+                        <Input id="location" placeholder="Stade principal" className="col-span-3" value={location} onChange={(e) => setLocation(e.target.value)} />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="category" className="text-right">Catégorie</Label>
+                        <Input id="category" placeholder="ex: U17, Senior" className="col-span-3" value={category} onChange={(e) => setCategory(e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="description" className="text-right pt-2">Description</Label>
+                        <Textarea id="description" placeholder="Détails supplémentaires..." className="col-span-3" value={description} onChange={(e) => setDescription(e.target.value)} />
+                    </div>
                 </div>
                 <DialogFooter>
                     <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
@@ -216,7 +269,7 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
 }
 
 
-function EventTypeCombobox({ value, onValueChange }: { value: string, onValueChange: (value: string) => void }) {
+function EventTypeCombobox({ value, onValueChange }: { value: string, onValueChange: (value: ClubEvent['type'] | "") => void }) {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -230,23 +283,24 @@ function EventTypeCombobox({ value, onValueChange }: { value: string, onValueCha
         >
           {value
             ? eventTypes.find((eventType) => eventType.value === value)?.label
-            : "Sélectionnez le type d'événement..."}
+            : "Sélectionnez le type..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder="Rechercher un type d'événement..." />
+          <CommandInput placeholder="Rechercher un type..." />
           <CommandEmpty>Aucun type d'événement trouvé.</CommandEmpty>
           <CommandGroup>
             <CommandList>
                 {eventTypes.map((eventType) => (
                 <CommandItem
                     key={eventType.value}
-                    value={eventType.value}
+                    value={eventType.label}
                     onSelect={(currentValue) => {
-                    onValueChange(currentValue === value ? "" : currentValue)
-                    setOpen(false)
+                      const selected = eventTypes.find(et => et.label.toLowerCase() === currentValue.toLowerCase());
+                      onValueChange(selected ? selected.value as ClubEvent['type'] : "")
+                      setOpen(false)
                     }}
                 >
                     <Check

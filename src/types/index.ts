@@ -34,8 +34,11 @@ export type Payment = {
 export type ClubEvent = {
   id: string;
   title: string;
-  type: 'Match' | 'Training';
+  type: 'Match' | 'Entraînement' | 'Réunion' | 'Événement' | 'Autre';
   date: Date;
+  time: string;
+  location: string;
+  category?: string; // e.g., U15, Seniors, All
   description?: string;
 };
 

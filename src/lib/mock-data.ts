@@ -142,10 +142,66 @@ export const payments: Payment[] = [
 ];
 
 export const clubEvents: ClubEvent[] = [
-  { id: 'e1', title: 'Match vs. City Rovers', type: 'Match', date: new Date(new Date().setDate(new Date().getDate() + 3)) },
-  { id: 'e2', title: 'Entraînement U15', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 1)) },
-  { id: 'e3', title: 'Entraînement équipe senior', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 2)) },
-  { id: 'e4', title: 'Tournoi U11', type: 'Match', date: new Date(new Date().setDate(new Date().getDate() + 10)) },
+  { 
+    id: 'e1', 
+    title: 'Match: CAOS 2011 vs. City Rovers', 
+    type: 'Match', 
+    date: new Date(new Date().setDate(new Date().getDate() + 3)),
+    time: '15:00',
+    location: 'Stade Municipal',
+    category: 'Senior',
+    description: 'Match de championnat important. Convocation à 13:30.'
+  },
+  { 
+    id: 'e2', 
+    title: 'Entraînement physique', 
+    type: 'Entraînement', 
+    date: new Date(new Date().setDate(new Date().getDate() + 1)),
+    time: '18:30',
+    location: 'Terrain annexe',
+    category: 'U15',
+    description: 'Séance axée sur l\'endurance et la vitesse.'
+  },
+  { 
+    id: 'e3', 
+    title: 'Réunion éducateurs', 
+    type: 'Réunion', 
+    date: new Date(new Date().setDate(new Date().getDate() + 2)),
+    time: '19:00',
+    location: 'Club-house',
+    category: 'Éducateurs',
+    description: 'Ordre du jour : planification du prochain cycle et organisation du tournoi.'
+  },
+  { 
+    id: 'e4', 
+    title: 'Tournoi U11', 
+    type: 'Événement', 
+    date: new Date(new Date().setDate(new Date().getDate() + 10)),
+    time: '09:00',
+    location: 'Complexe sportif régional',
+    category: 'U11',
+    description: 'Tournoi régional sur toute la journée. Prévoir pique-nique.'
+  },
+  { 
+    id: 'e5', 
+    title: 'Entraînement tactique', 
+    type: 'Entraînement', 
+    date: new Date(),
+    time: '18:00',
+    location: 'Stade Principal',
+    category: 'Senior',
+    description: 'Mise en place pour le match du week-end.'
+  },
+   { 
+    id: 'e6', 
+    title: 'Soirée du club', 
+    type: 'Événement', 
+    date: new Date(),
+    time: '20:00',
+    location: 'Salle des fêtes',
+    category: 'Tous les membres',
+    description: 'Repas annuel du club pour fêter la fin de saison.'
+  },
 ];
 
 export const coaches: Coach[] = [
