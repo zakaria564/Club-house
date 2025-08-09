@@ -4,8 +4,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Upload } from "lucide-react"
+import { Upload, CalendarIcon } from "lucide-react"
 import * as React from "react"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +25,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { Calendar } from "./ui/calendar"
+import { cn } from "@/lib/utils"
+
 
 const coachFormSchema = z.object({
   id: z.string().min(1, "L'ID est requis."),
@@ -36,6 +42,10 @@ const coachFormSchema = z.object({
   age: z.coerce.number().min(18, "L'entraîneur doit être majeur."),
   country: z.string().min(2, "Le pays est requis."),
   city: z.string().min(2, "La ville est requise."),
+  clubEntryDate: z.date({
+    required_error: "Une date d'entrée est requise.",
+  }),
+  clubExitDate: z.date().optional().nullable(),
 })
 
 type CoachFormValues = z.infer<typeof coachFormSchema>
@@ -78,6 +88,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
 
   const defaultValues: Partial<CoachFormValues> = coach ? { 
     ...coach,
+    clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
+    clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : null,
    } : {
       id: getNextId(coaches),
       firstName: '',
@@ -89,7 +101,9 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       gender: undefined,
       age: undefined,
       country: '',
-      city: ''
+      city: '',
+      clubEntryDate: new Date(),
+      clubExitDate: null,
   };
 
   const form = useForm<CoachFormValues>({
@@ -104,6 +118,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     if (coach) {
       form.reset({ 
           ...coach,
+          clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
+          clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : null,
       });
        setPhotoPreview(coach.photoUrl || 'https://placehold.co/200x200.png');
     } else {
@@ -122,6 +138,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     const newCoachData: Coach = {
         ...data,
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
+        clubEntryDate: new Date(data.clubEntryDate),
+        clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
     };
 
     onSave(newCoachData);
@@ -289,6 +307,96 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         )}
                       />
                    </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Informations du Club</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <FormField
+                        control={form.control}
+                        name="clubEntryDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Date d'entrée</FormLabel>
+                              <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP", { locale: fr })
+                                    ) : (
+                                      <span>Choisissez une date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  initialFocus
+                                  locale={fr}
+                                  captionLayout="dropdown-buttons"
+                                  fromYear={new Date().getFullYear() - 50}
+                                  toYear={new Date().getFullYear()}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                        <FormField
+                          control={form.control}
+                          name="clubExitDate"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Date de sortie (optionnel)</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant={"outline"}
+                                      className={cn(
+                                        "w-full pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? (
+                                        format(field.value, "PPP", { locale: fr })
+                                      ) : (
+                                        <span>Choisissez une date</span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value ?? undefined}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                    locale={fr}
+                                    captionLayout="dropdown-buttons"
+                                    fromYear={new Date().getFullYear() - 50}
+                                    toYear={new Date().getFullYear() + 5}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                  </div>
                 </div>
             </div>
 

@@ -51,4 +51,6 @@ export type Coach = {
   country: string;
   city: string;
   age: number;
+  clubEntryDate: Date;
+  clubExitDate?: Date;
 };

@@ -46,6 +46,14 @@ const statusTranslations: { [key in Payment['status']]: string } = {
     'Overdue': 'En retard'
 };
 
+const parseCoachDates = (coach: any): Coach => ({
+  ...coach,
+  clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
+  clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : undefined,
+});
+
+const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
+
 export default function CoachDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -60,11 +68,11 @@ export default function CoachDetailPage() {
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
         let storedCoaches: Coach[] = [];
         if (storedCoachesRaw) {
-            storedCoaches = JSON.parse(storedCoachesRaw);
+            storedCoaches = JSON.parse(storedCoachesRaw).map(parseCoachDates);
         }
         
         const allCoachesMap = new Map<string, Coach>();
-        initialCoaches.forEach(c => allCoachesMap.set(c.id, c));
+        initialCoaches.map(parseCoachDates).forEach(c => allCoachesMap.set(c.id, c));
         storedCoaches.forEach(c => allCoachesMap.set(c.id, c)); 
 
         const mergedCoaches = Array.from(allCoachesMap.values());
@@ -83,14 +91,15 @@ export default function CoachDetailPage() {
 
     } catch (error) {
         console.error("Failed to load data:", error);
-        setCoaches(initialCoaches);
+        setCoaches(initialCoaches.map(parseCoachDates));
     }
   }, [coachId]);
 
   const coach = coaches.find((p) => p.id === coachId);
   
   const handleCoachUpdate = (updatedCoach: Coach) => {
-    const updatedCoaches = coaches.map((c) => (c.id === updatedCoach.id ? updatedCoach : c));
+    const coachWithDates = parseCoachDates(updatedCoach);
+    const updatedCoaches = coaches.map((c) => (c.id === coachWithDates.id ? coachWithDates : c));
     setCoaches(updatedCoaches);
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(updatedCoaches));
@@ -176,6 +185,15 @@ export default function CoachDetailPage() {
                         <Phone className="w-4 h-4 text-muted-foreground" />
                         <span>{coach.phone}</span>
                     </div>
+                </div>
+              </div>
+               <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
+                <div className="grid grid-cols-[150px,1fr,150px,1fr] gap-2 text-sm">
+                  <span className="font-medium">Date d'entrée:</span>
+                  <span>{isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                  <span className="font-medium">Date de sortie:</span>
+                  <span>{coach.clubExitDate && isValidDate(coach.clubExitDate) ? format(coach.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
                 </div>
               </div>
           </CardContent>

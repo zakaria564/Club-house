@@ -161,6 +161,7 @@ export const coaches: Coach[] = [
     country: 'France',
     city: 'Bayonne',
     age: 55,
+    clubEntryDate: new Date('2018-08-01'),
   },
   {
     id: 'c2',
@@ -174,6 +175,8 @@ export const coaches: Coach[] = [
     country: 'France',
     city: 'Marseille',
     age: 52,
+    clubEntryDate: new Date('2021-07-01'),
+    clubExitDate: new Date('2023-06-30'),
   },
   {
     id: 'c3',
@@ -187,6 +190,7 @@ export const coaches: Coach[] = [
     country: 'France',
     city: 'Aix-les-Bains',
     age: 55,
+    clubEntryDate: new Date('2022-01-15'),
   },
   {
     id: 'c4',
@@ -200,5 +204,6 @@ export const coaches: Coach[] = [
     country: 'France',
     city: 'Croix',
     age: 50,
+    clubEntryDate: new Date('2020-09-01'),
   }
 ];
