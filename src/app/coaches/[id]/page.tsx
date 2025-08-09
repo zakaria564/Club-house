@@ -41,7 +41,7 @@ const PrintHeader = () => (
 
 const parseCoachDates = (coach: any): Coach => ({
   ...coach,
-  dateOfBirth: new Date(coach.dateOfBirth),
+  dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : new Date(0),
 });
 
 const calculateAge = (birthDate: Date) => {
@@ -54,7 +54,7 @@ const calculateAge = (birthDate: Date) => {
   return age;
 };
 
-const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
+const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime()) && d.getFullYear() > 1900;
 
 
 export default function CoachDetailPage() {
@@ -156,7 +156,7 @@ export default function CoachDetailPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div className="grid grid-cols-[150px,1fr] gap-1">
                     <span className="font-medium text-muted-foreground">Date de naissance:</span>
-                    <span>{isValidDate(coach.dateOfBirth) ? format(coach.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                    <span>{isValidDate(coach.dateOfBirth) ? format(coach.dateOfBirth, 'PPP', { locale: fr }) : 'Non spécifiée'}</span>
                   </div>
                    <div className="grid grid-cols-[150px,1fr] gap-1">
                     <span className="font-medium text-muted-foreground">Âge:</span>
@@ -203,3 +203,5 @@ export default function CoachDetailPage() {
     </>
   );
 }
+
+    

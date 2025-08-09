@@ -103,7 +103,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
         ...defaultValues,
         id: getNextId(coaches),
         dateOfBirth: undefined,
-      } as CoachFormValues);
+      } as Partial<CoachFormValues>);
       setPhotoPreview('https://placehold.co/200x200.png');
     }
   }, [coach, form, coaches]);
@@ -348,3 +348,5 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
+
+    
