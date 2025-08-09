@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -147,10 +147,16 @@ export default function PlayersPage() {
   return (
     <>
       <PageHeader title="Joueurs">
-        <Button onClick={handleAddNewPlayer}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Ajouter un joueur
-        </Button>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => router.back()}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour
+            </Button>
+            <Button onClick={handleAddNewPlayer}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Ajouter un joueur
+            </Button>
+        </div>
       </PageHeader>
       <Card>
         <CardHeader>

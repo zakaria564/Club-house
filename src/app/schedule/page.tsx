@@ -4,7 +4,8 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown } from "lucide-react"
+import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown, ArrowLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,7 @@ const eventTypes = [
 ]
 
 export default function SchedulePage() {
+  const router = useRouter();
   const [date, setDate] = React.useState<Date | undefined>(new Date())
   const [events, setEvents] = React.useState<ClubEvent[]>(clubEvents)
   const [isAddEventOpen, setAddEventOpen] = React.useState(false);
@@ -51,7 +53,13 @@ export default function SchedulePage() {
   return (
     <>
       <PageHeader title="Calendrier">
-        <AddEventDialog open={isAddEventOpen} onOpenChange={setAddEventOpen} onAddEvent={handleAddEvent} />
+        <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => router.back()}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour
+            </Button>
+            <AddEventDialog open={isAddEventOpen} onOpenChange={setAddEventOpen} onAddEvent={handleAddEvent} />
+        </div>
       </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
