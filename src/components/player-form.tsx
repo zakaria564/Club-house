@@ -137,12 +137,12 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     const newPlayerData: Player = {
         ...data,
         id: player?.id || `p${Date.now()}`,
-        dateOfBirth: data.dateOfBirth,
+        dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
         playerNumber: Number(data.playerNumber),
-        clubEntryDate: data.clubEntryDate,
-        clubExitDate: data.clubExitDate,
+        clubEntryDate: new Date(data.clubEntryDate),
+        clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
     };
     
     onSave(newPlayerData);
@@ -232,6 +232,9 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                         }
                         initialFocus
                         locale={fr}
+                        captionLayout="dropdown-buttons"
+                        fromYear={1950}
+                        toYear={new Date().getFullYear() + 5}
                       />
                     </PopoverContent>
                   </Popover>
@@ -271,6 +274,9 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                         onSelect={field.onChange}
                         initialFocus
                         locale={fr}
+                        captionLayout="dropdown-buttons"
+                        fromYear={1950}
+                        toYear={new Date().getFullYear() + 5}
                       />
                     </PopoverContent>
                   </Popover>
@@ -310,6 +316,9 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                         onSelect={field.onChange}
                         initialFocus
                         locale={fr}
+                        captionLayout="dropdown-buttons"
+                        fromYear={1950}
+                        toYear={new Date().getFullYear() + 5}
                       />
                     </PopoverContent>
                   </Popover>

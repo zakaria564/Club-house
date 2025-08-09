@@ -42,7 +42,7 @@ export default function PlayersPage() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(() => {
     if (typeof window === 'undefined') {
-      return initialPlayers;
+      return initialPlayers.map(parsePlayerDates);
     }
     try {
         const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -54,7 +54,7 @@ export default function PlayersPage() {
     } catch (error) {
         console.error("Failed to parse players from localStorage", error);
     }
-    return initialPlayers;
+    return initialPlayers.map(parsePlayerDates);
   });
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -100,14 +100,15 @@ export default function PlayersPage() {
   }
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
+    const playerWithDates = parsePlayerDates(updatedPlayer);
     setPlayers(prevPlayers => {
-        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
+        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === playerWithDates.id);
         if (existingPlayerIndex > -1) {
             const newPlayers = [...prevPlayers];
-            newPlayers[existingPlayerIndex] = updatedPlayer;
+            newPlayers[existingPlayerIndex] = playerWithDates;
             return newPlayers;
         } else {
-            return [...prevPlayers, updatedPlayer];
+            return [...prevPlayers, playerWithDates];
         }
     });
   };
@@ -116,6 +117,8 @@ export default function PlayersPage() {
     `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     player.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  const printablePlayers = players.map(parsePlayerDates);
 
   return (
     <>
@@ -224,7 +227,7 @@ export default function PlayersPage() {
         </Card>
       </div>
       <div className="hidden print:block">
-        <PrintablePlayerList players={players} />
+        <PrintablePlayerList players={printablePlayers} />
       </div>
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} onPlayerUpdate={handlePlayerUpdate} />
       <AlertDialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
