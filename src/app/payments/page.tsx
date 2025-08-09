@@ -243,7 +243,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
               </Badge>
             </TableCell>
             <TableCell className="hidden md:table-cell">
-              ${payment.amount.toFixed(2)}
+              {payment.amount.toFixed(2)} DH
             </TableCell>
             <TableCell className="hidden md:table-cell">
               {new Date(payment.date).toLocaleDateString('fr-FR')}
