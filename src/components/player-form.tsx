@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player } from "@/types"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 
 const playerFormSchema = z.object({
   id: z.string().optional(),
@@ -61,7 +62,6 @@ interface PlayerFormProps {
 
 export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
   const { toast } = useToast()
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
@@ -119,17 +119,6 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     }
   }, [player, form]);
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue('photoUrl', reader.result as string, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
 
   function onSubmit(data: PlayerFormValues) {
     const isEditing = !!player;
@@ -144,14 +133,8 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         clubEntryDate: new Date(data.clubEntryDate),
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
     };
-    
-    // Create a separate object for saving to localStorage that doesn't include the photo if it's a data URL
-    const playerToSave = { ...newPlayerData };
-    if (playerToSave.photoUrl?.startsWith('data:image')) {
-        playerToSave.photoUrl = 'https://placehold.co/100x100.png';
-    }
 
-    onSave(playerToSave);
+    onSave(newPlayerData);
 
     toast({
       title: isEditing ? "Profil du joueur mis à jour" : "Profil du joueur créé",
@@ -443,7 +426,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                   <FormItem>
                     <FormLabel>N° Joueur</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="10" {...field} />
+                      <Input type="number" placeholder="10" {...field} value={field.value === '' ? '' : field.value} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -452,33 +435,34 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
             </div>
             <div className="flex flex-col items-center gap-2 mt-4 md:mt-0">
               <FormLabel>Photo de profil</FormLabel>
-              <div className="relative group">
-                <Avatar className="h-32 w-32">
-                  <AvatarImage src={form.watch('photoUrl') || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                  <AvatarFallback>
-                    {form.watch('firstName')?.[0]}
-                    {form.watch('lastName')?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <Button 
-                  type="button" 
-                  size="icon" 
-                  className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-                <FormControl>
-                  <Input 
-                    type="file" 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                    onChange={handlePhotoUpload} 
-                    accept="image/*"
-                  />
-                </FormControl>
-              </div>
-              <FormDescription className="text-center">Télécharger une photo</FormDescription>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="relative group cursor-not-allowed">
+                        <Avatar className="h-32 w-32">
+                          <AvatarImage src={form.watch('photoUrl') || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                          <AvatarFallback>
+                            {form.watch('firstName')?.[0]}
+                            {form.watch('lastName')?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <Button 
+                          type="button" 
+                          size="icon" 
+                          className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          disabled
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Le téléversement de photos est désactivé.</p>
+                      <p className="text-xs text-muted-foreground">Le stockage de fichiers n'est pas disponible.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              <FormDescription className="text-center">Photo de remplacement</FormDescription>
             </div>
           </div>
           <div className="flex justify-end gap-2">
@@ -489,5 +473,3 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
       </Form>
   )
 }
-
-    
