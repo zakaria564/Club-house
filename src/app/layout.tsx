@@ -20,7 +20,7 @@ const fontPTSans = PT_Sans({
 
 export const metadata: Metadata = {
   title: "Clubhouse Hub",
-  description: "Manage your sports club with ease.",
+  description: "Gérez votre club de sport en toute simplicité.",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-background font-body antialiased",

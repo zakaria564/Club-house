@@ -19,9 +19,9 @@ export default function AddPlayerDialog({ open, onOpenChange }: AddPlayerDialogP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="font-headline">Add New Player</DialogTitle>
+          <DialogTitle className="font-headline">Ajouter un nouveau joueur</DialogTitle>
           <DialogDescription>
-            Fill in the details below to create a new player profile.
+            Remplissez les détails ci-dessous pour créer un nouveau profil de joueur.
           </DialogDescription>
         </DialogHeader>
         <PlayerForm onFinished={() => onOpenChange(false)} />

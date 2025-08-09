@@ -47,11 +47,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/")}
-              tooltip="Dashboard"
+              tooltip="Tableau de bord"
             >
               <Link href="/">
                 <LayoutDashboard />
-                <span>Dashboard</span>
+                <span>Tableau de bord</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -59,11 +59,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/players")}
-              tooltip="Players"
+              tooltip="Joueurs"
             >
               <Link href="/players">
                 <Users />
-                <span>Players</span>
+                <span>Joueurs</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -71,11 +71,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/schedule")}
-              tooltip="Schedule"
+              tooltip="Calendrier"
             >
               <Link href="/schedule">
                 <Calendar />
-                <span>Schedule</span>
+                <span>Calendrier</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -83,11 +83,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/payments")}
-              tooltip="Payments"
+              tooltip="Paiements"
             >
               <Link href="/payments">
                 <DollarSign />
-                <span>Payments</span>
+                <span>Paiements</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -102,7 +102,7 @@ export function MainSidebar() {
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Alex Durand</span>
-                <span className="text-xs text-muted-foreground">Manager</span>
+                <span className="text-xs text-muted-foreground">Gérant</span>
               </div>
             </div>
             <MoreHorizontal className="w-5 h-5 text-muted-foreground cursor-pointer" />

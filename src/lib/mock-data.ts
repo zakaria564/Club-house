@@ -19,7 +19,7 @@ export const payments: Payment[] = [
 
 export const clubEvents: ClubEvent[] = [
   { id: 'e1', title: 'Match vs. City Rovers', type: 'Match', date: new Date(new Date().setDate(new Date().getDate() + 3)) },
-  { id: 'e2', title: 'U15 Training', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 1)) },
-  { id: 'e3', title: 'Senior Team Practice', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 2)) },
-  { id: 'e4', title: 'U11 Tournament', type: 'Match', date: new Date(new Date().setDate(new Date().getDate() + 10)) },
+  { id: 'e2', title: 'Entraînement U15', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 1)) },
+  { id: 'e3', title: 'Entraînement équipe senior', type: 'Training', date: new Date(new Date().setDate(new Date().getDate() + 2)) },
+  { id: 'e4', title: 'Tournoi U11', type: 'Match', date: new Date(new Date().setDate(new Date().getDate() + 10)) },
 ];

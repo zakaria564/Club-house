@@ -31,7 +31,7 @@ export default function PlayersPage() {
   const [isAddPlayerOpen, setAddPlayerOpen] = React.useState(false);
 
   const handlePrint = () => {
-    // A more sophisticated print function would format this better.
+    // Une fonction d'impression plus sophistiquée formaterait mieux cela.
     window.print();
   }
 
@@ -41,34 +41,34 @@ export default function PlayersPage() {
 
   return (
     <>
-      <PageHeader title="Players">
+      <PageHeader title="Joueurs">
         <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
-            Print List
+            Imprimer la liste
         </Button>
         <Button onClick={() => setAddPlayerOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Player
+          Ajouter un joueur
         </Button>
       </PageHeader>
       <Card>
         <CardHeader>
-          <CardTitle>Player Roster</CardTitle>
+          <CardTitle>Liste des joueurs</CardTitle>
           <CardDescription>
-            Manage your club's players and their profiles.
+            Gérez les joueurs de votre club et leurs profils.
           </CardDescription>
           <div className="relative mt-4">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search by name or category..." className="pl-8" />
+            <Input placeholder="Rechercher par nom ou catégorie..." className="pl-8" />
           </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="hidden md:table-cell">Date of Birth</TableHead>
+                <TableHead>Nom</TableHead>
+                <TableHead>Catégorie</TableHead>
+                <TableHead className="hidden md:table-cell">Date de naissance</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -90,7 +90,7 @@ export default function PlayersPage() {
                     <Badge variant="secondary">{player.category}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {player.dateOfBirth.toLocaleDateString()}
+                    {player.dateOfBirth.toLocaleDateString('fr-FR')}
                   </TableCell>
                   <TableCell>
                     <AlertDialog>
@@ -102,32 +102,32 @@ export default function PlayersPage() {
                             variant="ghost"
                           >
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+                            <span className="sr-only">Ouvrir le menu</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>View payments</DropdownMenuItem>
+                          <DropdownMenuItem>Modifier</DropdownMenuItem>
+                          <DropdownMenuItem>Voir les paiements</DropdownMenuItem>
                           <DropdownMenuSeparator />
                            <AlertDialogTrigger asChild>
                             <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
+                                Supprimer
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the player's profile.
+                            Cette action est irréversible. Cela supprimera définitivement le profil du joueur.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDeletePlayer(player.id)}>Continue</AlertDialogAction>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeletePlayer(player.id)}>Continuer</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -139,7 +139,7 @@ export default function PlayersPage() {
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{players.length}</strong> of <strong>{players.length}</strong> players
+            Affichage de <strong>1-{players.length}</strong> sur <strong>{players.length}</strong> joueurs
           </div>
         </CardFooter>
       </Card>

@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { format } from "date-fns"
+import { format, fr } from "date-fns"
 import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -30,7 +30,7 @@ import { useToast } from "@/hooks/use-toast"
 
 const eventTypes = [
   { value: "match", label: "Match" },
-  { value: "training", label: "Training" },
+  { value: "training", label: "Entraînement" },
 ]
 
 export default function SchedulePage() {
@@ -49,7 +49,7 @@ export default function SchedulePage() {
 
   return (
     <>
-      <PageHeader title="Schedule">
+      <PageHeader title="Calendrier">
         <AddEventDialog open={isAddEventOpen} onOpenChange={setAddEventOpen} onAddEvent={handleAddEvent} />
       </PageHeader>
 
@@ -62,6 +62,7 @@ export default function SchedulePage() {
                 selected={date}
                 onSelect={setDate}
                 className="w-full"
+                locale={fr}
                 modifiers={{
                   events: events.map(e => e.date)
                 }}
@@ -79,7 +80,7 @@ export default function SchedulePage() {
           <Card>
             <CardHeader>
               <CardTitle>
-                Events for {date ? format(date, "MMMM do, yyyy") : "..."}
+                Événements pour {date ? format(date, "d MMMM yyyy", { locale: fr }) : "..."}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -90,13 +91,13 @@ export default function SchedulePage() {
                        <div className={`mt-1 p-1.5 rounded-full ${event.type === 'Match' ? 'bg-primary' : 'bg-accent'}`} />
                       <div>
                         <p className="font-semibold">{event.title}</p>
-                        <p className="text-sm text-muted-foreground">{event.type}</p>
+                        <p className="text-sm text-muted-foreground">{event.type === 'Match' ? 'Match' : 'Entraînement'}</p>
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-muted-foreground text-sm">No events scheduled for this day.</p>
+                <p className="text-muted-foreground text-sm">Aucun événement prévu pour ce jour.</p>
               )}
             </CardContent>
           </Card>
@@ -122,15 +123,15 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
         if (!title || !date || !type) {
             toast({
                 variant: "destructive",
-                title: "Missing Information",
-                description: "Please fill out all fields to create an event.",
+                title: "Informations manquantes",
+                description: "Veuillez remplir tous les champs pour créer un événement.",
             })
             return;
         }
-        onAddEvent({ title, date, type: type as 'Match' | 'Training' });
+        onAddEvent({ title, date, type: type === 'match' ? 'Match' : 'Training' });
         toast({
-            title: "Event Created",
-            description: `Successfully added "${title}" to the schedule.`,
+            title: "Événement créé",
+            description: `"${title}" a été ajouté au calendrier avec succès.`,
         });
         onOpenChange(false);
         // Reset form
@@ -144,22 +145,22 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
             <DialogTrigger asChild>
                 <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Event
+                Ajouter un événement
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                <DialogTitle>Add New Event</DialogTitle>
+                <DialogTitle>Ajouter un nouvel événement</DialogTitle>
                 <DialogDescription>
-                    Add a new match or training session to the calendar.
+                    Ajoutez un nouveau match ou une nouvelle session d'entraînement au calendrier.
                 </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="title" className="text-right">
-                    Title
+                    Titre
                     </Label>
-                    <Input id="title" placeholder="e.g., U15 Training" className="col-span-3" value={title} onChange={(e) => setTitle(e.target.value)} />
+                    <Input id="title" placeholder="ex: Entraînement U15" className="col-span-3" value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right">
@@ -175,7 +176,7 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                         )}
                         >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        {date ? format(date, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -184,6 +185,7 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                         selected={date}
                         onSelect={setDate}
                         initialFocus
+                        locale={fr}
                         />
                     </PopoverContent>
                     </Popover>
@@ -196,8 +198,8 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                 </div>
                 </div>
                 <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button type="submit" onClick={handleSubmit}>Create Event</Button>
+                    <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
+                    <Button type="submit" onClick={handleSubmit}>Créer un événement</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -219,14 +221,14 @@ function EventTypeCombobox({ value, onValueChange }: { value: string, onValueCha
         >
           {value
             ? eventTypes.find((eventType) => eventType.value === value)?.label
-            : "Select event type..."}
+            : "Sélectionnez le type d'événement..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search event type..." />
-          <CommandEmpty>No event type found.</CommandEmpty>
+          <CommandInput placeholder="Rechercher un type d'événement..." />
+          <CommandEmpty>Aucun type d'événement trouvé.</CommandEmpty>
           <CommandGroup>
             <CommandList>
                 {eventTypes.map((eventType) => (

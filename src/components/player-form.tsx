@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 import { CalendarIcon, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -25,18 +26,18 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 
 const playerFormSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters."),
-  lastName: z.string().min(2, "Last name must be at least 2 characters."),
+  firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
+  lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
   dateOfBirth: z.date({
-    required_error: "A date of birth is required.",
+    required_error: "Une date de naissance est requise.",
   }),
-  category: z.string({ required_error: "Please select a category." }),
+  category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
 
 const defaultValues: Partial<PlayerFormValues> = {
-  // You can pre-fill default values here
+  // Vous pouvez pré-remplir les valeurs par défaut ici
 }
 
 interface PlayerFormProps {
@@ -52,8 +53,8 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
 
   function onSubmit(data: PlayerFormValues) {
     toast({
-      title: "Player Profile Created",
-      description: `Successfully added ${data.firstName} ${data.lastName} to the roster.`,
+      title: "Profil du joueur créé",
+      description: `Le joueur ${data.firstName} ${data.lastName} a été ajouté à la liste avec succès.`,
     })
     console.log(data)
     onFinished()
@@ -69,9 +70,9 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                 name="firstName"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>Prénom</FormLabel>
                     <FormControl>
-                        <Input placeholder="John" {...field} />
+                        <Input placeholder="Jean" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -82,9 +83,9 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                 name="lastName"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>Nom de famille</FormLabel>
                     <FormControl>
-                        <Input placeholder="Doe" {...field} />
+                        <Input placeholder="Dupont" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -95,7 +96,7 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                 name="dateOfBirth"
                 render={({ field }) => (
                     <FormItem className="flex flex-col">
-                    <FormLabel>Date of Birth</FormLabel>
+                    <FormLabel>Date de naissance</FormLabel>
                     <Popover>
                         <PopoverTrigger asChild>
                         <FormControl>
@@ -107,9 +108,9 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                             )}
                             >
                             {field.value ? (
-                                format(field.value, "PPP")
+                                format(field.value, "PPP", { locale: fr })
                             ) : (
-                                <span>Pick a date</span>
+                                <span>Choisissez une date</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -124,6 +125,7 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                             date > new Date() || date < new Date("1950-01-01")
                             }
                             initialFocus
+                            locale={fr}
                         />
                         </PopoverContent>
                     </Popover>
@@ -136,11 +138,11 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                     name="category"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel>Catégorie</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
+                                <SelectValue placeholder="Sélectionnez une catégorie" />
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -158,22 +160,22 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                 />
             </div>
             <div className="flex flex-col items-center gap-2">
-                 <FormLabel>Profile Photo</FormLabel>
+                 <FormLabel>Photo de profil</FormLabel>
                 <div className="relative group">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage src="https://placehold.co/200x200.png" alt="Player photo" data-ai-hint="player profile placeholder" />
+                        <AvatarImage src="https://placehold.co/200x200.png" alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                         <AvatarFallback>JD</AvatarFallback>
                     </Avatar>
                      <Button size="icon" className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                         <Upload className="h-4 w-4" />
                      </Button>
                 </div>
-                 <FormDescription className="text-center">Upload a photo</FormDescription>
+                 <FormDescription className="text-center">Télécharger une photo</FormDescription>
             </div>
         </div>
         <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onFinished}>Cancel</Button>
-            <Button type="submit">Create Player</Button>
+            <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
+            <Button type="submit">Créer le joueur</Button>
         </div>
       </form>
     </Form>

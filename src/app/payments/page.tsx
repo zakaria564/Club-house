@@ -15,17 +15,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
 export default function PaymentsPage() {
+  const statusTranslations = {
+    'Paid': 'Payé',
+    'Pending': 'En attente',
+    'Overdue': 'En retard'
+  }
   return (
     <>
-      <PageHeader title="Payments">
+      <PageHeader title="Paiements">
         <div className="flex items-center gap-2">
             <Button variant="outline">
             <File className="mr-2 h-4 w-4" />
-            Export
+            Exporter
             </Button>
             <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Payment
+            Ajouter un paiement
             </Button>
         </div>
       </PageHeader>
@@ -33,41 +38,41 @@ export default function PaymentsPage() {
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-4">
             <div>
-              <CardTitle>Payment History</CardTitle>
+              <CardTitle>Historique des paiements</CardTitle>
               <CardDescription>
-                Track and manage all player membership payments.
+                Suivez et gérez tous les paiements des adhésions des joueurs.
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
                <div className="relative">
                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                 <Input placeholder="Search by player..." className="pl-8 w-48" />
+                 <Input placeholder="Rechercher par joueur..." className="pl-8 w-48" />
                </div>
                 <TabsList>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="paid">Paid</TabsTrigger>
-                  <TabsTrigger value="pending">Pending</TabsTrigger>
-                  <TabsTrigger value="overdue">Overdue</TabsTrigger>
+                  <TabsTrigger value="all">Tous</TabsTrigger>
+                  <TabsTrigger value="paid">Payé</TabsTrigger>
+                  <TabsTrigger value="pending">En attente</TabsTrigger>
+                  <TabsTrigger value="overdue">En retard</TabsTrigger>
                 </TabsList>
             </div>
         </CardHeader>
         <CardContent>
             <TabsContent value="all">
-              <PaymentTable payments={payments} />
+              <PaymentTable payments={payments} statusTranslations={statusTranslations} />
             </TabsContent>
             <TabsContent value="paid">
-              <PaymentTable payments={payments.filter(p => p.status === 'Paid')} />
+              <PaymentTable payments={payments.filter(p => p.status === 'Paid')} statusTranslations={statusTranslations} />
             </TabsContent>
             <TabsContent value="pending">
-              <PaymentTable payments={payments.filter(p => p.status === 'Pending')} />
+              <PaymentTable payments={payments.filter(p => p.status === 'Pending')} statusTranslations={statusTranslations} />
             </TabsContent>
             <TabsContent value="overdue">
-              <PaymentTable payments={payments.filter(p => p.status === 'Overdue')} />
+              <PaymentTable payments={payments.filter(p => p.status === 'Overdue')} statusTranslations={statusTranslations} />
             </TabsContent>
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Showing <strong>1-5</strong> of <strong>{payments.length}</strong> payments
+            Affichage de <strong>1-5</strong> sur <strong>{payments.length}</strong> paiements
           </div>
         </CardFooter>
       </Card>
@@ -76,14 +81,14 @@ export default function PaymentsPage() {
   )
 }
 
-function PaymentTable({ payments }: { payments: (typeof payments) }) {
+function PaymentTable({ payments, statusTranslations }: { payments: (typeof payments), statusTranslations: any }) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Player</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="hidden md:table-cell">Amount</TableHead>
+          <TableHead>Joueur</TableHead>
+          <TableHead>Statut</TableHead>
+          <TableHead className="hidden md:table-cell">Montant</TableHead>
           <TableHead className="hidden md:table-cell">Date</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>
@@ -95,7 +100,7 @@ function PaymentTable({ payments }: { payments: (typeof payments) }) {
           <TableRow key={payment.id}>
             <TableCell>
               <div className="font-medium">{payment.playerName}</div>
-              <div className="text-sm text-muted-foreground">Player ID: {payment.playerId}</div>
+              <div className="text-sm text-muted-foreground">ID du joueur : {payment.playerId}</div>
             </TableCell>
             <TableCell>
               <Badge 
@@ -105,19 +110,19 @@ function PaymentTable({ payments }: { payments: (typeof payments) }) {
                   : 'destructive'
                 }
                 className={cn({
-                  'bg-green-500 hover:bg-green-500/80': payment.status === 'Paid',
-                  'bg-yellow-500 hover:bg-yellow-500/80': payment.status === 'Pending',
-                  'bg-red-500 hover:bg-red-500/80': payment.status === 'Overdue'
+                  'bg-green-500 hover:bg-green-500/80 text-white': payment.status === 'Paid',
+                  'bg-yellow-500 hover:bg-yellow-500/80 text-white': payment.status === 'Pending',
+                  'bg-red-500 hover:bg-red-500/80 text-white': payment.status === 'Overdue'
                 })}
               >
-                {payment.status}
+                {statusTranslations[payment.status]}
               </Badge>
             </TableCell>
             <TableCell className="hidden md:table-cell">
               ${payment.amount.toFixed(2)}
             </TableCell>
             <TableCell className="hidden md:table-cell">
-              {payment.date.toLocaleDateString()}
+              {payment.date.toLocaleDateString('fr-FR')}
             </TableCell>
             <TableCell>
               <DropdownMenu>
@@ -128,13 +133,13 @@ function PaymentTable({ payments }: { payments: (typeof payments) }) {
                     variant="ghost"
                   >
                     <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
+                    <span className="sr-only">Ouvrir le menu</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                  <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
+                  <DropdownMenuItem>Voir les détails</DropdownMenuItem>
+                  <DropdownMenuItem>Marquer comme payé</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
