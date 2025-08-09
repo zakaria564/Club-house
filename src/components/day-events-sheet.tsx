@@ -17,6 +17,7 @@ import { Button } from "./ui/button"
 import { ClubEvent } from "@/types"
 import { Separator } from "./ui/separator"
 import { ScrollArea } from "./ui/scroll-area"
+import { cn } from "@/lib/utils"
 
 interface DayEventsSheetProps {
   open: boolean;
