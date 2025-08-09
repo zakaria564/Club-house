@@ -1,8 +1,8 @@
+
 "use client";
 
 import {
   SidebarHeader,
-  Sidebar,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
