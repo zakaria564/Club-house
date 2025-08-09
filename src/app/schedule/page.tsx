@@ -205,7 +205,7 @@ export default function SchedulePage() {
               {selectedDayEvents.length > 0 ? (
                 <ul className="space-y-4">
                   {selectedDayEvents.map(event => (
-                    <li key={event.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card relative group">
+                    <li key={event.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card relative">
                        <div className={`absolute top-3 left-[-5px] h-3/4 w-1.5 rounded-r-full ${eventTypeColors[event.type]}`} />
                       <div className="pl-4 flex-grow">
                         <div className="flex justify-between items-start">
