@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import Link from "next/link";
 
 export function MainSidebar() {
   const pathname = usePathname();
@@ -44,46 +45,50 @@ export function MainSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              href="/"
               asChild
               isActive={isActive("/")}
               tooltip="Dashboard"
             >
-              <LayoutDashboard />
-              <span>Dashboard</span>
+              <Link href="/">
+                <LayoutDashboard />
+                <span>Dashboard</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              href="/players"
               asChild
               isActive={isActive("/players")}
               tooltip="Players"
             >
-              <Users />
-              <span>Players</span>
+              <Link href="/players">
+                <Users />
+                <span>Players</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              href="/schedule"
               asChild
               isActive={isActive("/schedule")}
               tooltip="Schedule"
             >
-              <Calendar />
-              <span>Schedule</span>
+              <Link href="/schedule">
+                <Calendar />
+                <span>Schedule</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              href="/payments"
               asChild
               isActive={isActive("/payments")}
               tooltip="Payments"
             >
-              <DollarSign />
-              <span>Payments</span>
+              <Link href="/payments">
+                <DollarSign />
+                <span>Payments</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
