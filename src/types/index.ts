@@ -40,6 +40,7 @@ export type ClubEvent = {
   location: string;
   category?: string; // e.g., U15, Seniors, All
   description?: string;
+  opponent?: string;
 };
 
 export type Coach = {

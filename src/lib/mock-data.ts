@@ -144,8 +144,9 @@ export const payments: Payment[] = [
 export const clubEvents: ClubEvent[] = [
   { 
     id: 'e1', 
-    title: 'Match: CAOS 2011 vs. City Rovers', 
+    title: 'Match de championnat', 
     type: 'Match', 
+    opponent: 'City Rovers',
     date: new Date(new Date().setDate(new Date().getDate() + 3)),
     time: '15:00',
     location: 'Stade Municipal',
@@ -164,7 +165,7 @@ export const clubEvents: ClubEvent[] = [
   },
   { 
     id: 'e3', 
-    title: 'Réunion éducateurs', 
+    title: 'Réunion des éducateurs', 
     type: 'Réunion', 
     date: new Date(new Date().setDate(new Date().getDate() + 2)),
     time: '19:00',

@@ -131,7 +131,7 @@ export default function SchedulePage() {
                        <div className={`absolute top-3 left-[-5px] h-3/4 w-1.5 rounded-r-full ${eventTypeColors[event.type]}`} />
                       <div className="pl-4 flex-grow">
                         <div className="flex justify-between items-start">
-                           <h3 className="font-semibold">{event.title}</h3>
+                           <h3 className="font-semibold">{event.type === 'Match' ? `Club CAOS 2011 vs. ${event.opponent}` : event.title}</h3>
                            <Badge variant="secondary" className={cn("capitalize", eventTypeColors[event.type], "text-white")}>{event.type}</Badge>
                         </div>
                          {event.category && (
@@ -188,11 +188,13 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
     const [category, setCategory] = React.useState("");
     const [description, setDescription] = React.useState("");
     const [type, setType] = React.useState<ClubEvent['type'] | "">("");
+    const [opponent, setOpponent] = React.useState("");
 
     const titleOptions = type ? eventTitleTemplates[type] : [];
 
     React.useEffect(() => {
         setTitle(""); // Reset title when type changes
+        setOpponent("");
     }, [type]);
 
     const resetForm = () => {
@@ -204,12 +206,13 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
         setCategory("");
         setDescription("");
         setType("");
+        setOpponent("");
     }
 
     const handleSubmit = () => {
         const finalTitle = title === "Autre..." ? customTitle : title;
 
-        if (!finalTitle || !date || !type || !time || !location) {
+        if (!finalTitle || !date || !type || !time || !location || (type === 'Match' && !opponent)) {
             toast({
                 variant: "destructive",
                 title: "Informations manquantes",
@@ -217,10 +220,27 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
             })
             return;
         }
-        onAddEvent({ title: finalTitle, date, type, time, location, category, description });
+
+        const eventData: Omit<ClubEvent, 'id'> = {
+            title: finalTitle,
+            date,
+            type,
+            time,
+            location,
+            category,
+            description,
+        };
+
+        if (type === 'Match') {
+            eventData.opponent = opponent;
+            eventData.title = `Club CAOS 2011 vs. ${opponent}`;
+        }
+
+
+        onAddEvent(eventData);
         toast({
             title: "Événement créé",
-            description: `"${finalTitle}" a été ajouté au calendrier avec succès.`,
+            description: `L'événement a été ajouté au calendrier avec succès.`,
         });
         onOpenChange(false);
         resetForm();
@@ -247,27 +267,38 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                         <EventTypeCombobox value={type} onValueChange={(value) => setType(value as ClubEvent['type'] | "")} />
                     </div>
 
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="title" className="text-right">Titre</Label>
-                         <Select onValueChange={setTitle} value={title} disabled={!type}>
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Sélectionnez un titre" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {titleOptions.map(option => (
-                                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    {type !== 'Match' && (
+                        <>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="title" className="text-right">Titre</Label>
+                                <Select onValueChange={setTitle} value={title} disabled={!type}>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Sélectionnez un titre" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {titleOptions.map(option => (
+                                            <SelectItem key={option} value={option}>{option}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                    {title === 'Autre...' && (
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="custom-title" className="text-right">Titre perso.</Label>
-                            <Input id="custom-title" placeholder="Titre personnalisé..." className="col-span-3" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
-                        </div>
+                            {title === 'Autre...' && (
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="custom-title" className="text-right">Titre perso.</Label>
+                                    <Input id="custom-title" placeholder="Titre personnalisé..." className="col-span-3" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
+                                </div>
+                            )}
+                        </>
                     )}
                    
+                    {type === 'Match' && (
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="opponent" className="text-right">Adversaire</Label>
+                            <Input id="opponent" placeholder="Nom de l'équipe adverse" className="col-span-3" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Date</Label>
                         <Popover>
