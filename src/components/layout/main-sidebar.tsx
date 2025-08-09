@@ -103,7 +103,7 @@ export function MainSidebar() {
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Alex Durand</span>
-                <span className="text-xs text-muted-foreground">Gérant</span>
+                <span className="text-sm text-muted-foreground">Gérant</span>
               </div>
             </div>
             <MoreHorizontal className="w-5 h-5 text-muted-foreground cursor-pointer" />
