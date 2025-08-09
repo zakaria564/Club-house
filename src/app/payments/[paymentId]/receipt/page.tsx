@@ -106,6 +106,11 @@ const ReceiptPage = () => {
     );
   }
 
+  const isCoachPayment = payment.memberType === 'coach';
+
+  const payer = isCoachPayment ? { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' } : member;
+  const payee = isCoachPayment ? member : { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' };
+
   return (
     <div className="bg-white text-black font-sans p-8 md:p-12 printable-area">
       <div className="max-w-4xl mx-auto border border-gray-300 p-8 rounded-lg shadow-lg">
@@ -128,8 +133,8 @@ const ReceiptPage = () => {
             </div>
           </div>
           <div className="text-right">
-            <h2 className="text-3xl font-bold text-gray-800">REÇU DE PAIEMENT</h2>
-            <p className="text-gray-500">Reçu #: {payment.id}</p>
+            <h2 className="text-3xl font-bold text-gray-800">{isCoachPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>
+            <p className="text-gray-500">Référence #: {payment.id}</p>
             <p className="text-gray-500">Date: {format(new Date(payment.date), 'd MMMM yyyy', { locale: fr })}</p>
           </div>
         </header>
@@ -138,18 +143,19 @@ const ReceiptPage = () => {
         <section className="grid grid-cols-2 gap-8 my-8">
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-2">Payé par :</h3>
-            <p className="font-bold">{member.name}</p>
-            <p>{member.address}</p>
-            <p>{member.city}</p>
-            <p>{member.phone}</p>
-            <p>{member.email}</p>
+            <p className="font-bold">{payer.name}</p>
+            <p>{payer.address}</p>
+            <p>{payer.city}</p>
+            {payer.phone && <p>{payer.phone}</p>}
+            <p>{payer.email}</p>
           </div>
-          <div className="text-right">
+          <div className={isCoachPayment ? "" : "text-right"}>
              <h3 className="text-lg font-semibold text-gray-700 mb-2">Payé à :</h3>
-             <p className="font-bold">Club CAOS 2011</p>
-             <p>Adresse du club</p>
-             <p>Casablanca</p>
-             <p>contact@clubcaos2011.ma</p>
+             <p className="font-bold">{payee.name}</p>
+             <p>{payee.address}</p>
+             <p>{payee.city}</p>
+             {payee.phone && <p>{payee.phone}</p>}
+             <p>{payee.email}</p>
           </div>
         </section>
 
@@ -164,7 +170,7 @@ const ReceiptPage = () => {
             </thead>
             <tbody>
               <tr className="border-b border-gray-200">
-                <td className="p-3">Adhésion saison 2023-2024 ({payment.memberType === 'player' ? 'Joueur' : 'Entraîneur'})</td>
+                <td className="p-3">{isCoachPayment ? `Prestation Entraîneur - Saison 2023-2024` : `Adhésion saison 2023-2024 (Joueur)`}</td>
                 <td className="p-3 text-right">{payment.totalAmount.toFixed(2)} DH</td>
               </tr>
             </tbody>
@@ -179,15 +185,15 @@ const ReceiptPage = () => {
               <span>{payment.totalAmount.toFixed(2)} DH</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Avance payée</span>
+              <span className="text-gray-600">{isCoachPayment ? `Montant versé` : `Avance payée`}</span>
               <span>{payment.advance.toFixed(2)} DH</span>
             </div>
             <div className="flex justify-between font-bold text-xl border-t border-gray-300 pt-3">
-              <span className="text-gray-800">Reste à payer</span>
+              <span className="text-gray-800">{isCoachPayment ? `Solde restant dû` : `Reste à payer`}</span>
               <span className="text-primary">{payment.remaining.toFixed(2)} DH</span>
             </div>
              <div className="flex justify-between font-bold text-xl bg-green-100 text-green-800 p-3 rounded-md mt-2">
-              <span >Montant Total Payé</span>
+              <span >{isCoachPayment ? `Montant Total Versé` : `Montant Total Payé`}</span>
               <span >{payment.advance.toFixed(2)} DH</span>
             </div>
           </div>
