@@ -90,6 +90,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     },
   })
 
+  const [photoPreview, setPhotoPreview] = React.useState<string | null>(form.watch('photoUrl') || null);
+
   React.useEffect(() => {
     if (player) {
       form.reset({
@@ -98,6 +100,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
         clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
       });
+       setPhotoPreview(player.photoUrl || 'https://placehold.co/200x200.png');
     } else {
       form.reset({
         id: undefined,
@@ -117,6 +120,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: new Date(),
         clubExitDate: undefined,
       });
+      setPhotoPreview('https://placehold.co/200x200.png');
     }
   }, [player, form]);
 
@@ -128,7 +132,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       if (!players || players.length === 0) {
         return "1";
       }
-      const maxId = Math.max(...players.map(p => parseInt(p.id, 10)));
+      const maxId = Math.max(...players.map(p => parseInt(p.id, 10)).filter(id => !isNaN(id)));
       return (maxId + 1).toString();
     }
 
@@ -136,7 +140,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         ...data,
         id: player?.id || getNextId(),
         dateOfBirth: new Date(data.dateOfBirth),
-        photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
+        photoUrl: data.photoUrl || 'https://placehold.co/100x100.png', // Don't save base64 to localStorage
         category: data.category as Player['category'],
         playerNumber: Number(data.playerNumber),
         clubEntryDate: new Date(data.clubEntryDate),
@@ -163,7 +167,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                     name="id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Numéros furtifs</FormLabel>
+                        <FormLabel>ID joueur</FormLabel>
                         <FormControl>
                           <Input {...field} readOnly className="bg-muted" />
                         </FormControl>
@@ -450,7 +454,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                   <FormItem>
                     <FormLabel>N° Joueur</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="10" {...field} value={field.value === '' ? '' : field.value} />
+                      <Input type="number" placeholder="10" {...field} value={field.value === '' ? '' : String(field.value)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -464,7 +468,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                     <TooltipTrigger asChild>
                       <div className="relative group cursor-not-allowed">
                         <Avatar className="h-32 w-32">
-                          <AvatarImage src={form.watch('photoUrl') || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                          <AvatarImage src={photoPreview || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                           <AvatarFallback>
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}

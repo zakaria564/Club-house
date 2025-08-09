@@ -19,6 +19,8 @@ import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
+
 
 const parsePlayerDates = (player: any): Player => ({
     ...player,
@@ -84,8 +86,29 @@ function PaymentsPageContent() {
     return initialPlayers.map(parsePlayerDates);
   });
 
-  // In a real app, this would likely be persisted in a database or state management solution
-  const [payments, setPayments] = React.useState<Payment[]>(initialPayments.map(p => ({...p, date: new Date(p.date)})));
+  const [payments, setPayments] = React.useState<Payment[]>(() => {
+    if (typeof window === 'undefined') {
+        return initialPayments.map(p => ({...p, date: new Date(p.date)}));
+    }
+    try {
+        const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        return storedPayments ? JSON.parse(storedPayments).map((p: any) => ({...p, date: new Date(p.date)})) : initialPayments.map(p => ({...p, date: new Date(p.date)}));
+    } catch (error) {
+        console.error("Failed to parse payments from localStorage", error);
+        return initialPayments.map(p => ({...p, date: new Date(p.date)}));
+    }
+  });
+
+   React.useEffect(() => {
+    try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(payments));
+        }
+    } catch (error) {
+        console.error("Failed to save payments to localStorage", error);
+    }
+  }, [payments]);
+
 
   const statusTranslations: { [key in Payment['status']]: string } = {
     'Paid': 'Payé',
@@ -113,7 +136,15 @@ function PaymentsPageContent() {
   }
 
   const handleAddPayment = (newPayment: Omit<Payment, 'id'>) => {
-    const paymentWithId = { ...newPayment, id: `p${payments.length + 1}` };
+    const getNextId = () => {
+        if (!payments || payments.length === 0) {
+            return "p1";
+        }
+        const maxId = Math.max(...payments.map(p => parseInt(p.id.replace('p', ''), 10)));
+        return `p${maxId + 1}`;
+    }
+
+    const paymentWithId = { ...newPayment, id: getNextId() };
     setPayments([...payments, paymentWithId]);
   }
   
@@ -211,7 +242,7 @@ function PaymentsPageContent() {
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Affichage de <strong>1-{filteredPayments.length}</strong> sur <strong>{filteredPayments.length}</strong> paiements
+            Affichage de <strong>1-{filteredPayments.length}</strong> sur <strong>{payments.length}</strong> paiements
           </div>
         </CardFooter>
       </Card>
@@ -255,7 +286,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
           <TableRow key={payment.id}>
             <TableCell>
               <div className="font-medium">{payment.playerName}</div>
-              <div className="text-sm text-muted-foreground">Numéros furtifs : {payment.playerId}</div>
+              <div className="text-sm text-muted-foreground">ID joueur : {payment.playerId}</div>
             </TableCell>
             <TableCell>
               <Badge 

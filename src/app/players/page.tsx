@@ -148,7 +148,7 @@ export default function PlayersPage() {
                 <TableHead>Catégorie</TableHead>
                 <TableHead className="hidden md:table-cell">Poste</TableHead>
                 <TableHead className="hidden md:table-cell">N°</TableHead>
-                <TableHead className="hidden md:table-cell">Numéros furtifs</TableHead>
+                <TableHead className="hidden md:table-cell">ID joueur</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
