@@ -13,12 +13,11 @@ interface PrintablePlayerCardProps {
 const PrintablePlayerCard = React.forwardRef<HTMLDivElement, PrintablePlayerCardProps>(({ player }, ref) => {
   if (!player) return null;
 
-  // Ensure dates are valid Date objects before formatting
-  const dateOfBirth = player.dateOfBirth instanceof Date ? player.dateOfBirth : new Date(player.dateOfBirth);
-  const clubEntryDate = player.clubEntryDate instanceof Date ? player.clubEntryDate : new Date(player.clubEntryDate);
-  const clubExitDate = player.clubExitDate ? (player.clubExitDate instanceof Date ? player.clubExitDate : new Date(player.clubExitDate)) : null;
-
-  const isValidDate = (d: Date | null | undefined): d is Date => d instanceof Date && !isNaN(d.getTime());
+  const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
+  
+  const dateOfBirth = new Date(player.dateOfBirth);
+  const clubEntryDate = new Date(player.clubEntryDate);
+  const clubExitDate = player.clubExitDate ? new Date(player.clubExitDate) : null;
 
   return (
     <div ref={ref} className="p-8 font-sans">

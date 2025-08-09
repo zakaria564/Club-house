@@ -161,11 +161,11 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
 
   return (
     <>
-      <div className="hidden print-only">
+      <div className="printable-area">
         {player && <PrintablePlayerCard ref={printableRef} player={player} />}
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 no-print">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <FormField
