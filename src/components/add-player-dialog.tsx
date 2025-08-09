@@ -21,7 +21,7 @@ interface AddPlayerDialogProps {
 export default function AddPlayerDialog({ open, onOpenChange, player, onPlayerUpdate }: AddPlayerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl no-print">
         <DialogHeader>
           <DialogTitle className="font-headline">{player ? 'Modifier le joueur' : 'Ajouter un nouveau joueur'}</DialogTitle>
           <DialogDescription>

@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Printer, Trash2, Edit } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -25,11 +25,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import PrintablePlayerList from "@/components/printable-player-list"
 
 const LOCAL_STORAGE_KEY = 'clubhouse-players';
 
-// Helper to convert string dates to Date objects
 const parsePlayerDates = (player: any): Player => ({
     ...player,
     dateOfBirth: new Date(player.dateOfBirth),
@@ -47,9 +45,7 @@ export default function PlayersPage() {
     try {
         const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (storedPlayers) {
-            const parsedPlayers = JSON.parse(storedPlayers);
-            // Ensure all dates are proper Date objects
-            return parsedPlayers.map(parsePlayerDates);
+            return JSON.parse(storedPlayers).map(parsePlayerDates);
         }
     } catch (error) {
         console.error("Failed to parse players from localStorage", error);
@@ -69,10 +65,6 @@ export default function PlayersPage() {
         console.error("Failed to save players to localStorage", error);
     }
   }, [players]);
-
-  const handlePrint = () => {
-    window.print();
-  }
 
   const handleDeleteInitiate = (playerId: string) => {
     setPlayerToDelete(playerId);
@@ -100,16 +92,15 @@ export default function PlayersPage() {
   }
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
-    // Ensure dates are Date objects before updating state
     const playerWithDates = parsePlayerDates(updatedPlayer);
     setPlayers(prevPlayers => {
         const existingPlayerIndex = prevPlayers.findIndex(p => p.id === playerWithDates.id);
         if (existingPlayerIndex > -1) {
             const newPlayers = [...prevPlayers];
             newPlayers[existingPlayerIndex] = playerWithDates;
-            return newPlayers.map(parsePlayerDates); // Re-parse all to be safe
+            return newPlayers;
         } else {
-            return [...prevPlayers, playerWithDates].map(parsePlayerDates); // Re-parse all to be safe
+            return [...prevPlayers, playerWithDates];
         }
     });
   };
@@ -118,19 +109,11 @@ export default function PlayersPage() {
     `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     player.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
-  // Crucially, re-parse the players just before sending them to the printable component
-  // to ensure all dates are valid Date objects. This is the definitive fix.
-  const printablePlayers = players.map(parsePlayerDates);
 
   return (
     <>
       <div className="no-print">
         <PageHeader title="Joueurs">
-          <Button variant="outline" onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimer la liste
-          </Button>
           <Button onClick={handleAddNewPlayer}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Ajouter un joueur
@@ -228,9 +211,6 @@ export default function PlayersPage() {
             </div>
           </CardFooter>
         </Card>
-      </div>
-      <div className="hidden print:block">
-        <PrintablePlayerList players={printablePlayers} />
       </div>
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} onPlayerUpdate={handlePlayerUpdate} />
       <AlertDialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>

@@ -89,10 +89,13 @@ body {
 
 @media print {
   body {
-    background: white;
-    color: black;
+    background: white !important;
+    color: black !important;
   }
   .no-print {
-    display: none;
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
   }
 }
