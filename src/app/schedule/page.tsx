@@ -4,7 +4,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown, ArrowLeft, Users, MapPin, Clock } from "lucide-react"
+import { Calendar as CalendarIcon, PlusCircle, Check, ChevronsUpDown, ArrowLeft, Users, MapPin, Clock, MoreVertical, Edit, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
@@ -31,6 +31,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 
@@ -57,9 +59,12 @@ const parseEventDates = (event: any): ClubEvent => ({
 
 export default function SchedulePage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [date, setDate] = React.useState<Date | undefined>(new Date())
   const [events, setEvents] = React.useState<ClubEvent[]>([])
-  const [isAddEventOpen, setAddEventOpen] = React.useState(false);
+  const [isEventDialogOpen, setEventDialogOpen] = React.useState(false);
+  const [selectedEvent, setSelectedEvent] = React.useState<ClubEvent | null>(null);
+  const [eventToDelete, setEventToDelete] = React.useState<ClubEvent['id'] | null>(null);
   const [isClient, setIsClient] = React.useState(false);
   
   React.useEffect(() => {
@@ -100,11 +105,40 @@ export default function SchedulePage() {
     (event) => date && format(new Date(event.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
   ).sort((a,b) => a.time.localeCompare(b.time));
 
-  const handleAddEvent = (newEvent: Omit<ClubEvent, 'id'>) => {
-    const eventWithId = { ...newEvent, id: `e${Date.now()}`};
-    setEvents([...events, eventWithId]);
-  }
+  const handleEventSubmit = (submittedEvent: ClubEvent) => {
+    setEvents(prevEvents => {
+      const existingEventIndex = prevEvents.findIndex(e => e.id === submittedEvent.id);
+      if (existingEventIndex > -1) {
+        const newEvents = [...prevEvents];
+        newEvents[existingEventIndex] = submittedEvent;
+        return newEvents;
+      } else {
+        return [...prevEvents, submittedEvent];
+      }
+    });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (eventToDelete) {
+      setEvents(events.filter(e => e.id !== eventToDelete));
+      toast({
+        title: "Événement supprimé",
+        description: "L'événement a été supprimé du calendrier.",
+      });
+      setEventToDelete(null);
+    }
+  };
+
+  const handleEdit = (event: ClubEvent) => {
+    setSelectedEvent(event);
+    setEventDialogOpen(true);
+  };
   
+  const handleAddNew = () => {
+    setSelectedEvent(null);
+    setEventDialogOpen(true);
+  }
+
   const DayContent = (day: Date) => {
     const dayEvents = events.filter(e => format(new Date(e.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd"));
     return (
@@ -129,7 +163,10 @@ export default function SchedulePage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
             </Button>
-            <AddEventDialog open={isAddEventOpen} onOpenChange={setAddEventOpen} onAddEvent={handleAddEvent} />
+            <Button onClick={handleAddNew}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter un événement
+            </Button>
         </div>
       </PageHeader>
 
@@ -168,7 +205,7 @@ export default function SchedulePage() {
               {selectedDayEvents.length > 0 ? (
                 <ul className="space-y-4">
                   {selectedDayEvents.map(event => (
-                    <li key={event.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card relative">
+                    <li key={event.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card relative group">
                        <div className={`absolute top-3 left-[-5px] h-3/4 w-1.5 rounded-r-full ${eventTypeColors[event.type]}`} />
                       <div className="pl-4 flex-grow">
                         <div className="flex justify-between items-start">
@@ -188,6 +225,22 @@ export default function SchedulePage() {
                          </div>
                          {event.description && <p className="text-sm mt-2 pt-2 border-t">{event.description}</p>}
                       </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Ouvrir le menu</span>
+                           </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(event)}>
+                                <Edit className="mr-2 h-4 w-4" /> Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => setEventToDelete(event.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" /> Supprimer
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </li>
                   ))}
                 </ul>
@@ -198,6 +251,28 @@ export default function SchedulePage() {
           </Card>
         </div>
       </div>
+      <AddEventDialog 
+        key={selectedEvent ? selectedEvent.id : 'new'}
+        open={isEventDialogOpen} 
+        onOpenChange={setEventDialogOpen} 
+        onEventSubmit={handleEventSubmit}
+        event={selectedEvent}
+      />
+
+      <AlertDialog open={!!eventToDelete} onOpenChange={(open) => !open && setEventToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Elle supprimera définitivement cet événement du calendrier.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setEventToDelete(null)}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteConfirm}>Supprimer</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
@@ -205,7 +280,8 @@ export default function SchedulePage() {
 interface AddEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddEvent: (event: Omit<ClubEvent, 'id'>) => void;
+  onEventSubmit: (event: ClubEvent) => void;
+  event?: ClubEvent | null;
 }
 
 
@@ -219,24 +295,28 @@ const eventTitleTemplates: Record<ClubEvent['type'], string[]> = {
 
 const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran", "Éducateurs", "Tous les membres"];
 
-function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps) {
+function AddEventDialog({ open, onOpenChange, onEventSubmit, event }: AddEventDialogProps) {
     const { toast } = useToast();
-    const [title, setTitle] = React.useState("");
+    const isEditing = !!event;
+
+    const [title, setTitle] = React.useState(event?.title && !event.opponent ? event.title : "");
     const [customTitle, setCustomTitle] = React.useState("");
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    const [time, setTime] = React.useState("");
-    const [location, setLocation] = React.useState("");
-    const [category, setCategory] = React.useState("");
-    const [description, setDescription] = React.useState("");
-    const [type, setType] = React.useState<ClubEvent['type'] | "">("");
-    const [opponent, setOpponent] = React.useState("");
+    const [date, setDate] = React.useState<Date | undefined>(event ? new Date(event.date) : new Date());
+    const [time, setTime] = React.useState(event?.time || "");
+    const [location, setLocation] = React.useState(event?.location || "");
+    const [category, setCategory] = React.useState(event?.category || "");
+    const [description, setDescription] = React.useState(event?.description || "");
+    const [type, setType] = React.useState<ClubEvent['type'] | "">(event?.type || "");
+    const [opponent, setOpponent] = React.useState(event?.opponent || "");
 
     const titleOptions = type ? eventTitleTemplates[type] : [];
 
     React.useEffect(() => {
-        setTitle(""); // Reset title when type changes
-        setOpponent("");
-    }, [type]);
+        if (!isEditing) {
+            setTitle("");
+            setOpponent("");
+        }
+    }, [type, isEditing]);
 
     const resetForm = () => {
         setTitle("");
@@ -262,14 +342,16 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
             return;
         }
 
-        const eventData: Omit<ClubEvent, 'id'> = {
+        const eventData: ClubEvent = {
+            id: isEditing ? event.id : `e${Date.now()}`,
             title: finalTitle,
             date,
             type,
             time,
             location,
-            category,
-            description,
+            category: category || undefined,
+            description: description || undefined,
+            opponent: opponent || undefined,
         };
 
         if (type === 'Match') {
@@ -277,29 +359,25 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
             eventData.title = `CAOS vs. ${opponent}`;
         }
 
-
-        onAddEvent(eventData);
+        onEventSubmit(eventData);
         toast({
-            title: "Événement créé",
-            description: `L'événement a été ajouté au calendrier avec succès.`,
+            title: isEditing ? "Événement mis à jour" : "Événement créé",
+            description: `L'événement a été ${isEditing ? 'mis à jour' : 'ajouté au calendrier'} avec succès.`,
         });
         onOpenChange(false);
-        resetForm();
+        if (!isEditing) resetForm();
     }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
-                <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Ajouter un événement
-                </Button>
+                {/* This button is now located on the main page */}
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                <DialogTitle>Ajouter un nouvel événement</DialogTitle>
+                <DialogTitle>{isEditing ? 'Modifier' : 'Ajouter un nouvel'} événement</DialogTitle>
                 <DialogDescription>
-                    Ajoutez un nouveau match, entraînement, réunion ou autre au calendrier.
+                    {isEditing ? 'Mettez à jour les détails de l\'événement.' : 'Ajoutez un nouveau match, entraînement, réunion ou autre au calendrier.'}
                 </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
@@ -385,7 +463,7 @@ function AddEventDialog({ open, onOpenChange, onAddEvent }: AddEventDialogProps)
                 </div>
                 <DialogFooter>
                     <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
-                    <Button type="submit" onClick={handleSubmit}>Créer un événement</Button>
+                    <Button type="submit" onClick={handleSubmit}>{isEditing ? "Sauvegarder les modifications" : "Créer l'événement"}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -443,3 +521,5 @@ function EventTypeCombobox({ value, onValueChange }: { value: string, onValueCha
     </Popover>
   )
 }
+
+    
