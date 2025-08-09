@@ -26,6 +26,8 @@ const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime
 
 export default function PlayerDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { id: playerId } = params;
+
   const [players, setPlayers] = React.useState<Player[]>(() => {
     if (typeof window === 'undefined') {
       return initialPlayers.map(parsePlayerDates);
@@ -41,7 +43,6 @@ export default function PlayerDetailPage({ params }: { params: { id: string } })
 
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
 
-  const playerId = params.id;
   const player = players.find((p) => p.id === playerId);
 
   const handlePlayerUpdate = (updatedPlayer: Player) => {
