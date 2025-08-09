@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ClubEvent } from "@/types"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 
 interface ClubCalendarProps {
     currentDate: Date;
