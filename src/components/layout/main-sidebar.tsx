@@ -47,7 +47,7 @@ export function MainSidebar() {
             <h2 className="text-lg font-semibold font-headline">
               clubcaos2011
             </h2>
-            <p className="text-sm text-muted-foreground">clubcaos2011</p>
+            <p className="text-sm text-muted-foreground">ligue du grand Casablanca de football</p>
           </div>
         </div>
       </SidebarHeader>
