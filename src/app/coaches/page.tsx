@@ -156,6 +156,10 @@ export default function CoachesPage() {
     }
   }
 
+  const handleViewCoach = (coachId: string) => {
+    router.push(`/coaches/${coachId}`);
+  };
+
 
   return (
     <>
@@ -196,7 +200,7 @@ export default function CoachesPage() {
             </TableHeader>
             <TableBody>
               {coaches.map(coach => (
-                <TableRow key={coach.id}>
+                <TableRow key={coach.id} onClick={() => handleViewCoach(coach.id)} className="cursor-pointer">
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -213,7 +217,7 @@ export default function CoachesPage() {
                     <div className="font-medium">{coach.email}</div>
                     <div className="text-sm text-muted-foreground">{coach.phone}</div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
