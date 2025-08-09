@@ -84,7 +84,7 @@ const positions = [
     "Attaquant de soutien"
 ]
 
-const categories = ["U7", "U9", "U11", "U13", "U15", "U17", "Senior", "Vétéran"]
+const categories = ["U7", "U9", "U11", "U13", "U15", "U17", "U19", "U23", "Senior", "Vétéran"]
 
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()

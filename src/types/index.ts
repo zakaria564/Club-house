@@ -3,7 +3,7 @@ export type Player = {
   firstName: string;
   lastName: string;
   dateOfBirth: Date;
-  category: 'U9' | 'U11' | 'U13' | 'U15' | 'U17' | 'Senior';
+  category: 'U7' | 'U9' | 'U11' | 'U13' | 'U15' | 'U17' | 'U19' | 'U23' | 'Senior' | 'Vétéran';
   photoUrl: string;
   address: string;
   city: string;
