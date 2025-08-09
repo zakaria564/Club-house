@@ -86,6 +86,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const form = useForm<CoachFormValues>({
     resolver: zodResolver(coachFormSchema),
     defaultValues: defaultValues as CoachFormValues,
+    mode: "onChange",
   })
 
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(form.watch('photoUrl') || null);
@@ -94,14 +95,17 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     if (coach) {
       form.reset({ 
           ...coach,
-          dateOfBirth: new Date(coach.dateOfBirth),
+          dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : new Date(),
       });
        setPhotoPreview(coach.photoUrl || 'https://placehold.co/200x200.png');
     } else {
-      form.reset(defaultValues as CoachFormValues);
+      form.reset({
+        ...defaultValues,
+        dateOfBirth: undefined,
+      } as CoachFormValues);
       setPhotoPreview('https://placehold.co/200x200.png');
     }
-  }, [coach, form]);
+  }, [coach, form, defaultValues]);
 
 
   function onSubmit(data: CoachFormValues) {
