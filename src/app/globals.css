@@ -27,7 +27,7 @@ body {
     --border: 234 30% 85%;
     --input: 234 30% 85%;
     --ring: 231 48% 48%;
-    --chart-1: 0 0% 0%; /* Black for chart */
+    --chart-1: 231 48% 48%; /* Blue for chart */
     --chart-2: 291 64% 42%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
