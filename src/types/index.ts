@@ -21,7 +21,9 @@ export type Payment = {
   id: string;
   playerId: string;
   playerName: string;
-  amount: number;
+  totalAmount: number;
+  advance: number;
+  remaining: number;
   date: Date;
   status: 'Paid' | 'Pending' | 'Overdue';
 };

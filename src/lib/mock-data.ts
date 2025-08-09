@@ -107,11 +107,11 @@ export const players: Player[] = [
 ];
 
 export const payments: Payment[] = [
-  { id: 'p1', playerId: '1', playerName: 'John Doe', amount: 250, date: new Date('2023-09-01'), status: 'Paid' },
-  { id: 'p2', playerId: '2', playerName: 'Jane Smith', amount: 250, date: new Date('2023-09-05'), status: 'Paid' },
-  { id: 'p3', playerId: '3', playerName: 'Mike Johnson', amount: 300, date: new Date('2023-09-10'), status: 'Pending' },
-  { id: 'p4', playerId: '4', playerName: 'Emily Brown', amount: 200, date: new Date('2023-08-15'), status: 'Overdue' },
-  { id: 'p5', playerId: '5', playerName: 'Chris Davis', amount: 250, date: new Date('2023-09-02'), status: 'Paid' },
+  { id: 'p1', playerId: '1', playerName: 'John Doe', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-01'), status: 'Paid' },
+  { id: 'p2', playerId: '2', playerName: 'Jane Smith', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-05'), status: 'Paid' },
+  { id: 'p3', playerId: '3', playerName: 'Mike Johnson', totalAmount: 300, advance: 150, remaining: 150, date: new Date('2023-09-10'), status: 'Pending' },
+  { id: 'p4', playerId: '4', playerName: 'Emily Brown', totalAmount: 300, advance: 0, remaining: 300, date: new Date('2023-08-15'), status: 'Overdue' },
+  { id: 'p5', playerId: '5', playerName: 'Chris Davis', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-02'), status: 'Paid' },
 ];
 
 export const clubEvents: ClubEvent[] = [

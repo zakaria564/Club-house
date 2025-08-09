@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Check, ChevronsUpDown } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -96,7 +96,7 @@ function PaymentsPageContent() {
   const handleMarkAsPaid = (paymentId: string) => {
     setPayments(currentPayments =>
       currentPayments.map(p =>
-        p.id === paymentId ? { ...p, status: 'Paid' } : p
+        p.id === paymentId ? { ...p, advance: p.totalAmount, remaining: 0, status: 'Paid' } : p
       )
     );
     const payment = payments.find(p => p.id === paymentId);
@@ -217,7 +217,9 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
         <TableRow>
           <TableHead>Joueur</TableHead>
           <TableHead>Statut</TableHead>
-          <TableHead className="hidden md:table-cell">Montant</TableHead>
+          <TableHead className="hidden md:table-cell">Total</TableHead>
+          <TableHead className="hidden md:table-cell">Avance</TableHead>
+          <TableHead className="hidden md:table-cell">Reste</TableHead>
           <TableHead className="hidden md:table-cell">Date</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>
@@ -243,7 +245,13 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
               </Badge>
             </TableCell>
             <TableCell className="hidden md:table-cell">
-              {payment.amount.toFixed(2)} DH
+              {payment.totalAmount.toFixed(2)} DH
+            </TableCell>
+            <TableCell className="hidden md:table-cell">
+              {payment.advance.toFixed(2)} DH
+            </TableCell>
+            <TableCell className="hidden md:table-cell">
+              {payment.remaining.toFixed(2)} DH
             </TableCell>
             <TableCell className="hidden md:table-cell">
               {new Date(payment.date).toLocaleDateString('fr-FR')}

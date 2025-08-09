@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
@@ -34,16 +33,28 @@ interface AddPaymentDialogProps {
 export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, players }: AddPaymentDialogProps) {
   const { toast } = useToast();
   const [selectedPlayerId, setSelectedPlayerId] = React.useState<string | null>(null);
-  const [amount, setAmount] = React.useState<string>("");
+  const [totalAmount, setTotalAmount] = React.useState<string>("300");
+  const [advance, setAdvance] = React.useState<string>("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [status, setStatus] = React.useState<"Paid" | "Pending" | "Overdue">("Pending");
 
   const handleSubmit = () => {
-    if (!selectedPlayerId || !amount || !date || !status) {
+    const totalAmountNum = parseFloat(totalAmount);
+    const advanceNum = parseFloat(advance);
+    
+    if (!selectedPlayerId || isNaN(totalAmountNum) || isNaN(advanceNum) || !date) {
       toast({
         variant: "destructive",
-        title: "Informations manquantes",
-        description: "Veuillez remplir tous les champs pour créer un paiement.",
+        title: "Informations manquantes ou incorrectes",
+        description: "Veuillez remplir tous les champs correctement.",
+      })
+      return;
+    }
+
+    if (advanceNum > totalAmountNum) {
+      toast({
+        variant: "destructive",
+        title: "Montant invalide",
+        description: "L'avance ne peut pas être supérieure au montant total.",
       })
       return;
     }
@@ -53,11 +64,17 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
         toast({ variant: "destructive", title: "Joueur non trouvé" })
         return;
     }
+    
+    const remaining = totalAmountNum - advanceNum;
+    const status: Payment['status'] = remaining === 0 ? 'Paid' : (new Date() > date ? 'Overdue' : 'Pending');
+
 
     onAddPayment({
       playerId: selectedPlayerId,
       playerName: `${selectedPlayer.firstName} ${selectedPlayer.lastName}`,
-      amount: parseFloat(amount),
+      totalAmount: totalAmountNum,
+      advance: advanceNum,
+      remaining: remaining,
       date,
       status,
     });
@@ -69,9 +86,9 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
 
     // Reset form and close dialog
     setSelectedPlayerId(null);
-    setAmount("");
+    setTotalAmount("300");
+    setAdvance("");
     setDate(new Date());
-    setStatus("Pending");
     onOpenChange(false);
   }
 
@@ -96,16 +113,29 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="amount" className="text-right">
-              Montant
+            <Label htmlFor="totalAmount" className="text-right">
+              Montant Total
             </Label>
             <Input 
-              id="amount" 
+              id="totalAmount" 
               type="number"
-              placeholder="250.00" 
+              placeholder="300.00" 
               className="col-span-3" 
-              value={amount} 
-              onChange={(e) => setAmount(e.target.value)} 
+              value={totalAmount} 
+              onChange={(e) => setTotalAmount(e.target.value)} 
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="advance" className="text-right">
+              Avance
+            </Label>
+            <Input 
+              id="advance" 
+              type="number"
+              placeholder="150.00" 
+              className="col-span-3" 
+              value={advance} 
+              onChange={(e) => setAdvance(e.target.value)} 
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -135,23 +165,6 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
                 />
               </PopoverContent>
             </Popover>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-             <Label htmlFor="status" className="text-right">
-              Statut
-            </Label>
-            <Select onValueChange={(value) => setStatus(value as any)} value={status}>
-                <FormControl className="col-span-3">
-                <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez un statut" />
-                </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="Paid">Payé</SelectItem>
-                    <SelectItem value="Pending">En attente</SelectItem>
-                    <SelectItem value="Overdue">En retard</SelectItem>
-                </SelectContent>
-            </Select>
           </div>
         </div>
         <DialogFooter>
@@ -211,9 +224,4 @@ function PlayerCombobox({ players, value, onValueChange }: { players: Player[], 
       </PopoverContent>
     </Popover>
   )
-}
-
-// We need a separate component for the form control to avoid issues with the Select component
-function FormControl({ children, ...props }: { children: React.ReactNode, className?: string }) {
-    return <div {...props}>{children}</div>
 }
