@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit } from "lucide-react"
+import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 
 
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
@@ -72,6 +73,7 @@ export default function CoachesPage() {
   const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
   const [selectedCoach, setSelectedCoach] = React.useState<Coach | null>(null);
   const [coachToDelete, setCoachToDelete] = React.useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   React.useEffect(() => {
     setIsClient(true);
@@ -144,8 +146,8 @@ export default function CoachesPage() {
   }
 
   const handleExport = () => {
-    if (coaches.length > 0) {
-      const csvData = convertToCSV(coaches);
+    if (filteredCoaches.length > 0) {
+      const csvData = convertToCSV(filteredCoaches);
       downloadCSV(csvData, `entraineurs-${new Date().toISOString().split('T')[0]}.csv`);
     } else {
         toast({
@@ -159,6 +161,11 @@ export default function CoachesPage() {
   const handleViewCoach = (coachId: string) => {
     router.push(`/coaches/${coachId}`);
   };
+
+  const filteredCoaches = coaches.filter(coach =>
+    `${coach.firstName} ${coach.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    coach.specialty.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
 
   return (
@@ -185,6 +192,15 @@ export default function CoachesPage() {
           <CardDescription>
             Gérez les entraîneurs de votre club et leurs informations.
           </CardDescription>
+          <div className="relative mt-4">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Rechercher par nom ou spécialité..." 
+              className="pl-8" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -199,7 +215,7 @@ export default function CoachesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {coaches.map(coach => (
+              {filteredCoaches.map(coach => (
                 <TableRow key={coach.id} onClick={() => handleViewCoach(coach.id)} className="cursor-pointer">
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -250,7 +266,7 @@ export default function CoachesPage() {
         </CardContent>
         <CardFooter>
             <div className="text-xs text-muted-foreground">
-                Affichage de <strong>1-{coaches.length}</strong> sur <strong>{coaches.length}</strong> entraîneurs
+                Affichage de <strong>1-{filteredCoaches.length}</strong> sur <strong>{coaches.length}</strong> entraîneurs
             </div>
         </CardFooter>
       </Card>
