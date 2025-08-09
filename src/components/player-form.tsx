@@ -303,7 +303,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
                             {field.value ? (
                               format(field.value, "PPP", { locale: fr })
                             ) : (
-                              <span>Choisissez une date (optionnel)</span>
+                              <span></span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
