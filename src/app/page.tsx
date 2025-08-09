@@ -3,12 +3,16 @@
 import * as React from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import Link from 'next/link'
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, ArrowRight } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { players as initialPlayers } from '@/lib/mock-data'
 import type { Player } from '@/types'
 
@@ -38,6 +42,7 @@ const parsePlayerDates = (player: any): Player => ({
 });
 
 export default function Dashboard() {
+  const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(initialPlayers.map(parsePlayerDates));
   const [isClient, setIsClient] = React.useState(false)
 
@@ -52,6 +57,10 @@ export default function Dashboard() {
         console.error("Failed to parse players from localStorage", error);
     }
   }, []);
+  
+  const handleViewPlayer = (playerId: string) => {
+    router.push(`/players/${playerId}`);
+  };
 
   const totalPlayers = isClient ? players.length : initialPlayers.length;
 
@@ -100,7 +109,52 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+        <Card className="lg:col-span-2">
+           <CardHeader>
+            <CardTitle>Liste des joueurs</CardTitle>
+            <CardDescription>Aperçu rapide des joueurs du club.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Catégorie</TableHead>
+                    <TableHead className="hidden md:table-cell">Poste</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {players.slice(0, 5).map(player => (
+                    <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
+                    <TableCell>
+                        <div className="flex items-center gap-3">
+                        <Avatar>
+                            <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
+                            <AvatarFallback>{player.firstName[0]}{player.lastName[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="font-medium">{player.firstName} {player.lastName}</div>
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <Badge variant="secondary">{player.category}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                        {player.position}
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+             {players.length > 5 && (
+              <div className="text-center mt-4">
+                <Button variant="outline" asChild>
+                  <Link href="/players">Voir tous les joueurs</Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
@@ -129,3 +183,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
