@@ -43,6 +43,14 @@ const parsePlayerDates = (player: any): Player => ({
     clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
 });
 
+// Helper function to normalize strings for searching (remove accents, lowercase)
+const normalizeString = (str: string) => {
+    return str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(initialPlayers.map(parsePlayerDates));
@@ -97,6 +105,12 @@ export default function Dashboard() {
 
   const totalPlayers = isClient ? players.length : initialPlayers.length;
 
+  const commandFilter = (value: string, search: string) => {
+      const normalizedValue = normalizeString(value);
+      const normalizedSearch = normalizeString(search);
+      return normalizedValue.includes(normalizedSearch) ? 1 : 0;
+  }
+
   return (
     <>
       <PageHeader title="Tableau de bord">
@@ -116,7 +130,7 @@ export default function Dashboard() {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[200px] p-0">
-                    <Command>
+                    <Command filter={commandFilter}>
                     <CommandInput placeholder="Rechercher un joueur..." />
                     <CommandList>
                         <CommandEmpty>Aucun joueur trouvé.</CommandEmpty>
