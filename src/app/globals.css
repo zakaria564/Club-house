@@ -95,17 +95,7 @@ body {
   .no-print, .no-print * {
     display: none !important;
   }
-  .printable-area, .printable-area * {
-    display: block !important;
-    visibility: visible !important;
-  }
-  body * {
-    visibility: hidden;
-  }
   .printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    display: block !important;
   }
 }
