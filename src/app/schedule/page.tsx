@@ -9,27 +9,16 @@ import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
 import { ClubEvent } from "@/types"
 import { clubEvents as initialClubEvents } from "@/lib/mock-data"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { useToast } from "@/hooks/use-toast"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { ClubCalendar } from "@/components/club-calendar"
 import { AddEventDialog } from "@/components/add-event-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 
@@ -48,6 +37,7 @@ export default function SchedulePage() {
   const [eventToDelete, setEventToDelete] = React.useState<ClubEvent['id'] | null>(null);
   const [isClient, setIsClient] = React.useState(false);
   const [dialogDate, setDialogDate] = React.useState<Date | undefined>();
+  const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
   
   React.useEffect(() => {
       setIsClient(true);
@@ -150,6 +140,29 @@ export default function SchedulePage() {
              <h2 className="text-xl font-semibold w-48 text-center capitalize">
                 {format(currentDate, "MMMM yyyy", { locale: fr })}
             </h2>
+            
+            <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  Rechercher par date
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={currentDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setCurrentDate(date);
+                    }
+                    setDatePickerOpen(false);
+                  }}
+                  initialFocus
+                  locale={fr}
+                />
+              </PopoverContent>
+            </Popover>
 
             <Button onClick={() => handleAddNew()}>
               <PlusCircle className="mr-2 h-4 w-4" />

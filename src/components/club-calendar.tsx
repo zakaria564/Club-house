@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay, addDays } from "date-fns"
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Plus, MoreVertical, Edit, Trash2 } from "lucide-react"
 
@@ -48,7 +48,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
             
             {days.map(day => {
                 const dayEvents = events.filter(e => isSameDay(e.date, day)).sort((a,b) => a.time.localeCompare(b.time));
-                const MAX_VISIBLE_EVENTS = 3;
+                const MAX_VISIBLE_EVENTS = 2;
                 const visibleEvents = dayEvents.slice(0, MAX_VISIBLE_EVENTS);
                 const hiddenEventsCount = dayEvents.length - MAX_VISIBLE_EVENTS;
 
@@ -56,7 +56,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                     <div
                         key={day.toString()}
                         className={cn(
-                            "relative flex flex-col min-h-[120px] bg-card p-2 group",
+                            "relative flex flex-col min-h-[140px] bg-card p-2",
                              !isSameMonth(day, monthStart) && "bg-muted/50 text-muted-foreground"
                         )}
                     >
@@ -67,7 +67,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 hover:opacity-100 transition-opacity"
                             onClick={() => onAddEvent(day)}
                         >
                            <Plus className="h-4 w-4" />
@@ -75,7 +75,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                         
                         <div className="mt-2 flex-grow space-y-1 overflow-y-auto">
                             {visibleEvents.map(event => (
-                                <div key={event.id} className="relative">
+                                <div key={event.id} className="relative group/event">
                                     <div 
                                       className={cn(
                                         "text-xs p-1.5 rounded-md text-white truncate cursor-pointer",
@@ -83,11 +83,12 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                                       )}
                                       onClick={() => onEditEvent(event)}
                                     >
-                                        <span className="font-semibold capitalize mr-1">{event.type}:</span> {event.title}
+                                       <p className="font-semibold truncate">{event.title}</p>
+                                       <p className="text-white/80">{event.time}</p>
                                     </div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                             <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 text-white opacity-50 hover:opacity-100 focus-visible:opacity-100">
+                                             <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 text-white opacity-0 group-hover/event:opacity-100 focus-visible:opacity-100">
                                                 <MoreVertical className="h-4 w-4" />
                                              </Button>
                                         </DropdownMenuTrigger>
@@ -107,11 +108,25 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                                   </PopoverTrigger>
                                   <PopoverContent className="w-80">
                                     <div className="space-y-2">
-                                        <h4 className="font-medium leading-none">Événements du {format(day, 'd MMMM', { locale: fr })}</h4>
-                                        <div className="space-y-1">
+                                        <h4 className="font-medium leading-none">Événements du {format(day, 'd MMMM yyyy', { locale: fr })}</h4>
+                                        <div className="space-y-1 mt-2">
                                             {dayEvents.map(event => (
-                                                 <div key={event.id} className={cn("text-xs p-1.5 rounded-md", eventTypeColors[event.type])}>
-                                                    <span className="font-semibold capitalize">{event.type}:</span> {event.title} - {event.time}
+                                                 <div key={event.id} className={cn("text-xs p-1.5 rounded-md flex justify-between items-center", eventTypeColors[event.type])}>
+                                                    <div>
+                                                        <p className="font-semibold truncate">{event.title}</p>
+                                                        <p className="text-white/80">{event.time} - {event.location}</p>
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-white hover:bg-white/20">
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => onEditEvent(event)}><Edit className="mr-2 h-4 w-4" />Modifier</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => onDeleteEvent(event.id)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />Supprimer</DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             ))}
                                         </div>
