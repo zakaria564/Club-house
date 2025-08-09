@@ -4,10 +4,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Upload, CalendarIcon } from "lucide-react"
+import { Upload } from "lucide-react"
 import * as React from "react"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -25,9 +23,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Calendar } from "./ui/calendar"
-import { cn } from "@/lib/utils"
 
 const coachFormSchema = z.object({
   id: z.string().min(1, "L'ID est requis."),
@@ -38,9 +33,7 @@ const coachFormSchema = z.object({
   specialty: z.string().min(2, "La spécialité est requise."),
   photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional(),
   gender: z.enum(["Homme", "Femme"], { required_error: "Veuillez sélectionner un genre." }),
-  dateOfBirth: z.date({
-    required_error: "Une date de naissance est requise.",
-  }),
+  age: z.coerce.number().min(18, "L'entraîneur doit être majeur."),
   country: z.string().min(2, "Le pays est requis."),
   city: z.string().min(2, "La ville est requise."),
 })
@@ -68,7 +61,6 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
 
   const defaultValues: Partial<CoachFormValues> = coach ? { 
     ...coach,
-    dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : undefined,
    } : {
       id: getNextId(coaches),
       firstName: '',
@@ -78,7 +70,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       specialty: '',
       photoUrl: 'https://placehold.co/200x200.png',
       gender: undefined,
-      dateOfBirth: undefined,
+      age: undefined,
       country: '',
       city: ''
   };
@@ -95,14 +87,13 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     if (coach) {
       form.reset({ 
           ...coach,
-          dateOfBirth: coach.dateOfBirth ? new Date(coach.dateOfBirth) : undefined,
       });
        setPhotoPreview(coach.photoUrl || 'https://placehold.co/200x200.png');
     } else {
       form.reset({
         ...defaultValues,
         id: getNextId(coaches),
-        dateOfBirth: undefined,
+        age: undefined,
       } as Partial<CoachFormValues>);
       setPhotoPreview('https://placehold.co/200x200.png');
     }
@@ -114,7 +105,6 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     const newCoachData: Coach = {
         ...data,
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
-        dateOfBirth: new Date(data.dateOfBirth),
     };
 
     onSave(newCoachData);
@@ -187,50 +177,18 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         )}
                       />
                         <FormField
-                        control={form.control}
-                        name="dateOfBirth"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Date de naissance</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
+                            control={form.control}
+                            name="age"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Âge</FormLabel>
                                 <FormControl>
-                                  <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP", { locale: fr })
-                                    ) : (
-                                      <span>Choisissez une date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
+                                    <Input type="number" placeholder="42" {...field} value={field.value ?? ''} />
                                 </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={field.onChange}
-                                  disabled={(date) =>
-                                    date > new Date() || date < new Date("1940-01-01")
-                                  }
-                                  initialFocus
-                                  locale={fr}
-                                  captionLayout="dropdown-buttons"
-                                  fromYear={1940}
-                                  toYear={new Date().getFullYear()}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                       <FormField
                         control={form.control}
                         name="gender"
@@ -348,5 +306,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    

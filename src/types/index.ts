@@ -1,3 +1,4 @@
+
 export type Player = {
   id: string;
   firstName: string;
@@ -48,5 +49,5 @@ export type Coach = {
   gender: 'Homme' | 'Femme';
   country: string;
   city: string;
-  dateOfBirth: Date;
+  age: number;
 };

@@ -158,7 +158,7 @@ export const coaches: Coach[] = [
     gender: 'Homme',
     country: 'France',
     city: 'Bayonne',
-    dateOfBirth: new Date('1968-10-15'),
+    age: 55,
   },
   {
     id: 'c2',
@@ -171,7 +171,7 @@ export const coaches: Coach[] = [
     gender: 'Homme',
     country: 'France',
     city: 'Marseille',
-    dateOfBirth: new Date('1972-06-23'),
+    age: 52,
   },
   {
     id: 'c3',
@@ -184,7 +184,7 @@ export const coaches: Coach[] = [
     gender: 'Homme',
     country: 'France',
     city: 'Aix-les-Bains',
-    dateOfBirth: new Date('1968-09-30'),
+    age: 55,
   },
   {
     id: 'c4',
@@ -197,6 +197,6 @@ export const coaches: Coach[] = [
     gender: 'Femme',
     country: 'France',
     city: 'Croix',
-    dateOfBirth: new Date('1974-08-04'),
+    age: 50,
   }
 ];
