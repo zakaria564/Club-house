@@ -145,7 +145,14 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
     };
     
-    onSave(newPlayerData);
+    // Create a separate object for saving to localStorage that doesn't include the photo if it's a data URL
+    const playerToSave = { ...newPlayerData };
+    if (playerToSave.photoUrl?.startsWith('data:image')) {
+        playerToSave.photoUrl = 'https://placehold.co/100x100.png';
+    }
+
+    onSave(playerToSave);
+
     toast({
       title: isEditing ? "Profil du joueur mis à jour" : "Profil du joueur créé",
       description: `Le joueur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
@@ -482,3 +489,5 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
       </Form>
   )
 }
+
+    
