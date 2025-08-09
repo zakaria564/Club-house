@@ -255,7 +255,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewPlayer
           <TableRow key={payment.id}>
             <TableCell>
               <div className="font-medium">{payment.playerName}</div>
-              <div className="text-sm text-muted-foreground">ID du joueur : {payment.playerId}</div>
+              <div className="text-sm text-muted-foreground">Numéros furtifs : {payment.playerId}</div>
             </TableCell>
             <TableCell>
               <Badge 
