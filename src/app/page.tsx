@@ -38,26 +38,36 @@ const parsePlayerDates = (player: any): Player => ({
 });
 
 export default function Dashboard() {
-  const [players, setPlayers] = React.useState<Player[]>(() => {
-    if (typeof window === 'undefined') {
-      return initialPlayers.map(parsePlayerDates);
-    }
+  const [players, setPlayers] = React.useState<Player[]>(initialPlayers.map(parsePlayerDates));
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
     try {
         const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (storedPlayers) {
-            return JSON.parse(storedPlayers).map(parsePlayerDates);
+            setPlayers(JSON.parse(storedPlayers).map(parsePlayerDates));
         }
     } catch (error) {
         console.error("Failed to parse players from localStorage", error);
+        // Keep initial players if there's an error
     }
-    return initialPlayers.map(parsePlayerDates);
-  });
+  }, []);
+
 
   const recentPlayers = React.useMemo(() => {
+    if (!isClient) {
+      // Return a sorted list based on initial data for SSR to match client
+      return [...initialPlayers.map(parsePlayerDates)]
+        .sort((a, b) => b.clubEntryDate.getTime() - a.clubEntryDate.getTime())
+        .slice(0, 5);
+    }
     return [...players]
       .sort((a, b) => b.clubEntryDate.getTime() - a.clubEntryDate.getTime())
       .slice(0, 5);
-  }, [players]);
+  }, [players, isClient]);
+
+  const totalPlayers = isClient ? players.length : initialPlayers.length;
 
   return (
     <>
@@ -69,7 +79,7 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{players.length}</div>
+            <div className="text-2xl font-bold">{totalPlayers}</div>
             <p className="text-xs text-muted-foreground">+5 depuis la saison dernière</p>
           </CardContent>
         </Card>
@@ -79,7 +89,7 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">115 / 130</div>
+            <div className="text-2xl font-bold">115 / {totalPlayers > 0 ? totalPlayers : '...'}</div>
             <p className="text-xs text-muted-foreground">88% payé</p>
           </CardContent>
         </Card>
