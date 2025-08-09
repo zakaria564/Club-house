@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils"
 import { Calendar } from "./ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player } from "@/types"
 
 const playerFormSchema = z.object({
