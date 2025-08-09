@@ -139,7 +139,7 @@ function PaymentsPageContent() {
   const filteredByMemberType = basePayments.filter(p => memberTypeFilter === 'all' || p.memberType === memberTypeFilter);
 
   const filteredPayments = filteredByMemberType.filter(payment =>
-    payment.memberName.toLowerCase().includes(searchQuery.toLowerCase())
+    payment.memberName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleExport = () => {

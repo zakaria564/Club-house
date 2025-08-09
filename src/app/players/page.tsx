@@ -137,6 +137,23 @@ export default function PlayersPage() {
             return [...prevPlayers, playerWithDates];
         }
     });
+
+    try {
+      if(typeof window !== 'undefined') {
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        const payments: Payment[] = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw) : initialPayments;
+        const updatedPayments = payments.map(p => {
+          if (p.memberId === updatedPlayer.id) {
+            return { ...p, memberName: `${updatedPlayer.firstName} ${updatedPlayer.lastName}`};
+          }
+          return p;
+        });
+        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
+      }
+    } catch (error) {
+      console.error("Failed to update payments for player:", error);
+    }
+
   };
 
   const filteredPlayers = players.filter(player =>

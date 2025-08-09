@@ -119,6 +119,22 @@ export default function CoachesPage() {
             return [...prevCoaches, updatedCoach];
         }
     });
+
+    try {
+      if(typeof window !== 'undefined') {
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        const payments: Payment[] = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw) : initialPayments;
+        const updatedPayments = payments.map(p => {
+          if (p.memberId === updatedCoach.id) {
+            return { ...p, memberName: `${updatedCoach.firstName} ${updatedCoach.lastName}`};
+          }
+          return p;
+        });
+        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
+      }
+    } catch (error) {
+      console.error("Failed to update payments for coach:", error);
+    }
   };
 
   const handleEditCoach = (coach: Coach) => {
