@@ -19,6 +19,7 @@ import { AddEventDialog } from "@/components/add-event-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { DayEventsSheet } from "@/components/day-events-sheet"
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 
@@ -39,6 +40,9 @@ export default function SchedulePage() {
   const [dialogDate, setDialogDate] = React.useState<Date | undefined>();
   const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
   
+  const [isDaySheetOpen, setDaySheetOpen] = React.useState(false);
+  const [selectedDateForSheet, setSelectedDateForSheet] = React.useState<Date | null>(null);
+
   React.useEffect(() => {
       setIsClient(true);
       try {
@@ -100,12 +104,14 @@ export default function SchedulePage() {
   };
 
   const handleEdit = (event: ClubEvent) => {
+    setDaySheetOpen(false);
     setSelectedEvent(event);
     setDialogDate(undefined);
     setEventDialogOpen(true);
   };
   
   const handleAddNew = (date?: Date) => {
+    setDaySheetOpen(false);
     setSelectedEvent(null);
     setDialogDate(date);
     setEventDialogOpen(true);
@@ -116,6 +122,19 @@ export default function SchedulePage() {
     setSelectedEvent(null);
     setDialogDate(undefined);
   }
+
+  const handleDayClick = (date: Date) => {
+    setSelectedDateForSheet(date);
+    setDaySheetOpen(true);
+  }
+
+  const eventsForSelectedDay = React.useMemo(() => {
+    if (!selectedDateForSheet) return [];
+    return events
+        .filter(e => new Date(e.date).toDateString() === selectedDateForSheet.toDateString())
+        .sort((a,b) => a.time.localeCompare(b.time));
+  }, [selectedDateForSheet, events]);
+
 
   return (
     <>
@@ -155,6 +174,7 @@ export default function SchedulePage() {
                   onSelect={(date) => {
                     if (date) {
                       setCurrentDate(date);
+                      handleDayClick(date);
                     }
                     setDatePickerOpen(false);
                   }}
@@ -176,6 +196,7 @@ export default function SchedulePage() {
            <ClubCalendar 
               currentDate={currentDate}
               events={events}
+              onDayClick={handleDayClick}
               onAddEvent={handleAddNew}
               onEditEvent={handleEdit}
               onDeleteEvent={setEventToDelete}
@@ -191,6 +212,16 @@ export default function SchedulePage() {
         event={selectedEvent}
         selectedDate={dialogDate}
       />
+
+       <DayEventsSheet
+            open={isDaySheetOpen}
+            onOpenChange={setDaySheetOpen}
+            date={selectedDateForSheet}
+            events={eventsForSelectedDay}
+            onAddEvent={handleAddNew}
+            onEditEvent={handleEdit}
+            onDeleteEvent={setEventToDelete}
+        />
 
       <AlertDialog open={!!eventToDelete} onOpenChange={(open) => !open && setEventToDelete(null)}>
             <AlertDialogContent>

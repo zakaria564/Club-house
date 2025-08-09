@@ -4,17 +4,16 @@
 import * as React from "react"
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Plus, MoreVertical, Edit, Trash2 } from "lucide-react"
+import { Plus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ClubEvent } from "@/types"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 
 interface ClubCalendarProps {
     currentDate: Date;
     events: ClubEvent[];
+    onDayClick: (date: Date) => void;
     onAddEvent: (date: Date) => void;
     onEditEvent: (event: ClubEvent) => void;
     onDeleteEvent: (eventId: string) => void;
@@ -28,7 +27,7 @@ const eventTypeColors: { [key in ClubEvent['type']]: string } = {
   'Autre': 'bg-gray-500 border-gray-600 text-white',
 };
 
-export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onDeleteEvent }: ClubCalendarProps) {
+export function ClubCalendar({ currentDate, events, onDayClick, onAddEvent }: ClubCalendarProps) {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -55,11 +54,12 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                     <div
                         key={day.toString()}
                         className={cn(
-                            "relative flex flex-col min-h-[140px] bg-card p-2 group",
+                            "relative flex flex-col min-h-[140px] bg-card p-2 group cursor-pointer",
                              !isSameMonth(day, monthStart) && "bg-muted/50 text-muted-foreground"
                         )}
+                         onClick={() => onDayClick(day)}
                     >
-                        <time dateTime={format(day, "yyyy-MM-dd")} className={cn("font-semibold", isToday(day) && "flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground")}>
+                        <time dateTime={format(day, "yyyy-MM-dd")} className={cn("font-semibold self-start", isToday(day) && "flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground")}>
                             {format(day, "d")}
                         </time>
                         
@@ -67,7 +67,7 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                             variant="ghost" 
                             size="icon" 
                             className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => onAddEvent(day)}
+                            onClick={(e) => { e.stopPropagation(); onAddEvent(day); }}
                         >
                            <Plus className="h-4 w-4" />
                         </Button>
@@ -77,62 +77,19 @@ export function ClubCalendar({ currentDate, events, onAddEvent, onEditEvent, onD
                                 <div key={event.id} className="relative">
                                     <div 
                                       className={cn(
-                                        "text-xs p-1.5 rounded-md text-white truncate cursor-pointer",
+                                        "text-xs p-1.5 rounded-md text-white truncate",
                                         eventTypeColors[event.type]
                                       )}
-                                      onClick={() => onEditEvent(event)}
                                     >
-                                       <p className="font-semibold truncate">{event.title}</p>
+                                       <p className="font-semibold truncate">{event.opponent ? `CAOS vs ${event.opponent}` : event.title}</p>
                                        <p className="text-white/80">{event.time}</p>
                                     </div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                             <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 text-white">
-                                                <MoreVertical className="h-4 w-4" />
-                                             </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => onEditEvent(event)}><Edit className="mr-2 h-4 w-4" />Modifier</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => onDeleteEvent(event.id)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />Supprimer</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
                                 </div>
                             ))}
                              {hiddenEventsCount > 0 && (
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                     <Button variant="link" className="text-xs p-0 h-auto w-full justify-start mt-1 text-primary">
-                                        + {hiddenEventsCount} de plus
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-80">
-                                    <div className="space-y-2">
-                                        <h4 className="font-medium leading-none">Événements du {format(day, 'd MMMM yyyy', { locale: fr })}</h4>
-                                        <div className="space-y-1 mt-2">
-                                            {dayEvents.map(event => (
-                                                 <div key={event.id} className={cn("text-xs p-1.5 rounded-md flex justify-between items-center", eventTypeColors[event.type])}>
-                                                    <div>
-                                                        <p className="font-semibold truncate">{event.title}</p>
-                                                        <p className="text-white/80">{event.time} - {event.location}</p>
-                                                    </div>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-white hover:bg-white/20">
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => onEditEvent(event)}><Edit className="mr-2 h-4 w-4" />Modifier</DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => onDeleteEvent(event.id)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />Supprimer</DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                  </PopoverContent>
-                                </Popover>
-                                
+                                 <div className="text-xs text-primary font-semibold mt-1">
+                                    + {hiddenEventsCount} de plus
+                                </div>
                             )}
                         </div>
                     </div>
