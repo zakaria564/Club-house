@@ -10,13 +10,22 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { payments as allPayments, players as allPlayers } from "@/lib/mock-data"
+import { payments as initialPayments, players as initialPlayers } from "@/lib/mock-data"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import type { Payment } from "@/types"
+import type { Payment, Player } from "@/types"
 import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
+
+const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+
+const parsePlayerDates = (player: any): Player => ({
+    ...player,
+    dateOfBirth: new Date(player.dateOfBirth),
+    clubEntryDate: new Date(player.clubEntryDate),
+    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+});
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
@@ -59,9 +68,24 @@ function PaymentsPageContent() {
   const playerId = searchParams.get('playerId')
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
+  
+  const [players, setPlayers] = React.useState<Player[]>(() => {
+    if (typeof window === 'undefined') {
+      return initialPlayers.map(parsePlayerDates);
+    }
+    try {
+        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
+        if (storedPlayers) {
+            return JSON.parse(storedPlayers).map(parsePlayerDates);
+        }
+    } catch (error) {
+        console.error("Failed to parse players from localStorage", error);
+    }
+    return initialPlayers.map(parsePlayerDates);
+  });
 
   // In a real app, this would likely be persisted in a database or state management solution
-  const [payments, setPayments] = React.useState<Payment[]>(allPayments.map(p => ({...p, date: new Date(p.date)})));
+  const [payments, setPayments] = React.useState<Payment[]>(initialPayments.map(p => ({...p, date: new Date(p.date)})));
 
   const statusTranslations: { [key in Payment['status']]: string } = {
     'Paid': 'Payé',
@@ -196,7 +220,7 @@ function PaymentsPageContent() {
         open={isAddPaymentOpen}
         onOpenChange={setAddPaymentOpen}
         onAddPayment={handleAddPayment}
-        players={allPlayers}
+        players={players}
        />
     </>
   )
