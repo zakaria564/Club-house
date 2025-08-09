@@ -180,40 +180,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
   return (
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="flex flex-col md:flex-row-reverse items-start gap-8">
-            <div className="flex flex-col items-center gap-2 md:w-1/3">
-              <FormLabel>Photo de profil</FormLabel>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative group cursor-not-allowed">
-                        <Avatar className="h-32 w-32">
-                          <AvatarImage src={photoPreview || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                          <AvatarFallback>
-                            {form.watch('firstName')?.[0]}
-                            {form.watch('lastName')?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <Button 
-                          type="button" 
-                          size="icon" 
-                          className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          disabled
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Le téléversement de photos est désactivé.</p>
-                      <p className="text-xs text-muted-foreground">Le stockage de fichiers n'est pas disponible.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              <FormDescription className="text-center">Photo de remplacement</FormDescription>
-            </div>
-
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 space-y-6">
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Informations du Club</h3>
@@ -292,7 +260,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           control={form.control}
                           name="clubEntryDate"
                           render={({ field }) => (
-                            <FormItem className="flex flex-col">
+                            <FormItem className="flex flex-col pt-2">
                               <FormLabel>Date d'entrée</FormLabel>
                                <Popover>
                                 <PopoverTrigger asChild>
@@ -331,7 +299,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             control={form.control}
                             name="clubExitDate"
                             render={({ field }) => (
-                              <FormItem className="flex flex-col">
+                              <FormItem className="flex flex-col pt-2">
                                 <FormLabel>Date de sortie (optionnel)</FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
@@ -402,7 +370,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         control={form.control}
                         name="dateOfBirth"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
+                          <FormItem className="flex flex-col pt-2">
                             <FormLabel>Date de naissance</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
@@ -529,10 +497,41 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       />
                    </div>
                 </div>
+            </div>
 
+             <div className="flex flex-col items-center gap-2 md:w-1/3 md:pl-4 md:border-l md:sticky md:top-0">
+              <FormLabel>Photo de profil</FormLabel>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="relative group cursor-not-allowed">
+                        <Avatar className="h-32 w-32">
+                          <AvatarImage src={photoPreview || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                          <AvatarFallback>
+                            {form.watch('firstName')?.[0]}
+                            {form.watch('lastName')?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <Button 
+                          type="button" 
+                          size="icon" 
+                          className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          disabled
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Le téléversement de photos est désactivé.</p>
+                      <p className="text-xs text-muted-foreground">Le stockage de fichiers n'est pas disponible.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              <FormDescription className="text-center">Photo de remplacement</FormDescription>
             </div>
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
             <Button type="submit">{player ? "Sauvegarder les modifications" : "Créer le joueur"}</Button>
           </div>
@@ -540,5 +539,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    

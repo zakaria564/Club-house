@@ -22,19 +22,21 @@ interface AddPlayerDialogProps {
 export default function AddPlayerDialog({ open, onOpenChange, player, onPlayerUpdate, players }: AddPlayerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl no-print">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col no-print">
         <DialogHeader>
           <DialogTitle className="font-headline">{player ? 'Modifier le joueur' : 'Ajouter un nouveau joueur'}</DialogTitle>
           <DialogDescription>
              {player ? 'Modifiez les informations ci-dessous.' : 'Remplissez les détails ci-dessous pour créer un nouveau profil de joueur.'}
           </DialogDescription>
         </DialogHeader>
-        <PlayerForm 
-          onFinished={() => onOpenChange(false)} 
-          player={player}
-          onSave={onPlayerUpdate}
-          players={players}
-        />
+        <div className="flex-grow overflow-y-auto pr-6 -mr-6">
+            <PlayerForm 
+              onFinished={() => onOpenChange(false)} 
+              player={player}
+              onSave={onPlayerUpdate}
+              players={players}
+            />
+        </div>
       </DialogContent>
     </Dialog>
   );
