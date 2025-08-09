@@ -143,7 +143,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
     const newPlayerData: Player = {
         ...data,
-        id: isEditing ? originalId.current! : getNextId(players), // Use original ID for updates
+        id: isEditing ? originalId.current! : getNextId(players),
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
@@ -330,7 +330,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             {field.value ? (
                               format(field.value, "PPP", { locale: fr })
                             ) : (
-                              <span></span>
+                              <span>Choisissez une date</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -463,7 +463,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                   <FormItem>
                     <FormLabel>N° Joueur</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="10" {...field} value={field.value === '' ? '' : String(field.value)} />
+                      <Input type="number" placeholder="10" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -510,3 +510,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
