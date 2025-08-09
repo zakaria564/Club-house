@@ -6,14 +6,14 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Search, PlusCircle } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { players as initialPlayers } from '@/lib/mock-data'
 import type { Player } from '@/types'
+import AddPlayerDialog from "@/components/add-player-dialog"
+
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
@@ -44,6 +44,8 @@ export default function Dashboard() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(initialPlayers.map(parsePlayerDates));
   const [isClient, setIsClient] = React.useState(false)
+  const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   React.useEffect(() => {
     setIsClient(true)
@@ -56,16 +58,65 @@ export default function Dashboard() {
         console.error("Failed to parse players from localStorage", error);
     }
   }, []);
+  
+  React.useEffect(() => {
+    try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(players));
+        }
+    } catch (error) {
+        console.error("Failed to save players to localStorage", error);
+    }
+  }, [players]);
 
-  const handleViewPlayer = (playerId: string) => {
-    router.push(`/players/${playerId}`);
+  const handlePlayerUpdate = (updatedPlayer: Player) => {
+    const playerWithDates = parsePlayerDates(updatedPlayer);
+    setPlayers(prevPlayers => {
+        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
+        if (existingPlayerIndex > -1) {
+            const newPlayers = [...prevPlayers];
+            newPlayers[existingPlayerIndex] = playerWithDates;
+            return newPlayers;
+        } else {
+            return [...prevPlayers, playerWithDates];
+        }
+    });
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/players?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+  
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   const totalPlayers = isClient ? players.length : initialPlayers.length;
 
   return (
     <>
-      <PageHeader title="Tableau de bord" />
+      <PageHeader title="Tableau de bord">
+        <div className="flex items-center gap-2">
+            <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Rechercher un joueur..." 
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                />
+            </div>
+            <Button onClick={() => setPlayerDialogOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Ajouter un joueur
+            </Button>
+        </div>
+      </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -108,52 +159,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-        <Card className="lg:col-span-2">
-           <CardHeader>
-            <CardTitle>Liste des joueurs</CardTitle>
-            <CardDescription>Aperçu rapide des joueurs du club.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead>Nom</TableHead>
-                    <TableHead>Catégorie</TableHead>
-                    <TableHead className="hidden md:table-cell">Poste</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {players.slice(0, 5).map(player => (
-                    <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
-                    <TableCell>
-                        <div className="flex items-center gap-3">
-                        <Avatar>
-                            <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
-                            <AvatarFallback>{player.firstName[0]}{player.lastName[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="font-medium">{player.firstName} {player.lastName}</div>
-                        </div>
-                    </TableCell>
-                    <TableCell>
-                        <Badge variant="secondary">{player.category}</Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                        {player.position}
-                    </TableCell>
-                    </TableRow>
-                ))}
-                </TableBody>
-            </Table>
-             {players.length > 5 && (
-              <div className="text-center mt-4">
-                <Button variant="outline" asChild>
-                  <Link href="/players">Voir tous les joueurs</Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="mt-6">
         <Card>
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
@@ -179,6 +185,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} onPlayerUpdate={handlePlayerUpdate} players={players} />
     </>
   );
 }
