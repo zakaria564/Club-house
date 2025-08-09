@@ -83,7 +83,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
       guardianName: '',
       guardianPhone: '',
       position: '',
-      playerNumber: undefined,
+      playerNumber: '' as any,
       clubEntryDate: new Date(),
       clubExitDate: undefined,
     },
@@ -112,7 +112,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
         guardianName: '',
         guardianPhone: '',
         position: '',
-        playerNumber: undefined,
+        playerNumber: '' as any,
         clubEntryDate: new Date(),
         clubExitDate: undefined,
       });
