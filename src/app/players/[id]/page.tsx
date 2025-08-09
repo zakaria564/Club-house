@@ -41,7 +41,8 @@ export default function PlayerDetailPage({ params }: { params: { id: string } })
 
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
 
-  const player = players.find((p) => p.id === params.id);
+  const playerId = params.id;
+  const player = players.find((p) => p.id === playerId);
 
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
