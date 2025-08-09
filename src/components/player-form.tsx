@@ -68,7 +68,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     defaultValues: player ? {
       ...player,
       dateOfBirth: new Date(player.dateOfBirth),
-      clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : undefined,
+      clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
     } : {
       firstName: '',
@@ -84,7 +84,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
       guardianPhone: '',
       position: '',
       playerNumber: undefined,
-      clubEntryDate: undefined,
+      clubEntryDate: new Date(),
       clubExitDate: undefined,
     },
   })
@@ -137,6 +137,7 @@ export function PlayerForm({ onFinished, onSave, player }: PlayerFormProps) {
     const newPlayerData: Player = {
         ...data,
         id: player?.id || `p${Date.now()}`,
+        // Ensure dates are valid Date objects before saving
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],

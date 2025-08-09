@@ -100,6 +100,7 @@ export default function PlayersPage() {
   }
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
+    // Ensure dates are Date objects before updating state
     const playerWithDates = parsePlayerDates(updatedPlayer);
     setPlayers(prevPlayers => {
         const existingPlayerIndex = prevPlayers.findIndex(p => p.id === playerWithDates.id);
@@ -118,6 +119,8 @@ export default function PlayersPage() {
     player.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
+  // Crucially, re-parse the players just before sending them to the printable component
+  // to ensure all dates are valid Date objects.
   const printablePlayers = players.map(parsePlayerDates);
 
   return (
@@ -236,7 +239,7 @@ export default function PlayersPage() {
                     <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Cette action est irréversible. Cela supprimera définitivement le profil du joueur.
-                    </AlertDialogDescription>
+                    </Description>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setPlayerToDelete(null)}>Annuler</AlertDialogCancel>
