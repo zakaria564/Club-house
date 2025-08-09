@@ -102,11 +102,22 @@ export default function PlayersPage() {
     setPlayers(prevPlayers => {
         const existingPlayerIndex = prevPlayers.findIndex(p => p.id === playerWithDates.id);
         if (existingPlayerIndex > -1) {
+            // Update existing player
             const newPlayers = [...prevPlayers];
             newPlayers[existingPlayerIndex] = playerWithDates;
             return newPlayers;
         } else {
-            return [...prevPlayers, playerWithDates];
+            // Check if an ID was provided that doesn't match, this can happen if the ID was edited.
+            // We need to find the original player to update.
+             const originalPlayerIndex = prevPlayers.findIndex(p => p.id === selectedPlayer?.id);
+             if (originalPlayerIndex > -1) {
+                const newPlayers = [...prevPlayers];
+                newPlayers[originalPlayerIndex] = playerWithDates;
+                return newPlayers;
+             } else {
+                // Add new player
+                return [...prevPlayers, playerWithDates];
+             }
         }
     });
   };

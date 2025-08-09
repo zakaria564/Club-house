@@ -30,7 +30,7 @@ import type { Player } from "@/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 
 const playerFormSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().min(1, "L'ID joueur est requis."),
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
   email: z.string().email({ message: "Adresse e-mail invalide." }),
@@ -61,6 +61,14 @@ interface PlayerFormProps {
   players: Player[];
 }
 
+const getNextId = (players: Player[]) => {
+    if (!players || players.length === 0) {
+      return "1";
+    }
+    const maxId = Math.max(...players.map(p => parseInt(p.id, 10)).filter(id => !isNaN(id)));
+    return (maxId + 1).toString();
+};
+
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   
@@ -72,7 +80,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
     } : {
-      id: undefined,
+      id: getNextId(players),
       firstName: '',
       lastName: '',
       email: '',
@@ -92,9 +100,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   })
 
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(form.watch('photoUrl') || null);
+  const originalId = React.useRef(player?.id);
+
 
   React.useEffect(() => {
     if (player) {
+      originalId.current = player.id;
       form.reset({
         ...player,
         dateOfBirth: new Date(player.dateOfBirth),
@@ -103,8 +114,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       });
        setPhotoPreview(player.photoUrl || 'https://placehold.co/200x200.png');
     } else {
+      originalId.current = undefined;
       form.reset({
-        id: undefined,
+        id: getNextId(players),
         firstName: '',
         lastName: '',
         email: '',
@@ -123,30 +135,28 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       });
       setPhotoPreview('https://placehold.co/200x200.png');
     }
-  }, [player, form]);
+  }, [player, form, players]);
 
 
   function onSubmit(data: PlayerFormValues) {
     const isEditing = !!player;
 
-    const getNextId = () => {
-      if (!players || players.length === 0) {
-        return "1";
-      }
-      const maxId = Math.max(...players.map(p => parseInt(p.id, 10)).filter(id => !isNaN(id)));
-      return (maxId + 1).toString();
-    }
-
     const newPlayerData: Player = {
         ...data,
-        id: data.id || getNextId(),
+        id: isEditing ? originalId.current! : getNextId(players), // Use original ID for updates
         dateOfBirth: new Date(data.dateOfBirth),
-        photoUrl: data.photoUrl || 'https://placehold.co/100x100.png', // Don't save base64 to localStorage
+        photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
         playerNumber: Number(data.playerNumber),
         clubEntryDate: new Date(data.clubEntryDate),
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
     };
+    
+    // If user has changed the ID field during an edit, we apply it.
+    if(isEditing) {
+        newPlayerData.id = data.id;
+    }
+
 
     onSave(newPlayerData);
 
@@ -162,21 +172,19 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-               {(player || form.watch('id')) && (
-                 <FormField
-                    control={form.control}
-                    name="id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ID joueur</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-               )}
+               <FormField
+                  control={form.control}
+                  name="id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ID joueur</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <FormField
                 control={form.control}
                 name="firstName"
