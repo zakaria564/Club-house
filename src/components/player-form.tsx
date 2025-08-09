@@ -25,6 +25,8 @@ import { Calendar } from "./ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import type { Player } from "@/types"
+import { useEffect } from "react"
 
 const playerFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
@@ -33,31 +35,45 @@ const playerFormSchema = z.object({
     required_error: "Une date de naissance est requise.",
   }),
   category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
+  photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional(),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
 
-const defaultValues: Partial<PlayerFormValues> = {
-  // Vous pouvez pré-remplir les valeurs par défaut ici
-}
-
 interface PlayerFormProps {
   onFinished: () => void;
+  player?: Player | null;
 }
 
-export function PlayerForm({ onFinished }: PlayerFormProps) {
+export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const { toast } = useToast()
+  
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
-    defaultValues,
+    defaultValues: player || {},
   })
+
+  useEffect(() => {
+    if (player) {
+      form.reset(player);
+    } else {
+      form.reset({
+        firstName: '',
+        lastName: '',
+        dateOfBirth: undefined,
+        category: '',
+        photoUrl: '',
+      });
+    }
+  }, [player, form]);
+
 
   function onSubmit(data: PlayerFormValues) {
     toast({
-      title: "Profil du joueur créé",
-      description: `Le joueur ${data.firstName} ${data.lastName} a été ajouté à la liste avec succès.`,
+      title: player ? "Profil du joueur mis à jour" : "Profil du joueur créé",
+      description: `Le joueur ${data.firstName} ${data.lastName} a été ${player ? 'mis à jour' : 'ajouté'} avec succès.`,
     })
-    console.log(data)
+    console.log(data) // Here you would typically call an API to save the data
     onFinished()
   }
 
@@ -109,7 +125,7 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                             )}
                             >
                             {field.value ? (
-                                format(field.value, "PPP", { locale: fr })
+                                format(new Date(field.value), "PPP", { locale: fr })
                             ) : (
                                 <span>Choisissez une date</span>
                             )}
@@ -140,7 +156,7 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Catégorie</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez une catégorie" />
@@ -164,10 +180,13 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
                  <FormLabel>Photo de profil</FormLabel>
                 <div className="relative group">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage src="https://placehold.co/200x200.png" alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                        <AvatarFallback>JD</AvatarFallback>
+                        <AvatarImage src={form.watch('photoUrl') || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                        <AvatarFallback>
+                            {form.watch('firstName')?.[0]}
+                            {form.watch('lastName')?.[0]}
+                        </AvatarFallback>
                     </Avatar>
-                     <Button size="icon" className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                     <Button type="button" size="icon" className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                         <Upload className="h-4 w-4" />
                      </Button>
                 </div>
@@ -176,7 +195,7 @@ export function PlayerForm({ onFinished }: PlayerFormProps) {
         </div>
         <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
-            <Button type="submit">Créer le joueur</Button>
+            <Button type="submit">{player ? "Sauvegarder les modifications" : "Créer le joueur"}</Button>
         </div>
       </form>
     </Form>

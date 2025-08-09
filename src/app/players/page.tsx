@@ -1,7 +1,8 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Printer, Trash2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Printer, Trash2, Edit } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -27,8 +28,11 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function PlayersPage() {
+  const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(initialPlayers);
-  const [isAddPlayerOpen, setAddPlayerOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
+  const [selectedPlayer, setSelectedPlayer] = React.useState<Player | null>(null);
 
   const handlePrint = () => {
     // Une fonction d'impression plus sophistiquée formaterait mieux cela.
@@ -39,6 +43,25 @@ export default function PlayersPage() {
     setPlayers(players.filter(p => p.id !== playerId));
   }
 
+  const handleEditPlayer = (player: Player) => {
+    setSelectedPlayer(player);
+    setPlayerDialogOpen(true);
+  }
+  
+  const handleAddNewPlayer = () => {
+    setSelectedPlayer(null);
+    setPlayerDialogOpen(true);
+  }
+
+  const handleViewPayments = (playerId: string) => {
+    router.push(`/payments?playerId=${playerId}`);
+  }
+
+  const filteredPlayers = players.filter(player =>
+    `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    player.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <PageHeader title="Joueurs">
@@ -46,7 +69,7 @@ export default function PlayersPage() {
             <Printer className="mr-2 h-4 w-4" />
             Imprimer la liste
         </Button>
-        <Button onClick={() => setAddPlayerOpen(true)}>
+        <Button onClick={handleAddNewPlayer}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Ajouter un joueur
         </Button>
@@ -59,7 +82,12 @@ export default function PlayersPage() {
           </CardDescription>
           <div className="relative mt-4">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Rechercher par nom ou catégorie..." className="pl-8" />
+            <Input 
+              placeholder="Rechercher par nom ou catégorie..." 
+              className="pl-8" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </CardHeader>
         <CardContent>
@@ -75,7 +103,7 @@ export default function PlayersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {players.map(player => (
+              {filteredPlayers.map(player => (
                 <TableRow key={player.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -107,11 +135,14 @@ export default function PlayersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Modifier</DropdownMenuItem>
-                          <DropdownMenuItem>Voir les paiements</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditPlayer(player)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>Voir les paiements</DropdownMenuItem>
                           <DropdownMenuSeparator />
                            <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Supprimer
                             </DropdownMenuItem>
@@ -127,7 +158,7 @@ export default function PlayersPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDeletePlayer(player.id)}>Continuer</AlertDialogAction>
+                          <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDeletePlayer(player.id)}>Supprimer</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -139,11 +170,11 @@ export default function PlayersPage() {
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Affichage de <strong>1-{players.length}</strong> sur <strong>{players.length}</strong> joueurs
+            Affichage de <strong>1-{filteredPlayers.length}</strong> sur <strong>{players.length}</strong> joueurs
           </div>
         </CardFooter>
       </Card>
-      <AddPlayerDialog open={isAddPlayerOpen} onOpenChange={setAddPlayerOpen} />
+      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} />
     </>
   )
 }

@@ -1,6 +1,7 @@
 
 "use client"
 import * as React from "react"
+import { useSearchParams } from 'next/navigation'
 import { MoreHorizontal, PlusCircle, Search, File } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -9,17 +10,28 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { payments } from "@/lib/mock-data"
+import { payments as allPayments } from "@/lib/mock-data"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
-export default function PaymentsPage() {
+function PaymentsPageContent() {
+  const searchParams = useSearchParams()
+  const playerId = searchParams.get('playerId')
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   const statusTranslations = {
     'Paid': 'Payé',
     'Pending': 'En attente',
     'Overdue': 'En retard'
   }
+
+  const basePayments = playerId ? allPayments.filter(p => p.playerId === playerId) : allPayments;
+  
+  const filteredPayments = basePayments.filter(payment =>
+    payment.playerName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <PageHeader title="Paiements">
@@ -46,7 +58,12 @@ export default function PaymentsPage() {
             <div className="flex items-center gap-2">
                <div className="relative">
                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                 <Input placeholder="Rechercher par joueur..." className="pl-8 w-48" />
+                 <Input 
+                   placeholder="Rechercher par joueur..." 
+                   className="pl-8 w-48" 
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                 />
                </div>
                 <TabsList>
                   <TabsTrigger value="all">Tous</TabsTrigger>
@@ -58,21 +75,21 @@ export default function PaymentsPage() {
         </CardHeader>
         <CardContent>
             <TabsContent value="all">
-              <PaymentTable payments={payments} statusTranslations={statusTranslations} />
+              <PaymentTable payments={filteredPayments} statusTranslations={statusTranslations} />
             </TabsContent>
             <TabsContent value="paid">
-              <PaymentTable payments={payments.filter(p => p.status === 'Paid')} statusTranslations={statusTranslations} />
+              <PaymentTable payments={filteredPayments.filter(p => p.status === 'Paid')} statusTranslations={statusTranslations} />
             </TabsContent>
             <TabsContent value="pending">
-              <PaymentTable payments={payments.filter(p => p.status === 'Pending')} statusTranslations={statusTranslations} />
+              <PaymentTable payments={filteredPayments.filter(p => p.status === 'Pending')} statusTranslations={statusTranslations} />
             </TabsContent>
             <TabsContent value="overdue">
-              <PaymentTable payments={payments.filter(p => p.status === 'Overdue')} statusTranslations={statusTranslations} />
+              <PaymentTable payments={filteredPayments.filter(p => p.status === 'Overdue')} statusTranslations={statusTranslations} />
             </TabsContent>
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Affichage de <strong>1-5</strong> sur <strong>{payments.length}</strong> paiements
+            Affichage de <strong>1-{filteredPayments.length}</strong> sur <strong>{filteredPayments.length}</strong> paiements
           </div>
         </CardFooter>
       </Card>
@@ -81,7 +98,7 @@ export default function PaymentsPage() {
   )
 }
 
-function PaymentTable({ payments, statusTranslations }: { payments: (typeof payments), statusTranslations: any }) {
+function PaymentTable({ payments, statusTranslations }: { payments: (typeof allPayments), statusTranslations: any }) {
   return (
     <Table>
       <TableHeader>
@@ -104,15 +121,10 @@ function PaymentTable({ payments, statusTranslations }: { payments: (typeof paym
             </TableCell>
             <TableCell>
               <Badge 
-                variant={
-                  payment.status === 'Paid' ? 'default' 
-                  : payment.status === 'Pending' ? 'secondary' 
-                  : 'destructive'
-                }
                 className={cn({
-                  'bg-green-500 hover:bg-green-500/80 text-white': payment.status === 'Paid',
-                  'bg-yellow-500 hover:bg-yellow-500/80 text-white': payment.status === 'Pending',
-                  'bg-red-500 hover:bg-red-500/80 text-white': payment.status === 'Overdue'
+                  'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80': payment.status === 'Paid',
+                  'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80': payment.status === 'Pending',
+                  'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80': payment.status === 'Overdue'
                 })}
               >
                 {statusTranslations[payment.status]}
@@ -147,5 +159,14 @@ function PaymentTable({ payments, statusTranslations }: { payments: (typeof paym
         ))}
       </TableBody>
     </Table>
+  )
+}
+
+// Wrapping the component that uses useSearchParams in a Suspense boundary
+export default function PaymentsPage() {
+  return (
+    <React.Suspense fallback={<div>Chargement...</div>}>
+      <PaymentsPageContent />
+    </React.Suspense>
   )
 }
