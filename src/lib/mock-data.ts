@@ -5,7 +5,8 @@ export const players: Player[] = [
   { 
     id: '1', 
     firstName: 'John', 
-    lastName: 'Doe', 
+    lastName: 'Doe',
+    gender: 'Homme',
     dateOfBirth: new Date('2010-05-12'), 
     category: 'U15', 
     photoUrl: 'https://placehold.co/100x100.png',
@@ -22,7 +23,8 @@ export const players: Player[] = [
   { 
     id: '2', 
     firstName: 'Jane', 
-    lastName: 'Smith', 
+    lastName: 'Smith',
+    gender: 'Femme',
     dateOfBirth: new Date('2012-08-20'), 
     category: 'U13', 
     photoUrl: 'https://placehold.co/100x100.png',
@@ -39,7 +41,8 @@ export const players: Player[] = [
   { 
     id: '3', 
     firstName: 'Mike', 
-    lastName: 'Johnson', 
+    lastName: 'Johnson',
+    gender: 'Homme',
     dateOfBirth: new Date('1998-02-01'), 
     category: 'Senior', 
     photoUrl: 'https://placehold.co/100x100.png',
@@ -57,7 +60,8 @@ export const players: Player[] = [
   { 
     id: '4', 
     firstName: 'Emily', 
-    lastName: 'Brown', 
+    lastName: 'Brown',
+    gender: 'Femme',
     dateOfBirth: new Date('2014-11-30'), 
     category: 'U11', 
     photoUrl: 'https://placehold.co/100x100.png',
@@ -74,7 +78,8 @@ export const players: Player[] = [
   { 
     id: '5', 
     firstName: 'Chris', 
-    lastName: 'Davis', 
+    lastName: 'Davis',
+    gender: 'Homme',
     dateOfBirth: new Date('2008-07-22'), 
     category: 'U17', 
     photoUrl: 'https://placehold.co/100x100.png',
@@ -91,7 +96,8 @@ export const players: Player[] = [
   { 
     id: '6', 
     firstName: 'Sarah', 
-    lastName: 'Miller', 
+    lastName: 'Miller',
+    gender: 'Femme',
     dateOfBirth: new Date('2016-01-15'), 
     category: 'U9', 
     photoUrl: 'https://placehold.co/100x100.png',
@@ -109,6 +115,7 @@ export const players: Player[] = [
     id: '7',
     firstName: 'Aya',
     lastName: 'Boukhari',
+    gender: 'Femme',
     dateOfBirth: new Date('2007-03-25'),
     category: 'U17',
     photoUrl: 'https://placehold.co/100x100.png',

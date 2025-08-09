@@ -166,6 +166,8 @@ export default function PlayerDetailPage() {
                 <div className="grid grid-cols-[150px,1fr] gap-2 text-sm">
                   <span className="font-medium">Date de naissance:</span>
                   <span>{isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                  <span className="font-medium">Genre:</span>
+                  <span>{player.gender}</span>
                   <span className="font-medium">Adresse:</span>
                   <span>{`${player.address}, ${player.city}`}</span>
                   <span className="font-medium">Téléphone:</span>

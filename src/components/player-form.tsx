@@ -33,6 +33,7 @@ const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
+  gender: z.enum(["Homme", "Femme"], { required_error: "Veuillez sélectionner un genre." }),
   email: z.string().email({ message: "Adresse e-mail invalide." }),
   dateOfBirth: z.date({
     required_error: "Une date de naissance est requise.",
@@ -101,6 +102,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       id: getNextId(players),
       firstName: '',
       lastName: '',
+      gender: undefined,
       email: '',
       dateOfBirth: undefined,
       category: '',
@@ -136,6 +138,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         id: getNextId(players),
         firstName: '',
         lastName: '',
+        gender: undefined,
         email: '',
         dateOfBirth: undefined,
         category: '',
@@ -161,6 +164,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     const newPlayerData: Player = {
         ...data,
         id: data.id,
+        gender: data.gender,
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
@@ -374,6 +378,27 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       />
                       <FormField
                         control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Genre</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Sélectionnez un genre" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Homme">Homme</SelectItem>
+                                <SelectItem value="Femme">Femme</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
                         name="dateOfBirth"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
@@ -545,5 +570,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    
