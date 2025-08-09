@@ -52,9 +52,15 @@ const ReceiptPage = () => {
   
   React.useEffect(() => {
     if (payment && player) {
+      document.body.classList.add('print-receipt');
       setTimeout(() => {
         window.print();
       }, 500);
+    }
+    
+    // Cleanup function to remove the class when the component unmounts
+    return () => {
+      document.body.classList.remove('print-receipt');
     }
   }, [payment, player]);
 
@@ -67,7 +73,7 @@ const ReceiptPage = () => {
   }
 
   return (
-    <div className="bg-white text-black font-sans p-8 md:p-12">
+    <div className="bg-white text-black font-sans p-8 md:p-12 printable-area">
       <div className="max-w-4xl mx-auto border border-gray-300 p-8 rounded-lg shadow-lg">
         {/* Header */}
         <header className="flex justify-between items-start pb-6 border-b border-gray-300">
@@ -162,37 +168,11 @@ const ReceiptPage = () => {
   );
 };
 
-// We don't want the full layout for a printable receipt page
-const ReceiptLayout = ({ children }: { children: React.ReactNode }) => {
-    return (
-        <html lang="fr" suppressHydrationWarning>
-            <head>
-                <style>{`
-                    @media print {
-                        body {
-                           -webkit-print-color-adjust: exact;
-                           print-color-adjust: exact;
-                        }
-                        .no-print, .no-print * {
-                           display: none !important;
-                        }
-                    }
-                `}</style>
-            </head>
-            <body>
-                 {children}
-            </body>
-        </html>
-    )
-}
-
 
 export default function ReceiptPageWrapper() {
   return (
     <React.Suspense fallback={<div>Chargement du reçu...</div>}>
-      <ReceiptLayout>
         <ReceiptPage />
-      </ReceiptLayout>
     </React.Suspense>
   )
 }
