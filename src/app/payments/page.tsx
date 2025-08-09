@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Check, ChevronsUpDown } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,15 +10,54 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { payments as allPayments } from "@/lib/mock-data"
+import { payments as allPayments, players as allPlayers } from "@/lib/mock-data"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import type { Payment } from "@/types"
+import AddPaymentDialog from "@/components/add-payment-dialog"
+
+// Helper function to convert array of objects to CSV
+const convertToCSV = (objArray: any[]) => {
+  const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+  let str = '';
+  const header = Object.keys(array[0]).join(',') + '\r\n';
+  str += header;
+
+  for (let i = 0; i < array.length; i++) {
+    let line = '';
+    for (let index in array[i]) {
+      if (line !== '') line += ','
+      line += array[i][index];
+    }
+    str += line + '\r\n';
+  }
+  return str;
+}
+
+// Helper function to trigger download
+const downloadCSV = (csvStr: string, fileName: string) => {
+  const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
 
 function PaymentsPageContent() {
   const searchParams = useSearchParams()
   const playerId = searchParams.get('playerId')
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
+
+  // In a real app, this would likely be persisted in a database or state management solution
+  const [payments, setPayments] = React.useState<Payment[]>(allPayments);
 
   const statusTranslations = {
     'Paid': 'Payé',
@@ -26,21 +65,33 @@ function PaymentsPageContent() {
     'Overdue': 'En retard'
   }
 
-  const basePayments = playerId ? allPayments.filter(p => p.playerId === playerId) : allPayments;
+  const basePayments = playerId ? payments.filter(p => p.playerId === playerId) : payments;
   
   const filteredPayments = basePayments.filter(payment =>
     payment.playerName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleExport = () => {
+    if (filteredPayments.length > 0) {
+      const csvData = convertToCSV(filteredPayments.map(({ id, ...rest }) => ({ ...rest, date: rest.date.toISOString().split('T')[0] })));
+      downloadCSV(csvData, `paiements-${new Date().toISOString().split('T')[0]}.csv`);
+    }
+  }
+
+  const handleAddPayment = (newPayment: Omit<Payment, 'id'>) => {
+    const paymentWithId = { ...newPayment, id: `p${payments.length + 1}` };
+    setPayments([...payments, paymentWithId]);
+  }
+
   return (
     <>
       <PageHeader title="Paiements">
         <div className="flex items-center gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExport}>
             <File className="mr-2 h-4 w-4" />
             Exporter
             </Button>
-            <Button>
+            <Button onClick={() => setAddPaymentOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Ajouter un paiement
             </Button>
@@ -94,6 +145,12 @@ function PaymentsPageContent() {
         </CardFooter>
       </Card>
       </Tabs>
+      <AddPaymentDialog
+        open={isAddPaymentOpen}
+        onOpenChange={setAddPaymentOpen}
+        onAddPayment={handleAddPayment}
+        players={allPlayers}
+       />
     </>
   )
 }
