@@ -107,9 +107,9 @@ export default function PlayersPage() {
         if (existingPlayerIndex > -1) {
             const newPlayers = [...prevPlayers];
             newPlayers[existingPlayerIndex] = playerWithDates;
-            return newPlayers;
+            return newPlayers.map(parsePlayerDates); // Re-parse all to be safe
         } else {
-            return [...prevPlayers, playerWithDates];
+            return [...prevPlayers, playerWithDates].map(parsePlayerDates); // Re-parse all to be safe
         }
     });
   };
@@ -120,7 +120,7 @@ export default function PlayersPage() {
   );
   
   // Crucially, re-parse the players just before sending them to the printable component
-  // to ensure all dates are valid Date objects.
+  // to ensure all dates are valid Date objects. This is the definitive fix.
   const printablePlayers = players.map(parsePlayerDates);
 
   return (
