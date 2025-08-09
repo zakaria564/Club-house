@@ -105,6 +105,23 @@ export const players: Player[] = [
     email: 'sarah.miller@example.com',
     clubEntryDate: new Date('2023-09-01'),
   },
+  {
+    id: '7',
+    firstName: 'Aya',
+    lastName: 'Boukhari',
+    dateOfBirth: new Date('2007-03-25'),
+    category: 'U17',
+    photoUrl: 'https://placehold.co/100x100.png',
+    address: '111 Rue Nouvelle',
+    city: 'Casablanca',
+    phone: '0611223344',
+    guardianName: 'Samir Boukhari',
+    guardianPhone: '0655667788',
+    position: 'Milieu offensif',
+    playerNumber: 22,
+    email: 'aya.boukhari@example.com',
+    clubEntryDate: new Date('2022-09-01'),
+  },
 ];
 
 export const payments: Payment[] = [
