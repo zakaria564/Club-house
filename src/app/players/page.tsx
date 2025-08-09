@@ -239,7 +239,7 @@ export default function PlayersPage() {
                     <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Cette action est irréversible. Cela supprimera définitivement le profil du joueur.
-                    </Description>
+                    </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setPlayerToDelete(null)}>Annuler</AlertDialogCancel>
