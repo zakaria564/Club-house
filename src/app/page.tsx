@@ -6,17 +6,27 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, MoreHorizontal, Edit, Trash2 } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Trash2 } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { players as initialPlayers } from '@/lib/mock-data'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { players as initialPlayers, payments as initialPayments } from '@/lib/mock-data'
 import type { Player } from '@/types'
 
-const LOCAL_STORAGE_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 const chartData = [
   { category: "U9", players: 18 },
@@ -45,11 +55,13 @@ export default function Dashboard() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>(initialPlayers.map(parsePlayerDates));
   const [isClient, setIsClient] = React.useState(false)
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+
 
   React.useEffect(() => {
     setIsClient(true)
     try {
-        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
+        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
         if (storedPlayers) {
             setPlayers(JSON.parse(storedPlayers).map(parsePlayerDates));
         }
@@ -57,6 +69,18 @@ export default function Dashboard() {
         console.error("Failed to parse players from localStorage", error);
     }
   }, []);
+
+  const handleDeleteData = () => {
+    try {
+      localStorage.removeItem(LOCAL_STORAGE_PLAYERS_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_PAYMENTS_KEY);
+      // We can also reset the mock data here if needed, for now, a reload will do.
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to delete data from localStorage", error);
+    }
+    setDeleteDialogOpen(false);
+  }
   
   const handleViewPlayer = (playerId: string) => {
     router.push(`/players/${playerId}`);
@@ -66,7 +90,12 @@ export default function Dashboard() {
 
   return (
     <>
-      <PageHeader title="Tableau de bord" />
+      <PageHeader title="Tableau de bord">
+        <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Supprimer les données
+        </Button>
+      </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -180,8 +209,26 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Elle supprimera définitivement toutes les données des joueurs et des paiements de votre navigateur.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteData}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Oui, supprimer les données
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
-
-    
