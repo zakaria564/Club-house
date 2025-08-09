@@ -60,7 +60,9 @@ export default function PlayersPage() {
 
   React.useEffect(() => {
     try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(players));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(players));
+        }
     } catch (error) {
         console.error("Failed to save players to localStorage", error);
     }

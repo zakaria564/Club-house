@@ -47,7 +47,9 @@ export default function PlayerDetailPage({ params }: { params: { id: string } })
     const playerWithDates = parsePlayerDates(updatedPlayer);
     const updatedPlayers = players.map((p) => (p.id === playerWithDates.id ? playerWithDates : p));
     setPlayers(updatedPlayers);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedPlayers));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedPlayers));
+    }
   };
 
   const handlePrint = () => {
