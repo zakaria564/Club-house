@@ -10,8 +10,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { players as initialPlayers } from "@/lib/mock-data"
-import type { Player } from "@/types"
+import { players as initialPlayers, payments as initialPayments } from "@/lib/mock-data"
+import type { Player, Payment } from "@/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import AddPlayerDialog from "@/components/add-player-dialog"
@@ -26,7 +26,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-const LOCAL_STORAGE_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
+
 
 const parsePlayerDates = (player: any): Player => ({
     ...player,
@@ -43,7 +45,7 @@ export default function PlayersPage() {
       return initialPlayers.map(parsePlayerDates);
     }
     try {
-        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_KEY);
+        const storedPlayers = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
         if (storedPlayers) {
             return JSON.parse(storedPlayers).map(parsePlayerDates);
         }
@@ -61,7 +63,7 @@ export default function PlayersPage() {
   React.useEffect(() => {
     try {
         if (typeof window !== 'undefined') {
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(players));
+          localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(players));
         }
     } catch (error) {
         console.error("Failed to save players to localStorage", error);
@@ -74,7 +76,21 @@ export default function PlayersPage() {
 
   const handleDeleteConfirm = () => {
     if (playerToDelete) {
+      // Delete the player
       setPlayers(players.filter(p => p.id !== playerToDelete));
+      
+      // Delete associated payments
+      try {
+        if (typeof window !== 'undefined') {
+            const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+            let payments: Payment[] = storedPayments ? JSON.parse(storedPayments) : initialPayments;
+            const updatedPayments = payments.filter(p => p.playerId !== playerToDelete);
+            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
+        }
+      } catch (error) {
+         console.error("Failed to update payments in localStorage", error);
+      }
+
       setPlayerToDelete(null);
     }
   }
@@ -100,24 +116,13 @@ export default function PlayersPage() {
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
     setPlayers(prevPlayers => {
-        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === playerWithDates.id);
+        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === selectedPlayer?.id);
         if (existingPlayerIndex > -1) {
-            // Update existing player
             const newPlayers = [...prevPlayers];
             newPlayers[existingPlayerIndex] = playerWithDates;
             return newPlayers;
         } else {
-            // Check if an ID was provided that doesn't match, this can happen if the ID was edited.
-            // We need to find the original player to update.
-             const originalPlayerIndex = prevPlayers.findIndex(p => p.id === selectedPlayer?.id);
-             if (originalPlayerIndex > -1) {
-                const newPlayers = [...prevPlayers];
-                newPlayers[originalPlayerIndex] = playerWithDates;
-                return newPlayers;
-             } else {
-                // Add new player
-                return [...prevPlayers, playerWithDates];
-             }
+            return [...prevPlayers, playerWithDates];
         }
     });
   };
@@ -235,7 +240,7 @@ export default function PlayersPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Cette action est irréversible. Cela supprimera définitivement le profil du joueur.
+                        Cette action est irréversible. Elle supprimera définitivement le profil du joueur et tous ses paiements associés.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
