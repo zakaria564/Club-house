@@ -159,14 +159,22 @@ export const payments: Payment[] = [
 export const clubEvents: ClubEvent[] = [
   { 
     id: 'e1', 
-    title: 'Match de championnat', 
+    title: 'CAOS vs City Rovers', 
     type: 'Match', 
     opponent: 'City Rovers',
-    date: new Date(new Date().setDate(new Date().getDate() + 3)),
+    date: new Date(new Date().setDate(new Date().getDate() - 7)),
     time: '15:00',
     location: 'Stade Municipal',
     category: 'Senior',
-    description: 'Match de championnat important. Convocation à 13:30.'
+    description: 'Match de championnat important.',
+    result: '3-1',
+    scorers: [
+      { playerId: '3', count: 2 },
+      { playerId: '5', count: 1 }
+    ],
+    assists: [
+      { playerId: '1', count: 1 }
+    ]
   },
   { 
     id: 'e2', 
@@ -217,6 +225,25 @@ export const clubEvents: ClubEvent[] = [
     location: 'Salle des fêtes',
     category: 'Tous les membres',
     description: 'Repas annuel du club pour fêter la fin de saison.'
+  },
+   { 
+    id: 'e7', 
+    title: 'CAOS vs FC Lions', 
+    type: 'Match', 
+    opponent: 'FC Lions',
+    date: new Date(new Date().setDate(new Date().getDate() - 14)),
+    time: '14:00',
+    location: 'Stade des Lions',
+    category: 'U17',
+    description: 'Match amical de pré-saison.',
+    result: '2-2',
+    scorers: [
+      { playerId: '5', count: 1 },
+      { playerId: '7', count: 1 }
+    ],
+    assists: [
+      { playerId: '5', count: 1 }
+    ]
   },
 ];
 
