@@ -25,7 +25,8 @@ const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
 const PrintHeader = ({ date }: { date?: Date }) => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" width={80} height={80} alt="Club CAOS 2011 Logo" className="h-24 w-auto" data-ai-hint="club logo" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club CAOS 2011 Logo" className="h-24 w-auto" data-ai-hint="club logo" />
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
             <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
@@ -420,5 +421,3 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
-
-    
