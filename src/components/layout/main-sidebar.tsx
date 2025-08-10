@@ -17,6 +17,7 @@ import {
   DollarSign,
   Shield,
   MoreHorizontal,
+  Trophy,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
@@ -26,7 +27,7 @@ export function MainSidebar() {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
-    return pathname === path;
+    return pathname === path || (path !== "/" && pathname.startsWith(path));
   };
 
   return (
@@ -110,6 +111,18 @@ export function MainSidebar() {
               <Link href="/payments">
                 <DollarSign />
                 <span>Paiements</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/results")}
+              tooltip="Résultats"
+            >
+              <Link href="/results">
+                <Trophy />
+                <span>Résultats</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
