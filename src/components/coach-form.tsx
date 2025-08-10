@@ -253,7 +253,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                             <FormLabel>Âge</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="42" {...field} />
+                                <Input type="number" placeholder="42" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -433,6 +433,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    
-    
