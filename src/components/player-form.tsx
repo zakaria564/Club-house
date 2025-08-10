@@ -26,7 +26,8 @@ import { Calendar } from "./ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { Player } from "@/types"
+import type { Player, Coach } from "@/types"
+import { coaches as initialCoaches } from "@/lib/mock-data"
 
 const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
@@ -50,6 +51,7 @@ const playerFormSchema = z.object({
     required_error: "Une date d'entrée est requise.",
   }),
   clubExitDate: z.date().optional().nullable(),
+  coachId: z.string().optional(),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -88,7 +90,15 @@ const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18",
 
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
+  const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const originalId = React.useRef(player?.id);
+
+   React.useEffect(() => {
+    // In a real app, this would be a fetch call
+    const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
+    const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
+    setCoaches(storedCoaches);
+  }, []);
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
@@ -97,6 +107,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       dateOfBirth: new Date(player.dateOfBirth),
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
+      coachId: player.coachId || undefined,
     } : {
       id: getNextId(players),
       firstName: '',
@@ -115,6 +126,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       playerNumber: '' as any,
       clubEntryDate: new Date(),
       clubExitDate: null,
+      coachId: undefined,
     },
   })
 
@@ -128,6 +140,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         dateOfBirth: new Date(player.dateOfBirth),
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
         clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
+        coachId: player.coachId || undefined,
       });
     } else {
       originalId.current = undefined;
@@ -149,6 +162,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         playerNumber: '' as any,
         clubEntryDate: new Date(),
         clubExitDate: null,
+        coachId: undefined,
       });
     }
   }, [player, form, players]);
@@ -167,6 +181,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         playerNumber: Number(data.playerNumber),
         clubEntryDate: new Date(data.clubEntryDate),
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
+        coachId: data.coachId || undefined,
     };
 
     onSave(newPlayerData);
@@ -277,6 +292,29 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               {positions.map(position => (
                                   <SelectItem key={position} value={position}>{position}</SelectItem>
                               ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="coachId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Entraîneur</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                               <SelectItem value="none">Non assigné</SelectItem>
+                                {coaches.map(coach => (
+                                    <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />

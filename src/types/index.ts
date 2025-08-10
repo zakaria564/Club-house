@@ -17,6 +17,7 @@ export type Player = {
   email: string;
   clubEntryDate: Date;
   clubExitDate?: Date;
+  coachId?: string;
 };
 
 export type Payment = {

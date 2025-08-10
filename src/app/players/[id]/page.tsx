@@ -105,11 +105,8 @@ export default function PlayerDetailPage() {
   const player = players.find((p) => p.id === playerId);
   
   const getCoachForPlayer = React.useCallback((player?: Player) => {
-    if (!player) return null;
-    const coach = coaches.find(c => {
-        const categoryMatch = c.specialty.match(/\((U\d+|Senior|Vétéran)\)/);
-        return categoryMatch ? categoryMatch[1] === player.category : false;
-    });
+    if (!player || !player.coachId) return 'Non assigné';
+    const coach = coaches.find(c => c.id === player.coachId);
     return coach ? `${coach.firstName} ${coach.lastName}` : 'Non assigné';
   }, [coaches]);
   

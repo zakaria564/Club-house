@@ -168,13 +168,7 @@ export default function PlayersPage() {
     player.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  const coachByCategory = new Map<string, string>();
-  coaches.forEach(coach => {
-      const categoryMatch = coach.specialty.match(/\((U\d+|Senior|Vétéran)\)/);
-      if (categoryMatch) {
-          coachByCategory.set(categoryMatch[1], `${coach.firstName} ${coach.lastName}`);
-      }
-  });
+  const coachMap = new Map(coaches.map(c => [c.id, `${c.firstName} ${c.lastName}`]));
 
 
   return (
@@ -223,7 +217,7 @@ export default function PlayersPage() {
             </TableHeader>
             <TableBody>
               {filteredPlayers.map(player => {
-                const coachName = coachByCategory.get(player.category);
+                const coachName = player.coachId ? coachMap.get(player.coachId) : null;
                 return (
                 <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
                   <TableCell>
