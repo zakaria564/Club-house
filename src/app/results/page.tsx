@@ -33,28 +33,42 @@ const parsePlayerDates = (player: any): Player => ({
 });
 
 
-type StatItem = {
+type CombinedStat = {
     name: string;
-    count: number;
+    goals: number;
+    assists: number;
 }
 
-const combineStats = (events: ClubEvent[], field: 'scorers' | 'assists', players: Player[]): StatItem[] => {
-    const combined = new Map<string, number>();
+const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] => {
+    const combined = new Map<string, { name: string; goals: number; assists: number; playerId: string }>();
     const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
 
+    playerMap.forEach((name, id) => {
+        combined.set(name, { playerId: id, name, goals: 0, assists: 0 });
+    });
+
     events.forEach(event => {
-        const stats = event[field];
-        if (stats && Array.isArray(stats)) {
-            stats.forEach(stat => {
-                const playerName = playerMap.get(stat.playerId) || 'Joueur inconnu';
-                combined.set(playerName, (combined.get(playerName) || 0) + stat.count);
+        if (Array.isArray(event.scorers)) {
+            event.scorers.forEach(scorer => {
+                const playerName = playerMap.get(scorer.playerId);
+                if (playerName && combined.has(playerName)) {
+                    const current = combined.get(playerName)!;
+                    current.goals += scorer.count;
+                }
+            });
+        }
+        if (Array.isArray(event.assists)) {
+            event.assists.forEach(assist => {
+                const playerName = playerMap.get(assist.playerId);
+                if (playerName && combined.has(playerName)) {
+                    const current = combined.get(playerName)!;
+                    current.assists += assist.count;
+                }
             });
         }
     });
 
-    return Array.from(combined.entries())
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count);
+    return Array.from(combined.values());
 }
 
 export default function ResultsPage() {
@@ -114,8 +128,9 @@ export default function ResultsPage() {
         setSelectedMatchId(null);
     }
 
-    const topScorers = combineStats(allPlayedMatches, 'scorers', players);
-    const topAssists = combineStats(allPlayedMatches, 'assists', players);
+    const allStats = combineStats(allPlayedMatches, players);
+    const topScorers = [...allStats].sort((a, b) => b.goals - a.goals).filter(s => s.goals > 0);
+    const topAssists = [...allStats].sort((a, b) => b.assists - a.assists).filter(s => s.assists > 0);
 
     const getCardTitle = () => {
         if (selectedMatchId) return "Détail du match";
@@ -273,7 +288,7 @@ export default function ResultsPage() {
 
 interface StatsTableProps {
     title: string;
-    stats: StatItem[];
+    stats: CombinedStat[];
 }
 
 function StatsTable({ title, stats }: StatsTableProps) {
@@ -284,9 +299,23 @@ function StatsTable({ title, stats }: StatsTableProps) {
     const topThree = stats.slice(0, 3);
     const rest = stats.slice(3);
     const medalColors = ["text-yellow-400", "text-gray-400", "text-amber-600"];
-    const unit = title === 'Buteurs' ? 'buts' : 'passes';
-    const unitSingle = title === 'Buteurs' ? 'but' : 'passe';
+    const isScorers = title === 'Buteurs';
 
+    const renderStat = (stat: CombinedStat) => {
+        if (isScorers) {
+            return `${stat.goals} ${stat.goals > 1 ? 'buts' : 'but'}`;
+        }
+        return `${stat.assists} ${stat.assists > 1 ? 'passes' : 'passe'}`;
+    }
+
+     const renderSecondPlaceStat = (stat: CombinedStat) => {
+        return (
+            <div className="flex flex-col text-sm">
+                <span className="font-semibold">{stat.goals} {stat.goals > 1 ? 'buts' : 'but'}</span>
+                <span className="text-muted-foreground/80">{stat.assists} {stat.assists > 1 ? 'passes' : 'passe'}</span>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-4">
@@ -296,7 +325,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-8 w-8", medalColors[1])} />
                         <p className="font-bold text-lg truncate">{topThree[1].name}</p>
-                        <p className="font-semibold text-muted-foreground">{topThree[1].count} {topThree[1].count > 1 ? unit : unitSingle}</p>
+                        <div className="font-semibold text-muted-foreground">{renderSecondPlaceStat(topThree[1])}</div>
                         <div className="h-16 bg-muted rounded-t-md mt-1"></div>
                     </div>
                 )}
@@ -304,7 +333,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-10 w-10", medalColors[0])} />
                         <p className="font-bold text-xl truncate">{topThree[0].name}</p>
-                        <p className="font-semibold text-muted-foreground">{topThree[0].count} {topThree[0].count > 1 ? unit : unitSingle}</p>
+                        <p className="font-semibold text-muted-foreground">{renderStat(topThree[0])}</p>
                         <div className="h-24 bg-primary/20 rounded-t-md mt-1"></div>
                     </div>
                 )}
@@ -312,7 +341,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-7 w-7", medalColors[2])} />
                         <p className="font-bold text-base truncate">{topThree[2].name}</p>
-                        <p className="font-semibold text-muted-foreground">{topThree[2].count} {topThree[2].count > 1 ? unit : unitSingle}</p>
+                        <p className="font-semibold text-muted-foreground">{renderStat(topThree[2])}</p>
                         <div className="h-12 bg-muted rounded-t-md mt-1"></div>
                     </div>
                 )}
@@ -334,7 +363,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                             <TableRow key={item.name}>
                                 <TableCell className="font-medium">{index + 4}</TableCell>
                                 <TableCell>{item.name}</TableCell>
-                                <TableCell className="text-right font-bold">{item.count}</TableCell>
+                                <TableCell className="text-right font-bold">{isScorers ? item.goals : item.assists}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -344,5 +373,3 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
-
-    
