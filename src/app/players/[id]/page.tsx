@@ -22,12 +22,12 @@ const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        <div className="flex items-center gap-4">
+        <div className="flex justify-between items-center w-full">
             <ClubLogo className="w-16 h-16" />
-            <div className="text-center">
-                <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
-                 <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
-            </div>
+        </div>
+        <div className="text-center mt-4">
+            <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
+            <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
         </div>
         <hr className="w-full mt-4 border-t-2 border-primary" />
     </div>
