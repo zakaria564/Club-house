@@ -42,6 +42,8 @@ export type ClubEvent = {
   description?: string;
   opponent?: string;
   result?: string;
+  scorers?: string;
+  assists?: string;
 };
 
 export type Coach = {

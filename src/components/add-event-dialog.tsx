@@ -57,6 +57,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
     const [type, setType] = React.useState<ClubEvent['type'] | "">(event?.type || "");
     const [opponent, setOpponent] = React.useState(event?.opponent || "");
     const [result, setResult] = React.useState(event?.result || "");
+    const [scorers, setScorers] = React.useState(event?.scorers || "");
+    const [assists, setAssists] = React.useState(event?.assists || "");
 
 
     const titleOptions = type ? eventTitleTemplates[type] : [];
@@ -74,6 +76,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                 setType(event.type);
                 setOpponent(event.opponent || "");
                 setResult(event.result || "");
+                setScorers(event.scorers || "");
+                setAssists(event.assists || "");
             } else {
                 resetForm();
                 if(selectedDate) {
@@ -89,6 +93,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             setTitle("");
             setOpponent("");
             setResult("");
+            setScorers("");
+            setAssists("");
         }
     }, [type, isEditing]);
 
@@ -103,6 +109,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         setType("");
         setOpponent("");
         setResult("");
+        setScorers("");
+        setAssists("");
     }
 
     const handleSubmit = () => {
@@ -128,12 +136,16 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             description: description || undefined,
             opponent: opponent || undefined,
             result: result || undefined,
+            scorers: scorers || undefined,
+            assists: assists || undefined,
         };
 
         if (type === 'Match') {
             eventData.opponent = opponent;
             eventData.title = `CAOS vs ${opponent}`;
             eventData.result = result || undefined;
+            eventData.scorers = scorers || undefined;
+            eventData.assists = assists || undefined;
         }
 
         onEventSubmit(eventData);
@@ -193,6 +205,14 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="result" className="text-right">Résultat</Label>
                             <Input id="result" placeholder="Ex: 2-1" className="col-span-3" value={result} onChange={(e) => setResult(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-4 items-start gap-4">
+                            <Label htmlFor="scorers" className="text-right pt-2">Buteurs</Label>
+                            <Textarea id="scorers" placeholder="Ex: Joueur 1 (2), Joueur 2" className="col-span-3" value={scorers} onChange={(e) => setScorers(e.target.value)} />
+                        </div>
+                         <div className="grid grid-cols-4 items-start gap-4">
+                            <Label htmlFor="assists" className="text-right pt-2">Passeurs</Label>
+                            <Textarea id="assists" placeholder="Ex: Joueur 3, Joueur 4" className="col-span-3" value={assists} onChange={(e) => setAssists(e.target.value)} />
                         </div>
                         </>
                     )}

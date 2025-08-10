@@ -4,7 +4,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { CalendarIcon, Clock, MapPin, Tag, Edit, Trash2, PlusCircle, User, Shield, Info, Trophy } from "lucide-react"
+import { CalendarIcon, Clock, MapPin, Tag, Edit, Trash2, PlusCircle, User, Shield, Info, Trophy, Footprints, Goal } from "lucide-react"
 
 import {
   Sheet,
@@ -109,6 +109,33 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
                                             <p className="pt-2 text-foreground/80">{event.description}</p>
                                         )}
                                     </div>
+
+                                    {event.type === 'Match' && (event.scorers || event.assists) && (
+                                      <>
+                                      <Separator />
+                                      <div className="space-y-2 text-sm">
+                                        {event.scorers && (
+                                          <div className="flex items-start gap-2">
+                                            <Goal className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                                            <div>
+                                              <p className="font-medium text-foreground">Buteurs</p>
+                                              <p className="text-muted-foreground">{event.scorers}</p>
+                                            </div>
+                                          </div>
+                                        )}
+                                         {event.assists && (
+                                          <div className="flex items-start gap-2">
+                                            <Footprints className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                                            <div>
+                                              <p className="font-medium text-foreground">Passeurs décisifs</p>
+                                              <p className="text-muted-foreground">{event.assists}</p>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                      </>
+                                    )}
+
                                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditEvent(event)}>
                                             <Edit className="h-4 w-4" />
