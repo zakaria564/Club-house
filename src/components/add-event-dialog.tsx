@@ -20,7 +20,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from ".
 import { EventTypeCombobox } from "./event-type-combobox"
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover"
 import { Button } from "./ui/button"
-import { cn } from "@/lib/utils"
+import { cn, handleEnterKeyDown } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "./ui/calendar"
 import { Textarea } from "./ui/textarea"
@@ -132,7 +132,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         setAssists([]);
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = (e?: React.FormEvent) => {
+        e?.preventDefault();
         const finalTitle = title === "Autre..." ? customTitle : title;
 
         if (!type || !date || !time || !location || (type !== 'Match' && !finalTitle) || (type === 'Match' && !opponent)) {
@@ -180,116 +181,120 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                     {isEditing ? 'Mettez à jour les détails de l\'événement.' : 'Ajoutez un nouveau match, entraînement, réunion ou autre au calendrier.'}
                 </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Type</Label>
-                        <EventTypeCombobox value={type} onValueChange={(value) => setType(value as ClubEvent['type'] | "")} />
-                    </div>
+                <form onSubmit={handleSubmit} onKeyDown={handleEnterKeyDown} className="flex flex-col max-h-[70vh]">
+                    <div className="grid gap-4 py-4 overflow-y-auto pr-4 flex-grow">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Type</Label>
+                            <EventTypeCombobox value={type} onValueChange={(value) => setType(value as ClubEvent['type'] | "")} />
+                        </div>
 
-                    {type !== 'Match' && (
-                        <>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="title" className="text-right">Titre</Label>
-                                <Select onValueChange={setTitle} value={title} disabled={!type}>
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Sélectionnez un titre" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {titleOptions.map(option => (
-                                            <SelectItem key={option} value={option}>{option}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        {type !== 'Match' && (
+                            <>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="title" className="text-right">Titre</Label>
+                                    <Select onValueChange={setTitle} value={title} disabled={!type}>
+                                        <SelectTrigger className="col-span-3">
+                                            <SelectValue placeholder="Sélectionnez un titre" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {titleOptions.map(option => (
+                                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            {title === 'Autre...' && (
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="custom-title" className="text-right">Titre perso.</Label>
-                                    <Input id="custom-title" placeholder="Titre personnalisé..." className="col-span-3" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
-                                </div>
-                            )}
-                        </>
-                    )}
-                   
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Date</Label>
-                        <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant={"outline"}
-                            className={cn( "col-span-3 justify-start text-left font-normal", !date && "text-muted-foreground")}
-                            >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar mode="single" selected={date} onSelect={setDate} initialFocus locale={fr} />
-                        </PopoverContent>
-                        </Popover>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="time" className="text-right">Heure</Label>
-                        <Input id="time" type="time" className="col-span-3" value={time} onChange={(e) => setTime(e.target.value)} />
-                    </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="location" className="text-right">Lieu</Label>
-                        <Input id="location" placeholder="Stade principal" className="col-span-3" value={location} onChange={(e) => setLocation(e.target.value)} />
-                    </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="category" className="text-right">Catégorie</Label>
-                        <Select onValueChange={setCategory} value={category}>
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Sélectionnez une catégorie (optionnel)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {categories.map(cat => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="grid grid-cols-4 items-start gap-4">
-                        <Label htmlFor="description" className="text-right pt-2">Description</Label>
-                        <Textarea id="description" placeholder="Détails supplémentaires..." className="col-span-3" value={description} onChange={(e) => setDescription(e.target.value)} />
-                    </div>
+                                {title === 'Autre...' && (
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="custom-title" className="text-right">Titre perso.</Label>
+                                        <Input id="custom-title" placeholder="Titre personnalisé..." className="col-span-3" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Date</Label>
+                            <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={"outline"}
+                                className={cn( "col-span-3 justify-start text-left font-normal", !date && "text-muted-foreground")}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(date, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus locale={fr} />
+                            </PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="time" className="text-right">Heure</Label>
+                            <Input id="time" type="time" className="col-span-3" value={time} onChange={(e) => setTime(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="location" className="text-right">Lieu</Label>
+                            <Input id="location" placeholder="Stade principal" className="col-span-3" value={location} onChange={(e) => setLocation(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="category" className="text-right">Catégorie</Label>
+                            <Select onValueChange={setCategory} value={category}>
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Sélectionnez une catégorie (optionnel)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map(cat => (
+                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-start gap-4">
+                            <Label htmlFor="description" className="text-right pt-2">Description</Label>
+                            <Textarea id="description" placeholder="Détails supplémentaires..." className="col-span-3" value={description} onChange={(e) => setDescription(e.target.value)} />
+                        </div>
 
-                    {type === 'Match' && (
-                        <>
-                            <Separator />
-                            <div className="space-y-4">
-                                <h3 className="text-base font-medium text-center">Détails du Match</h3>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="opponent" className="text-right">Adversaire</Label>
-                                    <Input id="opponent" placeholder="Nom de l'équipe adverse" className="col-span-3" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
+                        {type === 'Match' && (
+                            <>
+                                <Separator />
+                                <div className="space-y-4">
+                                    <h3 className="text-base font-medium text-center">Détails du Match</h3>
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="opponent" className="text-right">Adversaire</Label>
+                                        <Input id="opponent" placeholder="Nom de l'équipe adverse" className="col-span-3" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="result" className="text-right">Résultat</Label>
+                                        <Input id="result" placeholder="Ex: 2-1" className="col-span-3" value={result} onChange={(e) => setResult(e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-y-4 pt-2">
+                                    <MatchStatsForm 
+                                            title="Buteurs"
+                                            stats={scorers}
+                                            onStatsChange={setScorers}
+                                            players={players}
+                                    />
+                                    <MatchStatsForm 
+                                            title="Passeurs décisifs"
+                                            stats={assists}
+                                            onStatsChange={setAssists}
+                                            players={players}
+                                    />
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="result" className="text-right">Résultat</Label>
-                                    <Input id="result" placeholder="Ex: 2-1" className="col-span-3" value={result} onChange={(e) => setResult(e.target.value)} />
-                                </div>
-                                <div className="grid grid-cols-1 gap-y-4 pt-2">
-                                   <MatchStatsForm 
-                                        title="Buteurs"
-                                        stats={scorers}
-                                        onStatsChange={setScorers}
-                                        players={players}
-                                   />
-                                   <MatchStatsForm 
-                                        title="Passeurs décisifs"
-                                        stats={assists}
-                                        onStatsChange={setAssists}
-                                        players={players}
-                                   />
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-                <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
-                    <Button type="submit" onClick={handleSubmit}>{isEditing ? "Sauvegarder les modifications" : "Créer l'événement"}</Button>
-                </DialogFooter>
+                            </>
+                        )}
+                    </div>
+                    <DialogFooter className="mt-auto pt-4 border-t">
+                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
+                        <Button type="submit">{isEditing ? "Sauvegarder les modifications" : "Créer l'événement"}</Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     )
 }
+
+    
