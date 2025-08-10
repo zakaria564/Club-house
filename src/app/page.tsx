@@ -179,7 +179,7 @@ export default function Dashboard() {
       payments
         .filter(p => 
           p.memberType === 'player' && 
-          p.status === 'Paid' && 
+          p.status === 'Paid' &&
           p.season === currentSeasonString &&
           activePlayerIds.has(p.memberId)
         )
