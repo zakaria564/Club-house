@@ -230,7 +230,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               <FormItem>
                               <FormLabel>URL de la photo</FormLabel>
                               <FormControl>
-                                  <Input placeholder="https://exemple.com/photo.png" {...field} />
+                                  <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value ?? ''} />
                               </FormControl>
                               <FormMessage />
                               </FormItem>
@@ -446,7 +446,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormItem>
                         <FormLabel>URL du certificat médical</FormLabel>
                         <FormControl>
-                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} />
+                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} value={field.value ?? ''} />
                         </FormControl>
                          <FormDescription>
                           Collez un lien vers le certificat médical en ligne.
@@ -558,14 +558,13 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Entraîneur</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                          <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="">Non assigné</SelectItem>
                                 {coaches.map(coach => (
                                     <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
                                 ))}
@@ -672,7 +671,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    
-
-    
