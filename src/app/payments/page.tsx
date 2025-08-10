@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 import type { Payment, Player, Coach } from "@/types"
 import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
@@ -220,13 +221,16 @@ function PaymentsPageContent() {
               </CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                <Tabs value={memberTypeFilter} onValueChange={(value) => setMemberTypeFilter(value as any)}>
-                    <TabsList className="grid grid-cols-3 w-full sm:w-auto">
-                        <TabsTrigger value="all">Tous</TabsTrigger>
-                        <TabsTrigger value="player">Joueurs</TabsTrigger>
-                        <TabsTrigger value="coach">Entraîneurs</TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                <Select value={memberTypeFilter} onValueChange={(value) => setMemberTypeFilter(value as any)}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Filtrer par type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Tous</SelectItem>
+                        <SelectItem value="player">Joueurs</SelectItem>
+                        <SelectItem value="coach">Entraîneurs</SelectItem>
+                    </SelectContent>
+                </Select>
                <div className="relative w-full sm:w-auto">
                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                  <Input 
