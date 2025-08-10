@@ -177,9 +177,6 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <ClubLogo className="w-16 h-16" />
-      </div>
       <PageHeader title="Tableau de bord">
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
