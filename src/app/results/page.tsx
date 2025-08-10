@@ -4,7 +4,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
-import { ArrowLeft, Medal, Calendar as CalendarIcon, Goal, Footprints } from "lucide-react"
+import { ArrowLeft, Medal, Calendar as CalendarIcon, Goal, Footprints, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ClubEvent, Player, StatEvent } from "@/types"
@@ -16,9 +16,24 @@ import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { ClubLogo } from "@/components/club-logo"
+
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+
+const PrintHeader = () => (
+    <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
+        <div className="flex items-center gap-4">
+            <ClubLogo className="w-16 h-16" />
+            <div className="text-center">
+                <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
+            </div>
+        </div>
+        <hr className="w-full mt-4 border-t-2 border-primary" />
+    </div>
+);
+
 
 const parseEventDates = (event: any): ClubEvent => ({
   ...event,
@@ -127,6 +142,16 @@ export default function ResultsPage() {
         setSelectedDate(undefined);
         setSelectedMatchId(null);
     }
+    
+    const handlePrint = () => {
+        const match = filteredMatches[0];
+        if (!match) return;
+        const originalTitle = document.title;
+        document.title = `Fiche de match - ${match.title}`;
+        window.print();
+        document.title = originalTitle;
+    };
+
 
     const allStats = combineStats(allPlayedMatches, players);
     const topScorers = [...allStats].sort((a, b) => b.goals - a.goals).filter(s => s.goals > 0);
@@ -151,135 +176,146 @@ export default function ResultsPage() {
 
     return (
         <>
-            <PageHeader title="Résultats & Statistiques">
-                <div className="flex items-center gap-2">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="outline">
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : "Rechercher par date"}
+            <div className="no-print">
+                <PageHeader title="Résultats & Statistiques">
+                    <div className="flex items-center gap-2">
+                         {selectedMatchId && (
+                            <Button variant="outline" onClick={handlePrint}>
+                                <Printer className="mr-2 h-4 w-4" />
+                                Imprimer
                             </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={(date) => {
-                                    setSelectedDate(date);
-                                    setSelectedMatchId(null);
-                                }}
-                                initialFocus
-                                locale={fr}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                    {(selectedDate || selectedMatchId) && (
-                        <Button variant="ghost" onClick={handleResetFilters}>
-                            Voir tous les résultats
+                        )}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline">
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : "Rechercher par date"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={(date) => {
+                                        setSelectedDate(date);
+                                        setSelectedMatchId(null);
+                                    }}
+                                    initialFocus
+                                    locale={fr}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        {(selectedDate || selectedMatchId) && (
+                            <Button variant="ghost" onClick={handleResetFilters}>
+                                Voir tous les résultats
+                            </Button>
+                        )}
+                        <Button variant="outline" onClick={() => router.back()}>
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Retour
                         </Button>
+                    </div>
+                </PageHeader>
+            </div>
+            
+            <div className="printable-area">
+                <PrintHeader />
+                <div className={cn("grid grid-cols-1 gap-8", !selectedMatchId && "lg:grid-cols-3")}>
+                    {/* Stats Column */}
+                    {!selectedMatchId && (
+                        <div className="lg:col-span-1 space-y-8 no-print">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Meilleurs Buteurs</CardTitle>
+                                    <CardDescription>Classement des buteurs du club.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <StatsTable title="Buteurs" stats={topScorers} />
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Meilleurs Passeurs</CardTitle>
+                                    <CardDescription>Classement des passeurs décisifs.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                <StatsTable title="Passeurs" stats={topAssists} />
+                                </CardContent>
+                            </Card>
+                        </div>
                     )}
-                    <Button variant="outline" onClick={() => router.back()}>
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Retour
-                    </Button>
-                </div>
-            </PageHeader>
 
-            <div className={cn("grid grid-cols-1 gap-8", !selectedMatchId && "lg:grid-cols-3")}>
-                {/* Stats Column */}
-                {!selectedMatchId && (
-                    <div className="lg:col-span-1 space-y-8">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Meilleurs Buteurs</CardTitle>
-                                <CardDescription>Classement des buteurs du club.</CardDescription>
+
+                    {/* Match Results Column */}
+                    <div className={cn("lg:col-span-2", selectedMatchId && "lg:col-span-3")}>
+                        <Card className="print:border-0 print:shadow-none">
+                            <CardHeader className="no-print">
+                                <CardTitle>{getCardTitle()}</CardTitle>
+                                <CardDescription>{getCardDescription()}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <StatsTable title="Buteurs" stats={topScorers} />
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Meilleurs Passeurs</CardTitle>
-                                <CardDescription>Classement des passeurs décisifs.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                               <StatsTable title="Passeurs" stats={topAssists} />
+                                <div className="space-y-6">
+                                    {filteredMatches.length > 0 ? filteredMatches.map(match => (
+                                        <div 
+                                            key={match.id} 
+                                            className={cn("border rounded-lg p-4 transition-colors print:border-2 print:shadow-lg", {
+                                                "cursor-pointer hover:bg-muted/50": !selectedMatchId
+                                            })}
+                                            onClick={() => !selectedMatchId && handleMatchClick(match.id)}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <div className="font-semibold text-lg">{match.title}</div>
+                                                <div className="text-2xl font-bold text-primary">{match.result}</div>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground mt-1">
+                                                {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
+                                            </div>
+                                            {(Array.isArray(match.scorers) && match.scorers.length > 0) || (Array.isArray(match.assists) && match.assists.length > 0) ? (
+                                                <>
+                                                    <Separator className="my-3"/>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                        {Array.isArray(match.scorers) && match.scorers.length > 0 && (
+                                                            <div className="space-y-2">
+                                                                <h4 className="font-semibold flex items-center gap-2"><Goal className="w-4 h-4"/> Buteurs</h4>
+                                                                <ul className="list-disc pl-5 space-y-1">
+                                                                    {match.scorers.map(scorer => (
+                                                                        <li key={scorer.playerId}>
+                                                                            {playerMap.get(scorer.playerId) || 'Inconnu'}
+                                                                            <span className="text-muted-foreground ml-1">({scorer.count} {scorer.count > 1 ? 'buts' : 'but'})</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                        {Array.isArray(match.assists) && match.assists.length > 0 && (
+                                                            <div className="space-y-2">
+                                                                <h4 className="font-semibold flex items-center gap-2"><Footprints className="w-4 h-4"/> Passeurs décisifs</h4>
+                                                                <ul className="list-disc pl-5 space-y-1">
+                                                                    {match.assists.map(assist => (
+                                                                        <li key={assist.playerId}>
+                                                                            {playerMap.get(assist.playerId) || 'Inconnu'}
+                                                                            <span className="text-muted-foreground ml-1">({assist.count} {assist.count > 1 ? 'passes' : 'passe'})</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            ) : null}
+                                        </div>
+                                    )) : (
+                                        <div className="text-center py-8 text-muted-foreground no-print">
+                                            {selectedDate
+                                                ? "Aucun match trouvé pour cette date."
+                                                : "Aucun résultat de match n'a encore été enregistré."
+                                            }
+                                        </div>
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
-                )}
-
-
-                {/* Match Results Column */}
-                <div className={cn("lg:col-span-2", selectedMatchId && "lg:col-span-3")}>
-                    <Card>
-                         <CardHeader>
-                            <CardTitle>{getCardTitle()}</CardTitle>
-                            <CardDescription>{getCardDescription()}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-6">
-                                {filteredMatches.length > 0 ? filteredMatches.map(match => (
-                                    <div 
-                                        key={match.id} 
-                                        className={cn("border rounded-lg p-4 transition-colors", {
-                                            "cursor-pointer hover:bg-muted/50": !selectedMatchId
-                                        })}
-                                        onClick={() => !selectedMatchId && handleMatchClick(match.id)}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div className="font-semibold text-lg">{match.title}</div>
-                                            <div className="text-2xl font-bold text-primary">{match.result}</div>
-                                        </div>
-                                        <div className="text-sm text-muted-foreground mt-1">
-                                            {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
-                                        </div>
-                                        {(Array.isArray(match.scorers) && match.scorers.length > 0) || (Array.isArray(match.assists) && match.assists.length > 0) ? (
-                                            <>
-                                                <Separator className="my-3"/>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                                    {Array.isArray(match.scorers) && match.scorers.length > 0 && (
-                                                        <div className="space-y-2">
-                                                            <h4 className="font-semibold flex items-center gap-2"><Goal className="w-4 h-4"/> Buteurs</h4>
-                                                            <ul className="list-disc pl-5 space-y-1">
-                                                                {match.scorers.map(scorer => (
-                                                                    <li key={scorer.playerId}>
-                                                                        {playerMap.get(scorer.playerId) || 'Inconnu'}
-                                                                        <span className="text-muted-foreground ml-1">({scorer.count} {scorer.count > 1 ? 'buts' : 'but'})</span>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    )}
-                                                    {Array.isArray(match.assists) && match.assists.length > 0 && (
-                                                        <div className="space-y-2">
-                                                            <h4 className="font-semibold flex items-center gap-2"><Footprints className="w-4 h-4"/> Passeurs décisifs</h4>
-                                                            <ul className="list-disc pl-5 space-y-1">
-                                                                 {match.assists.map(assist => (
-                                                                    <li key={assist.playerId}>
-                                                                        {playerMap.get(assist.playerId) || 'Inconnu'}
-                                                                        <span className="text-muted-foreground ml-1">({assist.count} {assist.count > 1 ? 'passes' : 'passe'})</span>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </>
-                                        ) : null}
-                                    </div>
-                                )) : (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        {selectedDate
-                                            ? "Aucun match trouvé pour cette date."
-                                            : "Aucun résultat de match n'a encore été enregistré."
-                                        }
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
         </>
