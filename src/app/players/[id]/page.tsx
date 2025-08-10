@@ -130,6 +130,14 @@ export default function PlayerDetailPage() {
     window.print();
     document.title = originalTitle;
   };
+  
+  const handlePrintCertificate = () => {
+    if (player?.medicalCertificateUrl) {
+      const url = `/players/${player.id}/certificate`;
+      window.open(url, '_blank');
+    }
+  };
+
 
   if (!player) {
     return <div>Chargement du profil du joueur...</div>;
@@ -150,106 +158,120 @@ export default function PlayerDetailPage() {
             </Button>
             <Button onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />
-              Imprimer
+              Imprimer la fiche
             </Button>
           </div>
         </PageHeader>
       </div>
 
-      <div className="space-y-8 printable-area">
-        <PrintHeader />
-        <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
-          <CardHeader className="flex flex-col items-center text-center">
-            <Avatar className="w-32 h-32 mb-4">
-              <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
-              <AvatarFallback className="text-4xl">
-                {player.firstName?.[0]}
-                {player.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <CardTitle className="text-3xl font-headline">
-              {player.firstName} {player.lastName} (#{player.playerNumber})
-            </CardTitle>
-            <p className="text-xl text-muted-foreground">
-              {player.position} - Catégorie : {player.category}
-            </p>
-          </CardHeader>
-          <CardContent className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
-                <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
-                  <span className="font-medium">Date de naissance:</span>
-                  <span>{isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
-                  <span className="font-medium">Genre:</span>
-                  <span>{player.gender}</span>
-                  <span className="font-medium">Nationalité:</span>
-                  <span>{player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country}</span>
-                  <span className="font-medium">Adresse:</span>
-                  <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {`${player.address}, ${player.city}`}</span>
-                  <span className="font-medium">Téléphone:</span>
-                  <span>{player.phone}</span>
-                  <span className="font-medium">Email:</span>
-                  <span className="truncate">{player.email}</span>
+      <div className="space-y-8">
+        <div className="printable-area">
+          <PrintHeader />
+          <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
+            <CardHeader className="flex flex-col items-center text-center">
+              <Avatar className="w-32 h-32 mb-4">
+                <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
+                <AvatarFallback className="text-4xl">
+                  {player.firstName?.[0]}
+                  {player.lastName?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              <CardTitle className="text-3xl font-headline">
+                {player.firstName} {player.lastName} (#{player.playerNumber})
+              </CardTitle>
+              <p className="text-xl text-muted-foreground">
+                {player.position} - Catégorie : {player.category}
+              </p>
+            </CardHeader>
+            <CardContent className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
+                  <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
+                    <span className="font-medium">Date de naissance:</span>
+                    <span>{isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                    <span className="font-medium">Genre:</span>
+                    <span>{player.gender}</span>
+                    <span className="font-medium">Nationalité:</span>
+                    <span>{player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country}</span>
+                    <span className="font-medium">Adresse:</span>
+                    <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {`${player.address}, ${player.city}`}</span>
+                    <span className="font-medium">Téléphone:</span>
+                    <span>{player.phone}</span>
+                    <span className="font-medium">Email:</span>
+                    <span className="truncate">{player.email}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Informations du Tuteur</h3>
-                <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
-                  <span className="font-medium">Nom du tuteur:</span>
-                  <span>{player.guardianName}</span>
-                  <span className="font-medium">Téléphone du tuteur:</span>
-                  <span>{player.guardianPhone}</span>
-                </div>
-              </div>
-            </div>
-            
-            <Separator className="my-6" />
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Documents</h3>
-                {player.medicalCertificateUrl ? (
-                    <div className="mt-4">
-                      <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="block w-full max-w-md mx-auto">
-                        <Image 
-                          src={player.medicalCertificateUrl}
-                          alt="Certificat Médical"
-                          width={500}
-                          height={707}
-                          className="rounded-md border shadow-md w-full h-auto"
-                          data-ai-hint="medical certificate document"
-                        />
-                      </a>
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted-foreground">Aucun certificat médical fourni.</p>
-                )}
-            </div>
-
-            <Separator className="my-6" />
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                   <div className="grid grid-cols-[auto,1fr] gap-x-4">
-                    <span className="font-medium">Date d'entrée:</span>
-                    <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
-                   </div>
-                   <div className="grid grid-cols-[auto,1fr] gap-x-4">
-                     <span className="font-medium">Date de sortie:</span>
-                    <span>{player.clubExitDate && isValidDate(player.clubExitDate) ? format(player.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
-                   </div>
-                   <div className="grid grid-cols-[auto,1fr] gap-x-4 col-span-full">
-                     <span className="font-medium">Entraîneur:</span>
-                     <span className="flex items-center gap-2">
-                      <UserCheck className="h-4 w-4 text-muted-foreground" />
-                      {coachName}
-                    </span>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Informations du Tuteur</h3>
+                  <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
+                    <span className="font-medium">Nom du tuteur:</span>
+                    <span>{player.guardianName}</span>
+                    <span className="font-medium">Téléphone du tuteur:</span>
+                    <span>{player.guardianPhone}</span>
                   </div>
                 </div>
               </div>
+              
+              <Separator className="my-6" />
 
-          </CardContent>
-        </Card>
+              <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                       <span className="font-medium">Date d'entrée:</span>
+                       <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                      </div>
+                      <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                        <span className="font-medium">Date de sortie:</span>
+                       <span>{player.clubExitDate && isValidDate(player.clubExitDate) ? format(player.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
+                      </div>
+                      <div className="grid grid-cols-[auto,1fr] gap-x-4 col-span-full">
+                        <span className="font-medium">Entraîneur:</span>
+                        <span className="flex items-center gap-2">
+                         <UserCheck className="h-4 w-4 text-muted-foreground" />
+                         {coachName}
+                       </span>
+                     </div>
+                   </div>
+                </div>
+
+            </CardContent>
+          </Card>
+        </div>
         
+        <div className="space-y-4 no-print">
+            <h3 className="text-xl font-semibold">Documents</h3>
+            <Card>
+              <CardContent className="pt-6">
+                {player.medicalCertificateUrl ? (
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                      <a href={`/players/${player.id}/certificate`} target="_blank" rel="noopener noreferrer" className="block w-full max-w-xs sm:w-48 flex-shrink-0">
+                        <Image 
+                          src={player.medicalCertificateUrl}
+                          alt="Certificat Médical"
+                          width={200}
+                          height={282}
+                          className="rounded-md border shadow-md w-full h-auto object-cover"
+                          data-ai-hint="medical certificate document"
+                        />
+                      </a>
+                      <div className="flex-grow">
+                        <h4 className="font-semibold">Certificat Médical</h4>
+                        <p className="text-sm text-muted-foreground mb-4">Le certificat médical est disponible. Cliquez sur l'aperçu pour le visualiser ou l'imprimer.</p>
+                        <Button onClick={handlePrintCertificate}>
+                           <Printer className="mr-2 h-4 w-4" />
+                           Imprimer le certificat
+                        </Button>
+                      </div>
+                    </div>
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucun certificat médical fourni.</p>
+                )}
+              </CardContent>
+            </Card>
+        </div>
+
         <div className="no-print">
             <Card>
                 <CardHeader>
