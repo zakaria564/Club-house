@@ -1,5 +1,5 @@
 
-import type { Player, Payment, ClubEvent, Coach } from "@/types";
+import type { Player, Payment, ClubEvent, Coach, StatEvent } from "@/types";
 
 export const players: Player[] = [
   { 

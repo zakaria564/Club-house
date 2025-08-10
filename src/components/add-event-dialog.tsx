@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { ClubEvent } from "@/types"
+import { ClubEvent, Player, StatEvent } from "@/types"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select"
@@ -25,6 +25,8 @@ import { CalendarIcon } from "lucide-react"
 import { Calendar } from "./ui/calendar"
 import { Textarea } from "./ui/textarea"
 import { Separator } from "./ui/separator"
+import { players as initialPlayers } from "@/lib/mock-data"
+import { MatchStatsForm } from "./match-stats-form"
 
 interface AddEventDialogProps {
   open: boolean;
@@ -44,9 +46,25 @@ const eventTitleTemplates: Record<ClubEvent['type'], string[]> = {
 
 const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran", "Éducateurs", "Tous les membres"];
 
+const parsePlayerDates = (player: any): Player => ({
+    ...player,
+    dateOfBirth: new Date(player.dateOfBirth),
+    clubEntryDate: new Date(player.clubEntryDate),
+    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+});
+
 export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selectedDate }: AddEventDialogProps) {
     const { toast } = useToast();
     const isEditing = !!event;
+
+    const [players, setPlayers] = React.useState<Player[]>([]);
+
+    React.useEffect(() => {
+        // In a real app, you might fetch this from an API
+        const storedPlayersRaw = localStorage.getItem('clubhouse-players');
+        const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : initialPlayers.map(parsePlayerDates);
+        setPlayers(storedPlayers);
+    }, []);
 
     const [title, setTitle] = React.useState(event?.title && !event.opponent ? event.title : "");
     const [customTitle, setCustomTitle] = React.useState("");
@@ -58,8 +76,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
     const [type, setType] = React.useState<ClubEvent['type'] | "">(event?.type || "");
     const [opponent, setOpponent] = React.useState(event?.opponent || "");
     const [result, setResult] = React.useState(event?.result || "");
-    const [scorers, setScorers] = React.useState(event?.scorers || "");
-    const [assists, setAssists] = React.useState(event?.assists || "");
+    const [scorers, setScorers] = React.useState<StatEvent[]>(event?.scorers || []);
+    const [assists, setAssists] = React.useState<StatEvent[]>(event?.assists || []);
 
 
     const titleOptions = type ? eventTitleTemplates[type] : [];
@@ -77,8 +95,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                 setType(event.type);
                 setOpponent(event.opponent || "");
                 setResult(event.result || "");
-                setScorers(event.scorers || "");
-                setAssists(event.assists || "");
+                setScorers(event.scorers || []);
+                setAssists(event.assists || []);
             } else {
                 resetForm();
                 if(selectedDate) {
@@ -94,8 +112,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             setTitle("");
             setOpponent("");
             setResult("");
-            setScorers("");
-            setAssists("");
+            setScorers([]);
+            setAssists([]);
         }
     }, [type, isEditing]);
 
@@ -110,8 +128,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         setType("");
         setOpponent("");
         setResult("");
-        setScorers("");
-        setAssists("");
+        setScorers([]);
+        setAssists([]);
     }
 
     const handleSubmit = () => {
@@ -141,8 +159,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             eventData.opponent = opponent;
             eventData.title = `CAOS vs ${opponent}`;
             eventData.result = result || undefined;
-            eventData.scorers = scorers || undefined;
-            eventData.assists = assists || undefined;
+            eventData.scorers = scorers.filter(s => s.playerId && s.count > 0);
+            eventData.assists = assists.filter(a => a.playerId && a.count > 0);
         }
 
         onEventSubmit(eventData);
@@ -155,7 +173,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                 <DialogTitle>{isEditing ? 'Modifier' : 'Ajouter un nouvel'} événement</DialogTitle>
                 <DialogDescription>
@@ -249,13 +267,19 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                                     <Label htmlFor="result" className="text-right">Résultat</Label>
                                     <Input id="result" placeholder="Ex: 2-1" className="col-span-3" value={result} onChange={(e) => setResult(e.target.value)} />
                                 </div>
-                                <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="scorers" className="text-right pt-2">Buteurs</Label>
-                                    <Textarea id="scorers" placeholder="Ex: Prénom Nom (2), Prénom Nom" className="col-span-3" value={scorers} onChange={(e) => setScorers(e.target.value)} />
-                                </div>
-                                <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="assists" className="text-right pt-2">Passeurs</Label>
-                                    <Textarea id="assists" placeholder="Ex: Prénom Nom, Prénom Nom" className="col-span-3" value={assists} onChange={(e) => setAssists(e.target.value)} />
+                                <div className="grid grid-cols-1 gap-y-4 pt-2">
+                                   <MatchStatsForm 
+                                        title="Buteurs"
+                                        stats={scorers}
+                                        onStatsChange={setScorers}
+                                        players={players}
+                                   />
+                                   <MatchStatsForm 
+                                        title="Passeurs décisifs"
+                                        stats={assists}
+                                        onStatsChange={setAssists}
+                                        players={players}
+                                   />
                                 </div>
                             </div>
                         </>

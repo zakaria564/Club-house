@@ -31,6 +31,11 @@ export type Payment = {
   status: 'Paid' | 'Pending' | 'Overdue';
 };
 
+export type StatEvent = {
+  playerId: string;
+  count: number;
+}
+
 export type ClubEvent = {
   id: string;
   title: string;
@@ -42,8 +47,8 @@ export type ClubEvent = {
   description?: string;
   opponent?: string;
   result?: string;
-  scorers?: string;
-  assists?: string;
+  scorers?: StatEvent[];
+  assists?: StatEvent[];
 };
 
 export type Coach = {

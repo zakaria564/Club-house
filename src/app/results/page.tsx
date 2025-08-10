@@ -7,8 +7,8 @@ import { PageHeader } from "@/components/page-header"
 import { ArrowLeft, Medal, Calendar as CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ClubEvent } from "@/types"
-import { clubEvents as initialClubEvents } from "@/lib/mock-data"
+import { ClubEvent, Player, StatEvent } from "@/types"
+import { clubEvents as initialClubEvents, players as initialPlayers } from "@/lib/mock-data"
 import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -18,53 +18,59 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
+const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
 const parseEventDates = (event: any): ClubEvent => ({
   ...event,
   date: new Date(event.date),
 });
 
+const parsePlayerDates = (player: any): Player => ({
+  ...player,
+  dateOfBirth: new Date(player.dateOfBirth),
+  clubEntryDate: new Date(player.clubEntryDate),
+  clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+});
+
+
 type StatItem = {
     name: string;
     count: number;
 }
 
-const parseStatString = (statString: string | undefined): Map<string, number> => {
-    const stats = new Map<string, number>();
-    if (!statString) return stats;
+const combineStats = (events: ClubEvent[], field: 'scorers' | 'assists', players: Player[]): StatItem[] => {
+    const combined = new Map<string, number>();
+    const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
 
-    const entries = statString.split(',').map(s => s.trim());
-    entries.forEach(entry => {
-        const match = entry.match(/(.*?)\s*\((\d+)\)/);
-        if (match) {
-            // Player (2)
-            const name = match[1].trim();
-            const count = parseInt(match[2], 10);
-            stats.set(name, (stats.get(name) || 0) + count);
-        } else if (entry) {
-            // Player
-            stats.set(entry, (stats.get(entry) || 0) + 1);
+    events.forEach(event => {
+        const stats = event[field];
+        if (stats) {
+            stats.forEach(stat => {
+                const playerName = playerMap.get(stat.playerId) || 'Joueur inconnu';
+                combined.set(playerName, (combined.get(playerName) || 0) + stat.count);
+            });
         }
     });
-    return stats;
-}
 
-const combineStats = (events: ClubEvent[], field: 'scorers' | 'assists'): StatItem[] => {
-    const combined = new Map<string, number>();
-    events.forEach(event => {
-        const stats = parseStatString(event[field]);
-        stats.forEach((count, name) => {
-            combined.set(name, (combined.get(name) || 0) + count);
-        });
-    });
     return Array.from(combined.entries())
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 }
 
+const formatStatString = (stats: StatEvent[] | undefined, players: Player[]): string => {
+    if (!stats || stats.length === 0) return "";
+    const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
+    
+    return stats.map(stat => {
+        const name = playerMap.get(stat.playerId) || "Inconnu";
+        return `${name}${stat.count > 1 ? ` (${stat.count})` : ''}`;
+    }).join(', ');
+};
+
 export default function ResultsPage() {
     const router = useRouter();
     const [events, setEvents] = React.useState<ClubEvent[]>([]);
+    const [players, setPlayers] = React.useState<Player[]>([]);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [selectedMatchId, setSelectedMatchId] = React.useState<string | null>(null);
 
@@ -85,9 +91,14 @@ export default function ResultsPage() {
             const mergedEvents = Array.from(allEventsMap.values());
             setEvents(mergedEvents);
 
+            const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
+            const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : initialPlayers.map(parsePlayerDates);
+            setPlayers(storedPlayers);
+
         } catch (error) {
             console.error("Failed to load or merge events:", error);
             setEvents(initialClubEvents.map(parseEventDates));
+            setPlayers(initialPlayers.map(parsePlayerDates));
         }
     }, []);
 
@@ -113,8 +124,8 @@ export default function ResultsPage() {
         setSelectedMatchId(null);
     }
 
-    const topScorers = combineStats(allPlayedMatches, 'scorers');
-    const topAssists = combineStats(allPlayedMatches, 'assists');
+    const topScorers = combineStats(allPlayedMatches, 'scorers', players);
+    const topAssists = combineStats(allPlayedMatches, 'assists', players);
 
     const getCardTitle = () => {
         if (selectedMatchId) return "Détail du match";
@@ -168,31 +179,34 @@ export default function ResultsPage() {
                 </div>
             </PageHeader>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className={cn("grid grid-cols-1 gap-8", !selectedMatchId && "lg:grid-cols-3")}>
                 {/* Stats Column */}
-                <div className="lg:col-span-1 space-y-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Meilleurs Buteurs</CardTitle>
-                            <CardDescription>Classement des buteurs du club.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <StatsTable title="Buteurs" stats={topScorers} />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Meilleurs Passeurs</CardTitle>
-                            <CardDescription>Classement des passeurs décisifs.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           <StatsTable title="Passeurs" stats={topAssists} />
-                        </CardContent>
-                    </Card>
-                </div>
+                {!selectedMatchId && (
+                    <div className="lg:col-span-1 space-y-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Meilleurs Buteurs</CardTitle>
+                                <CardDescription>Classement des buteurs du club.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <StatsTable title="Buteurs" stats={topScorers} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Meilleurs Passeurs</CardTitle>
+                                <CardDescription>Classement des passeurs décisifs.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                               <StatsTable title="Passeurs" stats={topAssists} />
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
 
                 {/* Match Results Column */}
-                <div className="lg:col-span-2">
+                <div className={cn("lg:col-span-2", selectedMatchId && "lg:col-span-3")}>
                     <Card>
                          <CardHeader>
                             <CardTitle>{getCardTitle()}</CardTitle>
@@ -215,18 +229,18 @@ export default function ResultsPage() {
                                         <div className="text-sm text-muted-foreground mt-1">
                                             {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
                                         </div>
-                                        {(match.scorers || match.assists) && (
+                                        {(match.scorers?.length || match.assists?.length) && (
                                             <>
                                                 <Separator className="my-3"/>
                                                 <div className="text-sm space-y-2">
-                                                    {match.scorers && (
+                                                    {match.scorers && match.scorers.length > 0 && (
                                                         <div>
-                                                            <span className="font-medium">Buteurs :</span> {match.scorers}
+                                                            <span className="font-medium">Buteurs :</span> {formatStatString(match.scorers, players)}
                                                         </div>
                                                     )}
-                                                    {match.assists && (
+                                                    {match.assists && match.assists.length > 0 && (
                                                         <div>
-                                                            <span className="font-medium">Passeurs décisifs :</span> {match.assists}
+                                                            <span className="font-medium">Passeurs décisifs :</span> {formatStatString(match.assists, players)}
                                                         </div>
                                                     )}
                                                 </div>
