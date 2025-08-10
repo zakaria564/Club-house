@@ -89,6 +89,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     ...coach,
     clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
     clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : null,
+    photoUrl: coach.photoUrl || '',
    } : {
       id: getNextId(coaches),
       firstName: '',
@@ -119,12 +120,14 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
           ...coach,
           clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
           clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : null,
+          photoUrl: coach.photoUrl || '',
       });
     } else {
       form.reset({
         ...defaultValues,
         id: getNextId(coaches),
         age: '' as any,
+        photoUrl: '',
       } as Partial<CoachFormValues>);
     }
   }, [coach, form, coaches]);
@@ -167,7 +170,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                             <FormLabel>URL de la photo</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value || ''} />
+                                <Input placeholder="https://exemple.com/photo.png" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -250,7 +253,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                             <FormLabel>Âge</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="42" {...field} value={field.value ?? ''} />
+                                <Input type="number" placeholder="42" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>

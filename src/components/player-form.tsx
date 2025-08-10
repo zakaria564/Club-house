@@ -113,6 +113,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
       coachId: player.coachId || undefined,
+      photoUrl: player.photoUrl || '',
       medicalCertificateUrl: player.medicalCertificateUrl || '',
     } : {
       id: getNextId(players),
@@ -150,6 +151,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
         clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
         coachId: player.coachId || undefined,
+        photoUrl: player.photoUrl || '',
         medicalCertificateUrl: player.medicalCertificateUrl || '',
       });
     } else {
@@ -228,7 +230,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               <FormItem>
                               <FormLabel>URL de la photo</FormLabel>
                               <FormControl>
-                                  <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value || ''} />
+                                  <Input placeholder="https://exemple.com/photo.png" {...field} />
                               </FormControl>
                               <FormMessage />
                               </FormItem>
@@ -444,7 +446,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormItem>
                         <FormLabel>URL du certificat médical</FormLabel>
                         <FormControl>
-                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} value={field.value || ''} />
+                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} />
                         </FormControl>
                          <FormDescription>
                           Collez un lien vers le certificat médical en ligne.
@@ -478,7 +480,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           <FormItem>
                             <FormLabel>N° Joueur</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} value={field.value ?? ''} />
+                              <Input type="number" placeholder="10" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
