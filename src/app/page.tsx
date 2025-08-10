@@ -149,7 +149,12 @@ export default function Dashboard() {
   const totalPlayers = players.length;
   const injuredPlayers = players.filter(p => p.status === 'Blessé').length;
   
-  const paidMemberships = payments.filter(p => p.memberType === 'player' && p.status === 'Paid').length;
+  const paidPlayerIds = new Set(
+    payments
+        .filter(p => p.memberType === 'player' && p.status === 'Paid')
+        .map(p => p.memberId)
+  );
+  const paidMemberships = paidPlayerIds.size;
   const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
 
   const upcomingEvents = events.filter(e => isAfter(e.date, new Date()));
