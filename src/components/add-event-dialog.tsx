@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "./ui/calendar"
 import { Textarea } from "./ui/textarea"
+import { Separator } from "./ui/separator"
 
 interface AddEventDialogProps {
   open: boolean;
@@ -134,10 +135,6 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             location,
             category: category || undefined,
             description: description || undefined,
-            opponent: opponent || undefined,
-            result: result || undefined,
-            scorers: scorers || undefined,
-            assists: assists || undefined,
         };
 
         if (type === 'Match') {
@@ -158,14 +155,14 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                 <DialogTitle>{isEditing ? 'Modifier' : 'Ajouter un nouvel'} événement</DialogTitle>
                 <DialogDescription>
                     {isEditing ? 'Mettez à jour les détails de l\'événement.' : 'Ajoutez un nouveau match, entraînement, réunion ou autre au calendrier.'}
                 </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Type</Label>
                         <EventTypeCombobox value={type} onValueChange={(value) => setType(value as ClubEvent['type'] | "")} />
@@ -196,27 +193,6 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                         </>
                     )}
                    
-                    {type === 'Match' && (
-                        <>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="opponent" className="text-right">Adversaire</Label>
-                            <Input id="opponent" placeholder="Nom de l'équipe adverse" className="col-span-3" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="result" className="text-right">Résultat</Label>
-                            <Input id="result" placeholder="Ex: 2-1" className="col-span-3" value={result} onChange={(e) => setResult(e.target.value)} />
-                        </div>
-                        <div className="grid grid-cols-4 items-start gap-4">
-                            <Label htmlFor="scorers" className="text-right pt-2">Buteurs</Label>
-                            <Textarea id="scorers" placeholder="Ex: Prénom Nom (2), Prénom Nom" className="col-span-3" value={scorers} onChange={(e) => setScorers(e.target.value)} />
-                        </div>
-                         <div className="grid grid-cols-4 items-start gap-4">
-                            <Label htmlFor="assists" className="text-right pt-2">Passeurs</Label>
-                            <Textarea id="assists" placeholder="Ex: Prénom Nom, Prénom Nom" className="col-span-3" value={assists} onChange={(e) => setAssists(e.target.value)} />
-                        </div>
-                        </>
-                    )}
-
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Date</Label>
                         <Popover>
@@ -259,6 +235,31 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                         <Label htmlFor="description" className="text-right pt-2">Description</Label>
                         <Textarea id="description" placeholder="Détails supplémentaires..." className="col-span-3" value={description} onChange={(e) => setDescription(e.target.value)} />
                     </div>
+
+                    {type === 'Match' && (
+                        <>
+                            <Separator />
+                            <div className="space-y-4">
+                                <h3 className="text-base font-medium text-center">Détails du Match</h3>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="opponent" className="text-right">Adversaire</Label>
+                                    <Input id="opponent" placeholder="Nom de l'équipe adverse" className="col-span-3" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="result" className="text-right">Résultat</Label>
+                                    <Input id="result" placeholder="Ex: 2-1" className="col-span-3" value={result} onChange={(e) => setResult(e.target.value)} />
+                                </div>
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="scorers" className="text-right pt-2">Buteurs</Label>
+                                    <Textarea id="scorers" placeholder="Ex: Prénom Nom (2), Prénom Nom" className="col-span-3" value={scorers} onChange={(e) => setScorers(e.target.value)} />
+                                </div>
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="assists" className="text-right pt-2">Passeurs</Label>
+                                    <Textarea id="assists" placeholder="Ex: Prénom Nom, Prénom Nom" className="col-span-3" value={assists} onChange={(e) => setAssists(e.target.value)} />
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
                 <DialogFooter>
                     <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>

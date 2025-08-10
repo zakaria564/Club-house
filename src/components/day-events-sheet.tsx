@@ -33,7 +33,7 @@ const eventTypeIcons: Record<ClubEvent['type'], React.ElementType> = {
   'Match': Shield,
   'Entraînement': Footprints,
   'Réunion': User,
-  'Événement': CalendarIcon,
+  'Événement': Trophy,
   'Autre': Info,
 }
 
@@ -110,7 +110,7 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
                                         )}
                                     </div>
 
-                                    {event.type === 'Match' && (event.scorers || event.assists) && (
+                                    {(event.type === 'Match' && (event.scorers || event.assists)) && (
                                       <>
                                       <Separator />
                                       <div className="space-y-2 text-sm">
