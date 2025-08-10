@@ -11,12 +11,12 @@ export function ClubLogo({ className }: ClubLogoProps) {
   return (
     <div className="flex items-center justify-center gap-4">
         <Image
-            src="https://placehold.co/100x100.png"
+            src="https://liguefootcasa.ma/wp-content/uploads/2020/09/logo-ligue-du-casablanca.png"
             width={50}
             height={50}
-            alt="Partner Logo 1"
+            alt="Ligue du grand Casablanca de football"
             className={cn("hidden print:block", className)}
-            data-ai-hint="partner logo"
+            data-ai-hint="league logo"
         />
         <Image
             src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg"
@@ -27,12 +27,12 @@ export function ClubLogo({ className }: ClubLogoProps) {
             data-ai-hint="club logo"
         />
          <Image
-            src="https://liguefootcasa.ma/wp-content/uploads/2020/09/logo-ligue-du-casablanca.png"
+            src="https://image.noelshack.com/fichiers/2025/32/7/1754825161-20180719141912-maroc-logo-frmf.png"
             width={50}
             height={50}
-            alt="Ligue du grand Casablanca de football"
+            alt="Fédération Royale Marocaine de Football"
             className={cn("hidden print:block", className)}
-            data-ai-hint="league logo"
+            data-ai-hint="federation logo"
         />
     </div>
   );
