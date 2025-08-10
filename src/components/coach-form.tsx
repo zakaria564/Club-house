@@ -98,7 +98,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       specialty: '',
       photoUrl: '',
       gender: undefined,
-      age: undefined,
+      age: '' as any,
       country: '',
       city: '',
       clubEntryDate: new Date(),
@@ -124,7 +124,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       form.reset({
         ...defaultValues,
         id: getNextId(coaches),
-        age: undefined,
+        age: '' as any,
       } as Partial<CoachFormValues>);
     }
   }, [coach, form, coaches]);
