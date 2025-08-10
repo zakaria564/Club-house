@@ -138,7 +138,7 @@ export default function PlayerDetailPage() {
 
       <div className="space-y-8 printable-area">
         <PrintHeader />
-        <Card className="shadow-none border-0 print:border print:shadow-lg">
+        <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="w-32 h-32 mb-4">
               <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
