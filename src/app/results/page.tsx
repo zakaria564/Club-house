@@ -246,7 +246,7 @@ export default function ResultsPage() {
                                                                 {match.scorers.map(scorer => (
                                                                     <li key={scorer.playerId}>
                                                                         {playerMap.get(scorer.playerId) || 'Inconnu'}
-                                                                        {scorer.count > 1 && <span className="text-muted-foreground ml-1">({scorer.count} buts)</span>}
+                                                                        <span className="text-muted-foreground ml-1">({scorer.count} {scorer.count > 1 ? 'buts' : 'but'})</span>
                                                                     </li>
                                                                 ))}
                                                             </ul>
@@ -259,7 +259,7 @@ export default function ResultsPage() {
                                                                  {match.assists.map(assist => (
                                                                     <li key={assist.playerId}>
                                                                         {playerMap.get(assist.playerId) || 'Inconnu'}
-                                                                        {assist.count > 1 && <span className="text-muted-foreground ml-1">({assist.count} passes)</span>}
+                                                                        <span className="text-muted-foreground ml-1">({assist.count} {assist.count > 1 ? 'passes' : 'passe'})</span>
                                                                     </li>
                                                                 ))}
                                                             </ul>
