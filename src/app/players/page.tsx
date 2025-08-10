@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
@@ -42,6 +43,7 @@ const parsePlayerDates = (player: any): Player => ({
 
 export default function PlayersPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isClient, setIsClient] = React.useState(false);
@@ -80,16 +82,6 @@ export default function PlayersPage() {
     }
   }, []);
 
-  React.useEffect(() => {
-    try {
-        if (isClient) {
-          localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(players));
-        }
-    } catch (error) {
-        console.error("Failed to save players to localStorage", error);
-    }
-  }, [players, isClient]);
-
   const handleDeleteInitiate = (playerId: string) => {
     setPlayerToDelete(playerId);
   }
@@ -97,21 +89,28 @@ export default function PlayersPage() {
   const handleDeleteConfirm = () => {
     if (playerToDelete) {
       // Delete the player
-      setPlayers(players.filter(p => p.id !== playerToDelete));
+      const updatedPlayers = players.filter(p => p.id !== playerToDelete);
+      setPlayers(updatedPlayers);
       
       // Delete associated payments
       try {
         if (typeof window !== 'undefined') {
+            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
+
             const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
             let payments: Payment[] = storedPayments ? JSON.parse(storedPayments) : initialPayments;
             const updatedPayments = payments.filter(p => p.memberId !== playerToDelete);
             localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
         }
       } catch (error) {
-         console.error("Failed to update payments in localStorage", error);
+         console.error("Failed to update localStorage", error);
       }
 
       setPlayerToDelete(null);
+       toast({
+        title: "Joueur supprimé",
+        description: "Le joueur a été supprimé avec succès.",
+      })
     }
   }
 
@@ -135,15 +134,24 @@ export default function PlayersPage() {
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
+    let newPlayers: Player[] = [];
     setPlayers(prevPlayers => {
         const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
         if (existingPlayerIndex > -1) {
-            const newPlayers = [...prevPlayers];
+            newPlayers = [...prevPlayers];
             newPlayers[existingPlayerIndex] = playerWithDates;
-            return newPlayers;
         } else {
-            return [...prevPlayers, playerWithDates];
+            newPlayers = [...prevPlayers, playerWithDates];
         }
+        
+        try {
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(newPlayers));
+            }
+        } catch(e) {
+            console.error("Failed to save players to local storage", e);
+        }
+        return newPlayers;
     });
 
     try {
@@ -321,3 +329,5 @@ export default function PlayersPage() {
     </>
   )
 }
+
+    
