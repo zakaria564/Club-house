@@ -153,10 +153,13 @@ export default function CoachesPage() {
 
   const handleDeleteConfirm = () => {
     if (coachToDelete) {
-      setCoaches(coaches.filter(c => c.id !== coachToDelete));
+      const updatedCoaches = coaches.filter(c => c.id !== coachToDelete)
+      setCoaches(updatedCoaches);
 
       try {
         if (typeof window !== 'undefined') {
+            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(updatedCoaches));
+            
             const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
             let payments: Payment[] = storedPayments ? JSON.parse(storedPayments) : initialPayments;
             const updatedPayments = payments.filter(p => p.memberId !== coachToDelete);
@@ -169,7 +172,7 @@ export default function CoachesPage() {
       setCoachToDelete(null);
       toast({
         title: "Entraîneur supprimé",
-        description: "L'entraîneur a été supprimé avec succès.",
+        description: "L'entraîneur et ses paiements ont été supprimés.",
       })
     }
   }

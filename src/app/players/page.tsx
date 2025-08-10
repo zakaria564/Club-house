@@ -97,7 +97,7 @@ export default function PlayersPage() {
 
             const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
             let payments: Payment[] = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw) : initialPayments;
-            const updatedPayments = payments.filter(p => p.memberType === 'player' && p.memberId !== playerToDelete);
+            const updatedPayments = payments.filter(p => p.memberId !== playerToDelete);
             localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
         }
       } catch (error) {
@@ -107,7 +107,7 @@ export default function PlayersPage() {
       setPlayerToDelete(null);
        toast({
         title: "Joueur supprimé",
-        description: "Le joueur a été supprimé avec succès.",
+        description: "Le joueur et ses paiements ont été supprimés.",
       })
     }
   }
@@ -327,5 +327,3 @@ export default function PlayersPage() {
     </>
   )
 }
-
-    
