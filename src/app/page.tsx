@@ -146,7 +146,18 @@ export default function Dashboard() {
   }
   
   // Dashboard stats calculations
-  const seasonStartDate = new Date(new Date().getFullYear(), 8, 1); // Assume season starts September 1st
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  // Season starts on September 1st
+  const seasonStartForCurrentYear = new Date(currentYear, 8, 1);
+  const seasonString = today >= seasonStartForCurrentYear
+    ? `${currentYear}-${currentYear + 1}`
+    : `${currentYear - 1}-${currentYear}`;
+  
+  const seasonStartDate = today >= seasonStartForCurrentYear 
+    ? seasonStartForCurrentYear
+    : new Date(currentYear - 1, 8, 1);
+
   const activePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
   const activePlayerIds = new Set(activePlayers.map(p => p.id));
 
@@ -155,9 +166,10 @@ export default function Dashboard() {
   
   const paidPlayerIds = new Set(
     payments
-        .filter(p => p.memberType === 'player' && p.status === 'Paid' && activePlayerIds.has(p.memberId))
+        .filter(p => p.memberType === 'player' && p.status === 'Paid' && p.season === seasonString && activePlayerIds.has(p.memberId))
         .map(p => p.memberId)
   );
+
   const paidMemberships = paidPlayerIds.size;
   const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
 
@@ -243,7 +255,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">joueurs actifs cette saison</p>
+            <p className="text-xs text-muted-foreground">joueurs actifs cette saison ({seasonString})</p>
           </CardContent>
         </Card>
         <Card>
