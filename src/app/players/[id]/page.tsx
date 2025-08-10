@@ -200,16 +200,22 @@ export default function PlayerDetailPage() {
               </div>
               <div className="space-y-4 md:col-span-2">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
-                <div className="grid grid-cols-1 md:grid-cols-[auto,1fr,auto,1fr] gap-x-4 gap-y-2 text-sm">
-                  <span className="font-medium">Date d'entrée:</span>
-                  <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
-                  <span className="font-medium">Date de sortie:</span>
-                  <span>{player.clubExitDate && isValidDate(player.clubExitDate) ? format(player.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
-                   <span className="font-medium">Entraîneur:</span>
-                   <span className="flex items-center gap-2">
-                    <UserCheck className="h-4 w-4 text-muted-foreground" />
-                    {coachName}
-                  </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                   <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                    <span className="font-medium">Date d'entrée:</span>
+                    <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                   </div>
+                   <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                     <span className="font-medium">Date de sortie:</span>
+                    <span>{player.clubExitDate && isValidDate(player.clubExitDate) ? format(player.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
+                   </div>
+                   <div className="grid grid-cols-[auto,1fr] gap-x-4 col-span-full">
+                     <span className="font-medium">Entraîneur:</span>
+                     <span className="flex items-center gap-2">
+                      <UserCheck className="h-4 w-4 text-muted-foreground" />
+                      {coachName}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

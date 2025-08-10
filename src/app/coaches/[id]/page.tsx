@@ -183,11 +183,15 @@ export default function CoachDetailPage() {
               </div>
                <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
-                <div className="grid grid-cols-1 md:grid-cols-[150px,1fr] lg:grid-cols-[150px,1fr,150px,1fr] gap-x-4 gap-y-2 text-sm">
-                  <span className="font-medium">Date d'entrée:</span>
-                  <span>{isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
-                  <span className="font-medium">Date de sortie:</span>
-                  <span>{coach.clubExitDate && isValidDate(coach.clubExitDate) ? format(coach.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                    <span className="font-medium">Date d'entrée:</span>
+                    <span>{isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                  </div>
+                  <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                    <span className="font-medium">Date de sortie:</span>
+                    <span>{coach.clubExitDate && isValidDate(coach.clubExitDate) ? format(coach.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
+                  </div>
                 </div>
               </div>
           </CardContent>

@@ -226,189 +226,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Données du joueur</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>ID joueur</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="playerNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>N° Joueur</FormLabel>
-                            <FormControl>
-                              <Input type="number" placeholder="10" {...field} value={field.value ?? ''} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Catégorie</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionnez une catégorie" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map(category => (
-                                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="position"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Poste</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionnez un poste" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {positions.map(position => (
-                                  <SelectItem key={position} value={position}>{position}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="coachId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Entraîneur</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                               <SelectItem value="none">Non assigné</SelectItem>
-                                {coaches.map(coach => (
-                                    <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                      <FormField
-                        control={form.control}
-                        name="clubEntryDate"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Date d'entrée</FormLabel>
-                              <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP", { locale: fr })
-                                    ) : (
-                                      <span>Choisissez une date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={field.onChange}
-                                  initialFocus
-                                  locale={fr}
-                                  captionLayout="dropdown-buttons"
-                                  fromYear={new Date().getFullYear() - 20}
-                                  toYear={new Date().getFullYear()}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                        <FormField
-                          control={form.control}
-                          name="clubExitDate"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Date de sortie (optionnel)</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "PPP", { locale: fr })
-                                      ) : (
-                                        <span>Choisissez une date</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value ?? undefined}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                    locale={fr}
-                                    captionLayout="dropdown-buttons"
-                                    fromYear={new Date().getFullYear() - 20}
-                                    toYear={new Date().getFullYear() + 5}
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                  </div>
-              </div>
-
-              <div className="space-y-4">
                 <h3 className="text-lg font-medium">Informations Personnelles</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
@@ -587,6 +404,189 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         </FormItem>
                       )}
                     />
+                  </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Données du Club</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ID joueur</FormLabel>
+                            <FormControl>
+                              <Input {...field} disabled />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="playerNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>N° Joueur</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="10" {...field} value={field.value ?? ''} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Catégorie</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sélectionnez une catégorie" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {categories.map(category => (
+                                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="position"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Poste</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sélectionnez un poste" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {positions.map(position => (
+                                  <SelectItem key={position} value={position}>{position}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="coachId"
+                      render={({ field }) => (
+                        <FormItem className="sm:col-span-2">
+                          <FormLabel>Entraîneur</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                               <SelectItem value="none">Non assigné</SelectItem>
+                                {coaches.map(coach => (
+                                    <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="clubEntryDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Date d'entrée</FormLabel>
+                            <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP", { locale: fr })
+                                  ) : (
+                                    <span>Choisissez une date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                                locale={fr}
+                                captionLayout="dropdown-buttons"
+                                fromYear={new Date().getFullYear() - 20}
+                                toYear={new Date().getFullYear()}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                      <FormField
+                        control={form.control}
+                        name="clubExitDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Date de sortie (optionnel)</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP", { locale: fr })
+                                    ) : (
+                                      <span>Choisissez une date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value ?? undefined}
+                                  onSelect={field.onChange}
+                                  initialFocus
+                                  locale={fr}
+                                  captionLayout="dropdown-buttons"
+                                  fromYear={new Date().getFullYear() - 20}
+                                  toYear={new Date().getFullYear() + 5}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                   </div>
               </div>
           </div>
