@@ -9,6 +9,7 @@ export type Player = {
   photoUrl: string;
   address: string;
   city: string;
+  country: string;
   phone: string;
   guardianName: string;
   guardianPhone: string;

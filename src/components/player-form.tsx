@@ -42,6 +42,7 @@ const playerFormSchema = z.object({
   photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional().or(z.literal('')),
   address: z.string().min(1, "L'adresse est requise."),
   city: z.string().min(1, "La ville est requise."),
+  country: z.string().min(1, "Le pays est requis."),
   phone: z.string().min(1, "Le téléphone est requis."),
   guardianName: z.string().min(1, "Le nom du tuteur est requis."),
   guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
@@ -119,6 +120,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       photoUrl: '',
       address: '',
       city: '',
+      country: '',
       phone: '',
       guardianName: '',
       guardianPhone: '',
@@ -155,6 +157,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         photoUrl: '',
         address: '',
         city: '',
+        country: '',
         phone: '',
         guardianName: '',
         guardianPhone: '',
@@ -372,6 +375,19 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           </FormItem>
                         )}
                       />
+                       <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Pays</FormLabel>
+                            <FormControl>
+                              <Input placeholder="France" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                 </div>
               </div>
 
@@ -484,7 +500,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       control={form.control}
                       name="coachId"
                       render={({ field }) => (
-                        <FormItem className="sm:col-span-2">
+                        <FormItem>
                           <FormLabel>Entraîneur</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>

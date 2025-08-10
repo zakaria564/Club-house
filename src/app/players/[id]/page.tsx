@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin } from 'lucide-react';
 import type { Player, Payment, Coach } from '@/types';
 import { players as initialPlayers, payments as initialPayments, coaches as initialCoaches } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
@@ -181,8 +181,10 @@ export default function PlayerDetailPage() {
                   <span>{isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
                   <span className="font-medium">Genre:</span>
                   <span>{player.gender}</span>
+                  <span className="font-medium">Nationalité:</span>
+                  <span>{player.country}</span>
                   <span className="font-medium">Adresse:</span>
-                  <span>{`${player.address}, ${player.city}`}</span>
+                  <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {`${player.address}, ${player.city}`}</span>
                   <span className="font-medium">Téléphone:</span>
                   <span>{player.phone}</span>
                   <span className="font-medium">Email:</span>
