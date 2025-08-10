@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'liguefootcasa.ma',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
       }
     ],
   },

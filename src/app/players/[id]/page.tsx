@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ClubLogo } from '@/components/club-logo';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 const LOCAL_STORAGE_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
@@ -207,12 +208,18 @@ export default function PlayerDetailPage() {
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Documents</h3>
                 {player.medicalCertificateUrl ? (
-                    <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Voir le certificat médical
-                        </Button>
-                    </a>
+                    <div className="mt-4">
+                      <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="block w-full max-w-md mx-auto">
+                        <Image 
+                          src={player.medicalCertificateUrl}
+                          alt="Certificat Médical"
+                          width={500}
+                          height={707}
+                          className="rounded-md border shadow-md w-full h-auto"
+                          data-ai-hint="medical certificate document"
+                        />
+                      </a>
+                    </div>
                 ) : (
                     <p className="text-sm text-muted-foreground">Aucun certificat médical fourni.</p>
                 )}
