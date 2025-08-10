@@ -4,16 +4,18 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
-import { ArrowLeft, Medal } from "lucide-react"
+import { ArrowLeft, Medal, Calendar as CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ClubEvent } from "@/types"
 import { clubEvents as initialClubEvents } from "@/lib/mock-data"
-import { format } from "date-fns"
+import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 
@@ -63,6 +65,7 @@ const combineStats = (events: ClubEvent[], field: 'scorers' | 'assists'): StatIt
 export default function ResultsPage() {
     const router = useRouter();
     const [events, setEvents] = React.useState<ClubEvent[]>([]);
+    const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
 
     React.useEffect(() => {
         try {
@@ -87,20 +90,48 @@ export default function ResultsPage() {
         }
     }, []);
 
-    const playedMatches = events
+    const allPlayedMatches = events
         .filter(event => event.type === 'Match' && event.result)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    const topScorers = combineStats(playedMatches, 'scorers');
-    const topAssists = combineStats(playedMatches, 'assists');
+    const filteredMatches = selectedDate
+        ? allPlayedMatches.filter(match => isSameDay(new Date(match.date), selectedDate as Date))
+        : allPlayedMatches;
+    
+    const topScorers = combineStats(allPlayedMatches, 'scorers');
+    const topAssists = combineStats(allPlayedMatches, 'assists');
 
     return (
         <>
             <PageHeader title="Résultats & Statistiques">
-                <Button variant="outline" onClick={() => router.back()}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Retour
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : "Rechercher par date"}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={setSelectedDate}
+                                initialFocus
+                                locale={fr}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    {selectedDate && (
+                        <Button variant="ghost" onClick={() => setSelectedDate(undefined)}>
+                            Voir tous les résultats
+                        </Button>
+                    )}
+                    <Button variant="outline" onClick={() => router.back()}>
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Retour
+                    </Button>
+                </div>
             </PageHeader>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -131,11 +162,16 @@ export default function ResultsPage() {
                     <Card>
                          <CardHeader>
                             <CardTitle>Matchs Joués</CardTitle>
-                            <CardDescription>Historique de tous les matchs de la saison.</CardDescription>
+                            <CardDescription>
+                               {selectedDate 
+                                    ? `Matchs joués le ${format(selectedDate, "d MMMM yyyy", { locale: fr })}`
+                                    : "Historique de tous les matchs de la saison."
+                                }
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-6">
-                                {playedMatches.length > 0 ? playedMatches.map(match => (
+                                {filteredMatches.length > 0 ? filteredMatches.map(match => (
                                     <div key={match.id} className="border rounded-lg p-4">
                                         <div className="flex justify-between items-center">
                                             <div className="font-semibold text-lg">{match.title}</div>
@@ -155,7 +191,7 @@ export default function ResultsPage() {
                                                     )}
                                                     {match.assists && (
                                                         <div>
-                                                            <span className="font-medium">Passeurs:</span> {match.assists}
+                                                            <span className="font-medium">Passeurs décisifs:</span> {match.assists}
                                                         </div>
                                                     )}
                                                 </div>
@@ -164,7 +200,10 @@ export default function ResultsPage() {
                                     </div>
                                 )) : (
                                     <div className="text-center py-8 text-muted-foreground">
-                                        Aucun résultat de match n'a encore été enregistré.
+                                        {selectedDate
+                                            ? "Aucun match trouvé pour cette date."
+                                            : "Aucun résultat de match n'a encore été enregistré."
+                                        }
                                     </div>
                                 )}
                             </div>
