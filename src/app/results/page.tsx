@@ -4,7 +4,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
-import { ArrowLeft, Medal, Calendar as CalendarIcon } from "lucide-react"
+import { ArrowLeft, Medal, Calendar as CalendarIcon, Goal, Footprints } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ClubEvent, Player, StatEvent } from "@/types"
@@ -56,16 +56,6 @@ const combineStats = (events: ClubEvent[], field: 'scorers' | 'assists', players
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 }
-
-const formatStatString = (stats: StatEvent[] | undefined, players: Player[]): string => {
-    if (!stats || stats.length === 0 || !Array.isArray(stats)) return "";
-    const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
-    
-    return stats.map(stat => {
-        const name = playerMap.get(stat.playerId) || "Inconnu";
-        return `${name}${stat.count > 1 ? ` (${stat.count})` : ''}`;
-    }).join(', ');
-};
 
 export default function ResultsPage() {
     const router = useRouter();
@@ -142,6 +132,7 @@ export default function ResultsPage() {
         return "Historique de tous les matchs de la saison. Cliquez sur un match pour le détailler.";
     }
 
+    const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
 
     return (
         <>
@@ -229,23 +220,39 @@ export default function ResultsPage() {
                                         <div className="text-sm text-muted-foreground mt-1">
                                             {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
                                         </div>
-                                        {(match.scorers?.length || match.assists?.length) && (
+                                        {(Array.isArray(match.scorers) && match.scorers.length > 0) || (Array.isArray(match.assists) && match.assists.length > 0) ? (
                                             <>
                                                 <Separator className="my-3"/>
-                                                <div className="text-sm space-y-2">
-                                                    {match.scorers && match.scorers.length > 0 && (
-                                                        <div>
-                                                            <span className="font-medium">Buteurs :</span> {formatStatString(match.scorers, players)}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                    {Array.isArray(match.scorers) && match.scorers.length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold flex items-center gap-2"><Goal className="w-4 h-4"/> Buteurs</h4>
+                                                            <ul className="list-disc pl-5 space-y-1">
+                                                                {match.scorers.map(scorer => (
+                                                                    <li key={scorer.playerId}>
+                                                                        {playerMap.get(scorer.playerId) || 'Inconnu'}
+                                                                        {scorer.count > 1 && <span className="text-muted-foreground ml-1">({scorer.count} buts)</span>}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
                                                         </div>
                                                     )}
-                                                    {match.assists && match.assists.length > 0 && (
-                                                        <div>
-                                                            <span className="font-medium">Passeurs décisifs :</span> {formatStatString(match.assists, players)}
+                                                    {Array.isArray(match.assists) && match.assists.length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold flex items-center gap-2"><Footprints className="w-4 h-4"/> Passeurs décisifs</h4>
+                                                            <ul className="list-disc pl-5 space-y-1">
+                                                                 {match.assists.map(assist => (
+                                                                    <li key={assist.playerId}>
+                                                                        {playerMap.get(assist.playerId) || 'Inconnu'}
+                                                                        {assist.count > 1 && <span className="text-muted-foreground ml-1">({assist.count} passes)</span>}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
                                                         </div>
                                                     )}
                                                 </div>
                                             </>
-                                        )}
+                                        ) : null}
                                     </div>
                                 )) : (
                                     <div className="text-center py-8 text-muted-foreground">
@@ -337,5 +344,3 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
-
-    
