@@ -148,16 +148,17 @@ export default function Dashboard() {
   // Dashboard stats calculations
   const seasonStartDate = new Date(new Date().getFullYear(), 8, 1); // Assume season starts September 1st
   const activePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
+  const activePlayerIds = new Set(activePlayers.map(p => p.id));
 
   const totalPlayers = activePlayers.length;
   const injuredPlayers = activePlayers.filter(p => p.status === 'Blessé').length;
   
   const paidPlayerIds = new Set(
     payments
-        .filter(p => p.memberType === 'player' && p.status === 'Paid')
+        .filter(p => p.memberType === 'player' && p.status === 'Paid' && activePlayerIds.has(p.memberId))
         .map(p => p.memberId)
   );
-  const paidMemberships = Array.from(paidPlayerIds).filter(id => activePlayers.some(p => p.id === id)).length;
+  const paidMemberships = paidPlayerIds.size;
   const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
 
   const upcomingEvents = events.filter(e => isAfter(e.date, new Date()));
