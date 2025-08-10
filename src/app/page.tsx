@@ -146,15 +146,18 @@ export default function Dashboard() {
   }
   
   // Dashboard stats calculations
-  const totalPlayers = players.length;
-  const injuredPlayers = players.filter(p => p.status === 'Blessé').length;
+  const seasonStartDate = new Date(new Date().getFullYear(), 8, 1); // Assume season starts September 1st
+  const activePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
+
+  const totalPlayers = activePlayers.length;
+  const injuredPlayers = activePlayers.filter(p => p.status === 'Blessé').length;
   
   const paidPlayerIds = new Set(
     payments
         .filter(p => p.memberType === 'player' && p.status === 'Paid')
         .map(p => p.memberId)
   );
-  const paidMemberships = paidPlayerIds.size;
+  const paidMemberships = Array.from(paidPlayerIds).filter(id => activePlayers.some(p => p.id === id)).length;
   const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
 
   const upcomingEvents = events.filter(e => isAfter(e.date, new Date()));
@@ -166,7 +169,7 @@ export default function Dashboard() {
   
   const chartData = React.useMemo(() => {
     const categoryCounts: { [key: string]: number } = {};
-    players.forEach(player => {
+    activePlayers.forEach(player => {
         categoryCounts[player.category] = (categoryCounts[player.category] || 0) + 1;
     });
 
@@ -178,7 +181,7 @@ export default function Dashboard() {
             players: categoryCounts[category] || 0,
         }))
         .filter(item => item.players > 0);
-  }, [players]);
+  }, [activePlayers]);
 
   return (
     <>
@@ -239,7 +242,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
+            <p className="text-xs text-muted-foreground">joueurs actifs cette saison</p>
           </CardContent>
         </Card>
         <Card>
@@ -277,7 +280,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
-            <CardDescription>Nombre de joueurs par catégorie.</CardDescription>
+            <CardDescription>Nombre de joueurs par catégorie pour la saison en cours.</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
