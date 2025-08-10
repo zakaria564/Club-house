@@ -26,7 +26,7 @@ import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { Calendar } from "./ui/calendar"
-import { cn } from "@/lib/utils"
+import { cn, handleEnterKeyDown } from "@/lib/utils"
 
 
 const coachFormSchema = z.object({
@@ -150,7 +150,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
 
   return (
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
                 <Avatar className="h-24 w-24">
                     <AvatarImage src={photoUrl || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, handleEnterKeyDown } from "@/lib/utils"
 import { Calendar } from "./ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
@@ -180,7 +180,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
   return (
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 space-y-6">
                  <div className="flex flex-col md:flex-row items-center gap-6">
