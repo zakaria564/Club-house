@@ -16,7 +16,7 @@ import AddPlayerDialog from "@/components/add-player-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
-import { differenceInDays, isAfter } from 'date-fns';
+import { differenceInDays, isAfter, isToday } from 'date-fns';
 
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
@@ -147,15 +147,16 @@ export default function Dashboard() {
   
   // Dashboard stats calculations
   const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize today to the start of the day
   const currentYear = today.getFullYear();
   // Season starts on September 1st
-  const seasonStartForCurrentYear = new Date(currentYear, 8, 1);
-  const seasonString = today >= seasonStartForCurrentYear
+  const seasonStartBoundary = new Date(currentYear, 8, 1); // September 1st
+  const seasonString = today >= seasonStartBoundary
     ? `${currentYear}-${currentYear + 1}`
     : `${currentYear - 1}-${currentYear}`;
   
-  const seasonStartDate = today >= seasonStartForCurrentYear 
-    ? seasonStartForCurrentYear
+  const seasonStartDate = today >= seasonStartBoundary 
+    ? seasonStartBoundary
     : new Date(currentYear - 1, 8, 1);
 
   const activePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
@@ -166,14 +167,19 @@ export default function Dashboard() {
   
   const paidPlayerIds = new Set(
     payments
-        .filter(p => p.memberType === 'player' && p.status === 'Paid' && p.season === seasonString && activePlayerIds.has(p.memberId))
-        .map(p => p.memberId)
+      .filter(p => 
+        p.memberType === 'player' && 
+        p.status === 'Paid' && 
+        p.season === seasonString && 
+        activePlayerIds.has(p.memberId)
+      )
+      .map(p => p.memberId)
   );
 
   const paidMemberships = paidPlayerIds.size;
   const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
 
-  const upcomingEvents = events.filter(e => isAfter(e.date, new Date()));
+  const upcomingEvents = events.filter(e => isAfter(new Date(e.date), today) || isToday(new Date(e.date)));
   const upcomingMatches = upcomingEvents.filter(e => e.type === 'Match').length;
   const upcomingTrainings = upcomingEvents.filter(e => e.type === 'Entraînement').length;
   
