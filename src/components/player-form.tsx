@@ -109,7 +109,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       dateOfBirth: new Date(player.dateOfBirth),
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
-      coachId: player.coachId || null,
+      coachId: player.coachId || undefined,
       photoUrl: player.photoUrl || '',
       medicalCertificateUrl: player.medicalCertificateUrl || '',
     } : {
@@ -132,7 +132,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       playerNumber: '' as any,
       clubEntryDate: new Date(),
       clubExitDate: null,
-      coachId: null,
+      coachId: undefined,
       medicalCertificateUrl: '',
     };
 
@@ -151,7 +151,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         dateOfBirth: new Date(player.dateOfBirth),
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
         clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
-        coachId: player.coachId || null,
+        coachId: player.coachId || undefined,
         photoUrl: player.photoUrl || '',
         medicalCertificateUrl: player.medicalCertificateUrl || '',
       });
@@ -176,7 +176,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         playerNumber: '' as any,
         clubEntryDate: new Date(),
         clubExitDate: null,
-        coachId: null,
+        coachId: undefined,
         medicalCertificateUrl: '',
       });
     }
@@ -565,6 +565,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                                <SelectItem value="none">Non assigné</SelectItem>
                                 {coaches.map(coach => (
                                     <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
                                 ))}
@@ -671,3 +672,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    

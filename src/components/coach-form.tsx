@@ -170,7 +170,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                             <FormLabel>URL de la photo</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://exemple.com/photo.png" {...field} />
+                                <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -434,4 +434,5 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   )
 }
 
+    
     
