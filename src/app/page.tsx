@@ -20,15 +20,6 @@ import { cn } from "@/lib/utils"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
-const chartData = [
-  { category: "U9", players: 18 },
-  { category: "U11", players: 25 },
-  { category: "U13", players: 22 },
-  { category: "U15", players: 20 },
-  { category: "U17", players: 15 },
-  { category: "Senior", players: 30 },
-]
-
 const chartConfig = {
   players: {
     label: "Joueurs",
@@ -123,6 +114,22 @@ export default function Dashboard() {
       const normalizedSearch = normalizeString(search);
       return normalizedValue.includes(normalizedSearch) ? 1 : 0;
   }
+  
+  const chartData = React.useMemo(() => {
+    const categoryCounts: { [key: string]: number } = {};
+    players.forEach(player => {
+        categoryCounts[player.category] = (categoryCounts[player.category] || 0) + 1;
+    });
+
+    const categoriesOrder: Player['category'][] = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"];
+    
+    return categoriesOrder
+        .map(category => ({
+            category,
+            players: categoryCounts[category] || 0,
+        }))
+        .filter(item => item.players > 0);
+  }, [players]);
 
   return (
     <>
@@ -234,7 +241,7 @@ export default function Dashboard() {
                       tickMargin={10}
                       axisLine={false}
                     />
-                    <YAxis />
+                    <YAxis allowDecimals={false} />
                     <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                     <Bar dataKey="players" fill="var(--color-players)" radius={8} />
                   </BarChart>
