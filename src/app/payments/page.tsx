@@ -327,7 +327,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
       </TableHeader>
       <TableBody>
         {payments.map(payment => (
-          <TableRow key={payment.id}>
+          <TableRow key={payment.id} onClick={() => onViewMember(payment.memberId, payment.memberType)} className="cursor-pointer">
             <TableCell>
               <div className="font-medium">{payment.memberName}</div>
               <div className="text-sm text-muted-foreground capitalize">{payment.memberType === 'player' ? 'Joueur' : 'Entraîneur'}</div>
@@ -355,7 +355,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
             <TableCell className="hidden md:table-cell">
               {new Date(payment.date).toLocaleDateString('fr-FR')}
             </TableCell>
-            <TableCell>
+            <TableCell onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
