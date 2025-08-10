@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { CalendarIcon, Upload } from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -27,7 +27,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player } from "@/types"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 
 const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
@@ -39,7 +38,7 @@ const playerFormSchema = z.object({
     required_error: "Une date de naissance est requise.",
   }),
   category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
-  photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional(),
+  photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional().or(z.literal('')),
   address: z.string().min(1, "L'adresse est requise."),
   city: z.string().min(1, "La ville est requise."),
   phone: z.string().min(1, "Le téléphone est requis."),
@@ -106,7 +105,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       email: '',
       dateOfBirth: undefined,
       category: '',
-      photoUrl: 'https://placehold.co/200x200.png',
+      photoUrl: '',
       address: '',
       city: '',
       phone: '',
@@ -119,8 +118,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     },
   })
 
-  const [photoPreview, setPhotoPreview] = React.useState<string | null>(form.watch('photoUrl') || null);
-
+  const photoUrl = form.watch('photoUrl');
 
   React.useEffect(() => {
     if (player) {
@@ -131,7 +129,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
         clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
       });
-       setPhotoPreview(player.photoUrl || 'https://placehold.co/200x200.png');
     } else {
       originalId.current = undefined;
       form.reset({
@@ -142,7 +139,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         email: '',
         dateOfBirth: undefined,
         category: '',
-        photoUrl: 'https://placehold.co/200x200.png',
+        photoUrl: '',
         address: '',
         city: '',
         phone: '',
@@ -153,7 +150,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: new Date(),
         clubExitDate: null,
       });
-      setPhotoPreview('https://placehold.co/200x200.png');
     }
   }, [player, form, players]);
 
@@ -187,6 +183,34 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="flex-1 space-y-6">
+                 <div className="flex flex-col md:flex-row items-center gap-6">
+                    <Avatar className="h-24 w-24">
+                        <AvatarImage src={photoUrl || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                        <AvatarFallback>
+                        {form.watch('firstName')?.[0]}
+                        {form.watch('lastName')?.[0]}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="w-full">
+                         <FormField
+                            control={form.control}
+                            name="photoUrl"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>URL de la photo</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://exemple.com/photo.png" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        <FormDescription>
+                            Collez l'URL d'une image accessible en ligne.
+                        </FormDescription>
+                    </div>
+                </div>
+
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">données de joueur</h3>
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -529,38 +553,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                    </div>
                 </div>
             </div>
-
-             <div className="flex flex-col items-center gap-2 md:w-1/3 md:pl-4 md:border-l md:sticky md:top-0">
-              <FormLabel>Photo de profil</FormLabel>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative group cursor-not-allowed">
-                        <Avatar className="h-32 w-32">
-                          <AvatarImage src={photoPreview || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                          <AvatarFallback>
-                            {form.watch('firstName')?.[0]}
-                            {form.watch('lastName')?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <Button 
-                          type="button" 
-                          size="icon" 
-                          className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          disabled
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Le téléversement de photos est désactivé.</p>
-                      <p className="text-xs text-muted-foreground">Le stockage de fichiers n'est pas disponible.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              <FormDescription className="text-center">Photo de remplacement</FormDescription>
-            </div>
           </div>
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
@@ -570,3 +562,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
