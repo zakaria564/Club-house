@@ -112,6 +112,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       coachId: player.coachId || undefined,
       photoUrl: player.photoUrl || '',
       medicalCertificateUrl: player.medicalCertificateUrl || '',
+      country: player.country || '',
     } : {
       id: getNextId(players),
       firstName: '',
@@ -154,6 +155,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         coachId: player.coachId || undefined,
         photoUrl: player.photoUrl || '',
         medicalCertificateUrl: player.medicalCertificateUrl || '',
+        country: player.country || '',
       });
     } else {
       form.reset({
@@ -396,7 +398,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           <FormItem>
                             <FormLabel>Pays</FormLabel>
                             <FormControl>
-                              <Input placeholder="France" {...field} />
+                              <Input placeholder="France" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -565,7 +567,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="none">Non assigné</SelectItem>
                                 {coaches.map(coach => (
                                     <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
                                 ))}
