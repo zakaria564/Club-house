@@ -19,17 +19,17 @@ interface MatchStatsFormProps {
 export function MatchStatsForm({ title, stats, onStatsChange, players }: MatchStatsFormProps) {
 
     const handleAddStat = () => {
-        onStatsChange([...stats, { playerId: "", count: 1 }]);
+        onStatsChange([...(stats || []), { playerId: "", count: 1 }]);
     }
 
     const handleRemoveStat = (index: number) => {
-        const newStats = [...stats];
+        const newStats = [...(stats || [])];
         newStats.splice(index, 1);
         onStatsChange(newStats);
     }
 
     const handleStatChange = (index: number, field: keyof StatEvent, value: string | number) => {
-        const newStats = [...stats];
+        const newStats = [...(stats || [])];
         if (field === 'count') {
             newStats[index] = { ...newStats[index], [field]: Math.max(1, Number(value)) };
         } else {
@@ -49,7 +49,7 @@ export function MatchStatsForm({ title, stats, onStatsChange, players }: MatchSt
             </div>
            
             <div className="space-y-2">
-                {stats.map((stat, index) => (
+                {(stats || []).map((stat, index) => (
                     <div key={index} className="flex items-center gap-2">
                         <Select value={stat.playerId} onValueChange={(value) => handleStatChange(index, 'playerId', value)}>
                              <SelectTrigger>
@@ -73,7 +73,7 @@ export function MatchStatsForm({ title, stats, onStatsChange, players }: MatchSt
                         </Button>
                     </div>
                 ))}
-                {stats.length === 0 && (
+                {(!stats || stats.length === 0) && (
                     <p className="text-sm text-muted-foreground text-center py-2">Aucun {title.toLowerCase()} enregistré.</p>
                 )}
             </div>
