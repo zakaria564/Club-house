@@ -54,7 +54,7 @@ const playerFormSchema = z.object({
     required_error: "Une date d'entrée est requise.",
   }),
   clubExitDate: z.date().optional().nullable(),
-  coachId: z.string().optional(),
+  coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
 })
 
@@ -105,9 +105,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     setCoaches(storedCoaches);
   }, []);
 
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues: player ? {
+  const defaultValues: Partial<PlayerFormValues> = player ? {
       ...player,
       dateOfBirth: new Date(player.dateOfBirth),
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
@@ -137,7 +135,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: null,
       coachId: '',
       medicalCertificateUrl: '',
-    },
+    };
+
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues,
   })
 
   const photoUrl = form.watch('photoUrl');
@@ -230,7 +232,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               <FormItem>
                               <FormLabel>URL de la photo</FormLabel>
                               <FormControl>
-                                  <Input placeholder="https://exemple.com/photo.png" {...field} />
+                                  <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value ?? ''}/>
                               </FormControl>
                               <FormMessage />
                               </FormItem>
@@ -446,7 +448,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormItem>
                         <FormLabel>URL du certificat médical</FormLabel>
                         <FormControl>
-                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} />
+                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} value={field.value ?? ''} />
                         </FormControl>
                          <FormDescription>
                           Collez un lien vers le certificat médical en ligne.
@@ -558,14 +560,14 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Entraîneur</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value ?? ''}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                               <SelectItem value="none">Non assigné</SelectItem>
+                               <SelectItem value="">Non assigné</SelectItem>
                                 {coaches.map(coach => (
                                     <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
                                 ))}

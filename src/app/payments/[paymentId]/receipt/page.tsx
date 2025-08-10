@@ -121,7 +121,7 @@ const ReceiptPage = () => {
         {/* Header */}
         <header className="flex justify-between items-start pb-6 border-b border-gray-300">
           <div className="w-full">
-            <ClubLogo className="w-16 h-16" />
+            <ClubLogo className="h-16 w-auto" />
           </div>
           <div className="text-right">
             <h2 className="text-3xl font-bold text-gray-800">{isCoachPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>

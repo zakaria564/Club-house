@@ -23,7 +23,7 @@ export function ClubLogo({ className }: ClubLogoProps) {
             width={64}
             height={64}
             alt="Club CAOS 2011 Logo"
-            className={cn("text-primary h-16 w-auto", className)}
+            className={cn("text-primary h-20 w-auto", className)}
             data-ai-hint="club logo"
         />
          <Image
