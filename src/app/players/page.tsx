@@ -88,18 +88,16 @@ export default function PlayersPage() {
 
   const handleDeleteConfirm = () => {
     if (playerToDelete) {
-      // Delete the player
       const updatedPlayers = players.filter(p => p.id !== playerToDelete);
       setPlayers(updatedPlayers);
       
-      // Delete associated payments
       try {
         if (typeof window !== 'undefined') {
             localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
 
-            const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-            let payments: Payment[] = storedPayments ? JSON.parse(storedPayments) : initialPayments;
-            const updatedPayments = payments.filter(p => p.memberId !== playerToDelete);
+            const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+            let payments: Payment[] = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw) : initialPayments;
+            const updatedPayments = payments.filter(p => p.memberType === 'player' && p.memberId !== playerToDelete);
             localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
         }
       } catch (error) {
@@ -134,8 +132,8 @@ export default function PlayersPage() {
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
-    let newPlayers: Player[] = [];
     setPlayers(prevPlayers => {
+        let newPlayers: Player[];
         const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
         if (existingPlayerIndex > -1) {
             newPlayers = [...prevPlayers];
