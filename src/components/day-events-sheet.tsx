@@ -4,7 +4,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { CalendarIcon, Clock, MapPin, Tag, Edit, Trash2, PlusCircle, User, Shield, Info } from "lucide-react"
+import { CalendarIcon, Clock, MapPin, Tag, Edit, Trash2, PlusCircle, User, Shield, Info, Trophy } from "lucide-react"
 
 import {
   Sheet,
@@ -78,7 +78,15 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
                                                 <Icon className={cn("w-5 h-5", eventTypeColors[event.type])} />
                                                 {event.opponent ? `CAOS vs ${event.opponent}` : event.title}
                                             </h3>
-                                            <p className={cn("text-sm font-medium", eventTypeColors[event.type])}>{event.type}</p>
+                                            <div className="flex items-center gap-4">
+                                              <p className={cn("text-sm font-medium", eventTypeColors[event.type])}>{event.type}</p>
+                                              {event.type === 'Match' && event.result && (
+                                                <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-600">
+                                                  <Trophy className="w-4 h-4" />
+                                                  <span>{event.result}</span>
+                                                </div>
+                                              )}
+                                            </div>
                                         </div>
                                     </div>
 

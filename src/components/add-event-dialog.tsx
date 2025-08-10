@@ -56,6 +56,8 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
     const [description, setDescription] = React.useState(event?.description || "");
     const [type, setType] = React.useState<ClubEvent['type'] | "">(event?.type || "");
     const [opponent, setOpponent] = React.useState(event?.opponent || "");
+    const [result, setResult] = React.useState(event?.result || "");
+
 
     const titleOptions = type ? eventTitleTemplates[type] : [];
 
@@ -71,6 +73,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                 setDescription(event.description || "");
                 setType(event.type);
                 setOpponent(event.opponent || "");
+                setResult(event.result || "");
             } else {
                 resetForm();
                 if(selectedDate) {
@@ -85,6 +88,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         if (!isEditing) {
             setTitle("");
             setOpponent("");
+            setResult("");
         }
     }, [type, isEditing]);
 
@@ -98,6 +102,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         setDescription("");
         setType("");
         setOpponent("");
+        setResult("");
     }
 
     const handleSubmit = () => {
@@ -122,11 +127,13 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             category: category || undefined,
             description: description || undefined,
             opponent: opponent || undefined,
+            result: result || undefined,
         };
 
         if (type === 'Match') {
             eventData.opponent = opponent;
             eventData.title = `CAOS vs ${opponent}`;
+            eventData.result = result || undefined;
         }
 
         onEventSubmit(eventData);
@@ -178,10 +185,16 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                     )}
                    
                     {type === 'Match' && (
+                        <>
                          <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="opponent" className="text-right">Adversaire</Label>
                             <Input id="opponent" placeholder="Nom de l'équipe adverse" className="col-span-3" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
                         </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="result" className="text-right">Résultat</Label>
+                            <Input id="result" placeholder="Ex: 2-1" className="col-span-3" value={result} onChange={(e) => setResult(e.target.value)} />
+                        </div>
+                        </>
                     )}
 
                     <div className="grid grid-cols-4 items-center gap-4">
