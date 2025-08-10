@@ -112,7 +112,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       dateOfBirth: new Date(player.dateOfBirth),
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
-      coachId: player.coachId || undefined,
+      coachId: player.coachId || '',
       photoUrl: player.photoUrl || '',
       medicalCertificateUrl: player.medicalCertificateUrl || '',
     } : {
@@ -135,7 +135,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       playerNumber: '' as any,
       clubEntryDate: new Date(),
       clubExitDate: null,
-      coachId: undefined,
+      coachId: '',
       medicalCertificateUrl: '',
     },
   })
@@ -150,7 +150,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         dateOfBirth: new Date(player.dateOfBirth),
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
         clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
-        coachId: player.coachId || undefined,
+        coachId: player.coachId || '',
         photoUrl: player.photoUrl || '',
         medicalCertificateUrl: player.medicalCertificateUrl || '',
       });
@@ -176,7 +176,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         playerNumber: '' as any,
         clubEntryDate: new Date(),
         clubExitDate: null,
-        coachId: undefined,
+        coachId: '',
         medicalCertificateUrl: '',
       });
     }
