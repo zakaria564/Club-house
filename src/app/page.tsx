@@ -145,45 +145,66 @@ export default function Dashboard() {
       return normalizedValue.includes(normalizedSearch) ? 1 : 0;
   }
   
-  // Dashboard stats calculations
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize today to the start of the day
-  const currentYear = today.getFullYear();
-  // Season starts on September 1st
-  const seasonStartBoundary = new Date(currentYear, 8, 1); // September 1st
-  const seasonString = today >= seasonStartBoundary
-    ? `${currentYear}-${currentYear + 1}`
-    : `${currentYear - 1}-${currentYear}`;
-  
-  const seasonStartDate = today >= seasonStartBoundary 
-    ? seasonStartBoundary
-    : new Date(currentYear - 1, 8, 1);
+  const {
+    totalPlayers,
+    injuredPlayers,
+    upcomingEventsCount,
+    upcomingMatches,
+    upcomingTrainings,
+    paidMemberships,
+    paidPercentage,
+    seasonString,
+    activePlayers,
+  } = React.useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentYear = today.getFullYear();
+    const seasonStartBoundary = new Date(currentYear, 8, 1); // September 1st
 
-  const activePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
-  const activePlayerIds = new Set(activePlayers.map(p => p.id));
+    const currentSeasonString = today >= seasonStartBoundary
+      ? `${currentYear}-${currentYear + 1}`
+      : `${currentYear - 1}-${currentYear}`;
+    
+    const seasonStartDate = today >= seasonStartBoundary
+      ? seasonStartBoundary
+      : new Date(currentYear - 1, 8, 1);
 
-  const totalPlayers = activePlayers.length;
-  const injuredPlayers = activePlayers.filter(p => p.status === 'Blessé').length;
-  
-  const paidPlayerIds = new Set(
-    payments
-      .filter(p => 
-        p.memberType === 'player' && 
-        p.status === 'Paid' && 
-        p.season === seasonString && 
-        activePlayerIds.has(p.memberId)
-      )
-      .map(p => p.memberId)
-  );
+    const currentActivePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
+    const activePlayerIds = new Set(currentActivePlayers.map(p => p.id));
 
-  const paidMemberships = paidPlayerIds.size;
-  const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
+    const currentTotalPlayers = currentActivePlayers.length;
+    const currentInjuredPlayers = currentActivePlayers.filter(p => p.status === 'Blessé').length;
+    
+    const currentPaidPlayerIds = new Set(
+      payments
+        .filter(p => 
+          p.memberType === 'player' && 
+          p.status === 'Paid' && 
+          p.season === currentSeasonString &&
+          activePlayerIds.has(p.memberId)
+        )
+        .map(p => p.memberId)
+    );
 
-  const upcomingEvents = events.filter(e => isAfter(new Date(e.date), today) || isToday(new Date(e.date)));
-  const upcomingMatches = upcomingEvents.filter(e => e.type === 'Match').length;
-  const upcomingTrainings = upcomingEvents.filter(e => e.type === 'Entraînement').length;
-  
-  const recentPlayers = players.filter(p => differenceInDays(new Date(), new Date(p.clubEntryDate)) <= 7).length;
+    const currentPaidMemberships = currentPaidPlayerIds.size;
+    const currentPaidPercentage = currentTotalPlayers > 0 ? ((currentPaidMemberships / currentTotalPlayers) * 100).toFixed(0) : 0;
+
+    const currentUpcomingEvents = events.filter(e => isAfter(new Date(e.date), today) || isToday(new Date(e.date)));
+    const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
+    const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
+
+    return {
+        totalPlayers: currentTotalPlayers,
+        injuredPlayers: currentInjuredPlayers,
+        upcomingEventsCount: currentUpcomingEvents.length,
+        upcomingMatches: currentUpcomingMatches,
+        upcomingTrainings: currentUpcomingTrainings,
+        paidMemberships: currentPaidMemberships,
+        paidPercentage: currentPaidPercentage,
+        seasonString: currentSeasonString,
+        activePlayers: currentActivePlayers,
+    };
+  }, [players, payments, events]);
 
   
   const chartData = React.useMemo(() => {
@@ -280,7 +301,7 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
+            <div className="text-2xl font-bold">{upcomingEventsCount}</div>
             <p className="text-xs text-muted-foreground">{upcomingMatches} matchs, {upcomingTrainings} entraînements</p>
           </CardContent>
         </Card>
