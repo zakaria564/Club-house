@@ -22,12 +22,17 @@ import { ClubLogo } from "@/components/club-logo"
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
-const PrintHeader = () => (
+const PrintHeader = ({ date }: { date?: Date }) => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
         <div className="flex items-center gap-4">
             <ClubLogo className="w-16 h-16" />
             <div className="text-center">
                 <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
+                 {date && (
+                    <p className="text-lg text-muted-foreground mt-1 capitalize">
+                        {format(date, "eeee d MMMM yyyy", { locale: fr })}
+                    </p>
+                )}
             </div>
         </div>
         <hr className="w-full mt-4 border-t-2 border-primary" />
@@ -55,18 +60,18 @@ type CombinedStat = {
 }
 
 const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] => {
-    const combined = new Map<string, { name: string; goals: number; assists: number; playerId: string }>();
-    const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
+    const combined = new Map<string, CombinedStat>();
 
-    playerMap.forEach((name, id) => {
-        combined.set(name, { playerId: id, name, goals: 0, assists: 0 });
+    players.forEach(player => {
+        combined.set(`${player.firstName} ${player.lastName}`, { name: `${player.firstName} ${player.lastName}`, goals: 0, assists: 0 });
     });
 
     events.forEach(event => {
         if (Array.isArray(event.scorers)) {
             event.scorers.forEach(scorer => {
-                const playerName = playerMap.get(scorer.playerId);
-                if (playerName && combined.has(playerName)) {
+                const player = players.find(p => p.id === scorer.playerId);
+                if (player) {
+                    const playerName = `${player.firstName} ${player.lastName}`;
                     const current = combined.get(playerName)!;
                     current.goals += scorer.count;
                 }
@@ -74,8 +79,9 @@ const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] =>
         }
         if (Array.isArray(event.assists)) {
             event.assists.forEach(assist => {
-                const playerName = playerMap.get(assist.playerId);
-                if (playerName && combined.has(playerName)) {
+                const player = players.find(p => p.id === assist.playerId);
+                if (player) {
+                    const playerName = `${player.firstName} ${player.lastName}`;
                     const current = combined.get(playerName)!;
                     current.assists += assist.count;
                 }
@@ -219,7 +225,7 @@ export default function ResultsPage() {
             </div>
             
             <div className="printable-area">
-                <PrintHeader />
+                <PrintHeader date={filteredMatches[0]?.date} />
                 <div className={cn("grid grid-cols-1 gap-8", !selectedMatchId && "lg:grid-cols-3")}>
                     {/* Stats Column */}
                     {!selectedMatchId && (
@@ -267,7 +273,7 @@ export default function ResultsPage() {
                                                 <div className="font-semibold text-lg">{match.title}</div>
                                                 <div className="text-2xl font-bold text-primary">{match.result}</div>
                                             </div>
-                                            <div className="text-sm text-muted-foreground mt-1">
+                                            <div className="text-sm text-muted-foreground mt-1 capitalize">
                                                 {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
                                             </div>
                                             {(Array.isArray(match.scorers) && match.scorers.length > 0) || (Array.isArray(match.assists) && match.assists.length > 0) ? (
