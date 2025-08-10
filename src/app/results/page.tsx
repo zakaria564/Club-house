@@ -263,20 +263,20 @@ export default function ResultsPage() {
                                             key={match.id} 
                                             className={cn("border rounded-lg p-4 transition-colors print:border-2 print:shadow-lg", {
                                                 "cursor-pointer hover:bg-muted/50": !selectedMatchId,
-                                                "bg-primary text-primary-foreground": selectedMatchId === match.id
+                                                "border-primary ring-2 ring-primary": selectedMatchId === match.id
                                             })}
                                             onClick={() => !selectedMatchId && handleMatchClick(match.id)}
                                         >
                                             <div className="flex justify-between items-center">
                                                 <div className="font-semibold text-lg">{match.title}</div>
-                                                <div className={cn("text-2xl font-bold", selectedMatchId === match.id ? "text-white" : "text-primary")}>{match.result}</div>
+                                                <div className="text-2xl font-bold text-primary">{match.result}</div>
                                             </div>
-                                            <div className={cn("text-sm mt-1 capitalize", selectedMatchId === match.id ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                                            <div className={cn("text-sm mt-1 capitalize text-muted-foreground")}>
                                                 {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
                                             </div>
                                             {(Array.isArray(match.scorers) && match.scorers.length > 0) || (Array.isArray(match.assists) && match.assists.length > 0) ? (
                                                 <>
-                                                    <Separator className={cn("my-3", selectedMatchId === match.id && "bg-primary-foreground/20")}/>
+                                                    <Separator className="my-3"/>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                                         {Array.isArray(match.scorers) && match.scorers.length > 0 && (
                                                             <div className="space-y-2">
@@ -285,7 +285,7 @@ export default function ResultsPage() {
                                                                     {match.scorers.map(scorer => (
                                                                         <li key={scorer.playerId}>
                                                                             {playerMap.get(scorer.playerId) || 'Inconnu'}
-                                                                            <span className={cn("ml-1", selectedMatchId === match.id ? "text-primary-foreground/80" : "text-muted-foreground")}>({scorer.count} {scorer.count > 1 ? 'buts' : 'but'})</span>
+                                                                            <span className="ml-1 text-muted-foreground">({scorer.count} {scorer.count > 1 ? 'buts' : 'but'})</span>
                                                                         </li>
                                                                     ))}
                                                                 </ul>
@@ -298,7 +298,7 @@ export default function ResultsPage() {
                                                                     {match.assists.map(assist => (
                                                                         <li key={assist.playerId}>
                                                                             {playerMap.get(assist.playerId) || 'Inconnu'}
-                                                                            <span className={cn("ml-1", selectedMatchId === match.id ? "text-primary-foreground/80" : "text-muted-foreground")}>({assist.count} {assist.count > 1 ? 'passes' : 'passe'})</span>
+                                                                            <span className="ml-1 text-muted-foreground">({assist.count} {assist.count > 1 ? 'passes' : 'passe'})</span>
                                                                         </li>
                                                                     ))}
                                                                 </ul>
@@ -422,3 +422,5 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
+
+    
