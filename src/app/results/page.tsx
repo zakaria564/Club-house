@@ -263,6 +263,9 @@ function StatsTable({ title, stats }: StatsTableProps) {
     const topThree = stats.slice(0, 3);
     const rest = stats.slice(3);
     const medalColors = ["text-yellow-400", "text-gray-400", "text-amber-600"];
+    const unit = title === 'Buteurs' ? 'buts' : 'passes';
+    const unitSingle = title === 'Buteurs' ? 'but' : 'passe';
+
 
     return (
         <div className="space-y-4">
@@ -272,7 +275,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-8 w-8", medalColors[1])} />
                         <p className="font-bold text-lg truncate">{topThree[1].name}</p>
-                        <p className="font-semibold text-muted-foreground">{topThree[1].count}</p>
+                        <p className="font-semibold text-muted-foreground">{topThree[1].count} {topThree[1].count > 1 ? unit : unitSingle}</p>
                         <div className="h-16 bg-muted rounded-t-md mt-1"></div>
                     </div>
                 )}
@@ -280,7 +283,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-10 w-10", medalColors[0])} />
                         <p className="font-bold text-xl truncate">{topThree[0].name}</p>
-                        <p className="font-semibold text-muted-foreground">{topThree[0].count}</p>
+                        <p className="font-semibold text-muted-foreground">{topThree[0].count} {topThree[0].count > 1 ? unit : unitSingle}</p>
                         <div className="h-24 bg-primary/20 rounded-t-md mt-1"></div>
                     </div>
                 )}
@@ -288,7 +291,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-7 w-7", medalColors[2])} />
                         <p className="font-bold text-base truncate">{topThree[2].name}</p>
-                        <p className="font-semibold text-muted-foreground">{topThree[2].count}</p>
+                        <p className="font-semibold text-muted-foreground">{topThree[2].count} {topThree[2].count > 1 ? unit : unitSingle}</p>
                         <div className="h-12 bg-muted rounded-t-md mt-1"></div>
                     </div>
                 )}
