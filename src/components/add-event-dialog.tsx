@@ -208,11 +208,11 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                         </div>
                         <div className="grid grid-cols-4 items-start gap-4">
                             <Label htmlFor="scorers" className="text-right pt-2">Buteurs</Label>
-                            <Textarea id="scorers" placeholder="Ex: Joueur 1 (2), Joueur 2" className="col-span-3" value={scorers} onChange={(e) => setScorers(e.target.value)} />
+                            <Textarea id="scorers" placeholder="Ex: Prénom Nom (2), Prénom Nom" className="col-span-3" value={scorers} onChange={(e) => setScorers(e.target.value)} />
                         </div>
                          <div className="grid grid-cols-4 items-start gap-4">
                             <Label htmlFor="assists" className="text-right pt-2">Passeurs</Label>
-                            <Textarea id="assists" placeholder="Ex: Joueur 3, Joueur 4" className="col-span-3" value={assists} onChange={(e) => setAssists(e.target.value)} />
+                            <Textarea id="assists" placeholder="Ex: Prénom Nom, Prénom Nom" className="col-span-3" value={assists} onChange={(e) => setAssists(e.target.value)} />
                         </div>
                         </>
                     )}

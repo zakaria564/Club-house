@@ -31,7 +31,7 @@ interface DayEventsSheetProps {
 
 const eventTypeIcons: Record<ClubEvent['type'], React.ElementType> = {
   'Match': Shield,
-  'Entraînement': User,
+  'Entraînement': Footprints,
   'Réunion': User,
   'Événement': CalendarIcon,
   'Autre': Info,
