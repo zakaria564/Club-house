@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -147,6 +147,7 @@ export default function Dashboard() {
   
   // Dashboard stats calculations
   const totalPlayers = players.length;
+  const injuredPlayers = players.filter(p => p.status === 'Blessé').length;
   
   const paidMemberships = payments.filter(p => p.memberType === 'player' && p.status === 'Paid').length;
   const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
@@ -238,12 +239,12 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Adhésions payées</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Joueurs blessés</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{paidMemberships} / {totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">{paidPercentage}% des adhésions payées</p>
+            <div className="text-2xl font-bold">{injuredPlayers}</div>
+            <p className="text-xs text-muted-foreground">joueurs actuellement à l'infirmerie</p>
           </CardContent>
         </Card>
         <Card>
@@ -258,17 +259,17 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Activité récente</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Adhésions payées</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{recentPlayers} nouveaux joueurs</div>
-            <p className="text-xs text-muted-foreground">Inscrits cette semaine</p>
+            <div className="text-2xl font-bold">{paidMemberships} / {totalPlayers}</div>
+            <p className="text-xs text-muted-foreground">{paidPercentage}% des adhésions payées</p>
           </CardContent>
         </Card>
       </div>
-      <div className="mt-6">
-        <Card>
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
             <CardDescription>Nombre de joueurs par catégorie.</CardDescription>

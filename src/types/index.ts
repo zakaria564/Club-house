@@ -16,6 +16,7 @@ export type Player = {
   position: string;
   playerNumber: number;
   email: string;
+  status: 'En forme' | 'Blessé' | 'Suspendu' | 'Indisponible';
   clubEntryDate: Date;
   clubExitDate?: Date;
   coachId?: string;
@@ -69,5 +70,3 @@ export type Coach = {
   clubEntryDate: Date;
   clubExitDate?: Date;
 };
-
-    

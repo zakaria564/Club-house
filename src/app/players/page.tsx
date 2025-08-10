@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { cn } from "@/lib/utils"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
@@ -170,6 +171,16 @@ export default function PlayersPage() {
   
   const coachMap = new Map(coaches.map(c => [c.id, `${c.firstName} ${c.lastName}`]));
 
+  const statusBadgeVariant = (status: Player['status']) => {
+    switch(status) {
+        case 'En forme': return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800';
+        case 'Blessé': return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800';
+        case 'Suspendu': return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800';
+        case 'Indisponible': return 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100/80 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
+        default: return 'secondary';
+    }
+  }
+
 
   return (
     <>
@@ -206,9 +217,9 @@ export default function PlayersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nom</TableHead>
-                <TableHead>Catégorie</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="hidden md:table-cell">Catégorie</TableHead>
                 <TableHead className="hidden md:table-cell">Poste</TableHead>
-                <TableHead className="hidden md:table-cell">N°</TableHead>
                 <TableHead className="hidden lg:table-cell">ID joueur</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -238,13 +249,13 @@ export default function PlayersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
+                    <Badge className={cn(statusBadgeVariant(player.status))}>{player.status}</Badge>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <Badge variant="secondary">{player.category}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {player.position}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {player.playerNumber}
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
                     {player.id}

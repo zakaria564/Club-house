@@ -40,6 +40,7 @@ const playerFormSchema = z.object({
     required_error: "Une date de naissance est requise.",
   }),
   category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
+  status: z.enum(["En forme", "Blessé", "Suspendu", "Indisponible"], { required_error: "Veuillez sélectionner un statut." }),
   photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional().or(z.literal('')),
   address: z.string().min(1, "L'adresse est requise."),
   city: z.string().min(1, "La ville est requise."),
@@ -90,6 +91,7 @@ const positions = [
 ]
 
 const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"]
+const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisponible"];
 
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
@@ -120,6 +122,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       email: '',
       dateOfBirth: undefined,
       category: '',
+      status: 'En forme',
       photoUrl: '',
       address: '',
       city: '',
@@ -159,6 +162,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         email: '',
         dateOfBirth: undefined,
         category: '',
+        status: 'En forme',
         photoUrl: '',
         address: '',
         city: '',
@@ -187,6 +191,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
         category: data.category as Player['category'],
+        status: data.status as Player['status'],
         playerNumber: Number(data.playerNumber),
         clubEntryDate: new Date(data.clubEntryDate),
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
@@ -517,6 +522,28 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               {positions.map(position => (
                                   <SelectItem key={position} value={position}>{position}</SelectItem>
                               ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Statut</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Définir le statut du joueur" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {statuses.map(status => (
+                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
