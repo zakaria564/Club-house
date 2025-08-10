@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { differenceInDays, isAfter } from 'date-fns';
+import { ClubLogo } from "@/components/club-logo"
 
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
@@ -176,6 +177,9 @@ export default function Dashboard() {
 
   return (
     <>
+      <div className="flex justify-end mb-4">
+        <ClubLogo className="w-16 h-16" />
+      </div>
       <PageHeader title="Tableau de bord">
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
