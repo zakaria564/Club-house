@@ -170,9 +170,7 @@ export default function ResultsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Stats Column */}
-                 <div className={cn("lg:col-span-1 space-y-8", {
-                    "hidden lg:block": selectedMatchId,
-                })}>
+                <div className="lg:col-span-1 space-y-8">
                     <Card>
                         <CardHeader>
                             <CardTitle>Meilleurs Buteurs</CardTitle>
@@ -194,9 +192,7 @@ export default function ResultsPage() {
                 </div>
 
                 {/* Match Results Column */}
-                 <div className={cn("lg:col-span-2", {
-                    "lg:col-span-3": selectedMatchId,
-                })}>
+                <div className="lg:col-span-2">
                     <Card>
                          <CardHeader>
                             <CardTitle>{getCardTitle()}</CardTitle>
