@@ -182,7 +182,8 @@ function PaymentsPageContent() {
   }
 
   const handleViewMember = (memberId: string, memberType: 'player' | 'coach') => {
-    router.push(`/${memberType}s/${memberId}`);
+    const path = memberType === 'player' ? 'players' : 'coaches';
+    router.push(`/${path}/${memberId}`);
   }
   
   const handlePrintReceipt = (paymentId: string) => {
