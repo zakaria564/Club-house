@@ -46,7 +46,6 @@ export default function PlayersPage() {
   const { toast } = useToast();
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
-  const [isClient, setIsClient] = React.useState(false);
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
@@ -54,31 +53,29 @@ export default function PlayersPage() {
   const [playerToDelete, setPlayerToDelete] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setIsClient(true);
     try {
         const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        let storedPlayers: Player[] = [];
+        let loadedPlayers: Player[];
         if (storedPlayersRaw) {
-            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
+            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
+        } else {
+            loadedPlayers = initialPlayers.map(parsePlayerDates);
+            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
         }
-        
-        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
-        const allPlayersMap = new Map<string, Player>();
-
-        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
-        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); 
-
-        const mergedPlayers = Array.from(allPlayersMap.values());
-        setPlayers(mergedPlayers);
+        setPlayers(loadedPlayers);
 
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
-        setCoaches(storedCoaches);
+        let loadedCoaches: Coach[];
+        if (storedCoachesRaw) {
+            loadedCoaches = JSON.parse(storedCoachesRaw);
+        } else {
+            loadedCoaches = initialCoaches;
+            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
+        }
+        setCoaches(loadedCoaches);
 
     } catch (error) {
         console.error("Failed to load or merge data:", error);
-        setPlayers(initialPlayers.map(parsePlayerDates));
-        setCoaches(initialCoaches);
     }
   }, []);
 
@@ -87,29 +84,30 @@ export default function PlayersPage() {
   }
 
   const handleDeleteConfirm = () => {
-    if (playerToDelete) {
-      const updatedPlayers = players.filter(p => p.id !== playerToDelete);
-      setPlayers(updatedPlayers);
-      
-      try {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
+    if (!playerToDelete) return;
+    
+    // Update players list
+    const updatedPlayers = players.filter(p => p.id !== playerToDelete);
+    setPlayers(updatedPlayers);
+    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
 
-            const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-            let payments: Payment[] = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw) : initialPayments;
-            const updatedPayments = payments.filter(p => p.memberId !== playerToDelete);
-            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
-        }
-      } catch (error) {
-         console.error("Failed to update localStorage", error);
+    // Update associated payments
+    try {
+      const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+      if (storedPaymentsRaw) {
+        const payments: Payment[] = JSON.parse(storedPaymentsRaw);
+        const updatedPayments = payments.filter(p => p.memberId !== playerToDelete);
+        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
       }
-
-      setPlayerToDelete(null);
-       toast({
-        title: "Joueur supprimé",
-        description: "Le joueur et ses paiements ont été supprimés.",
-      })
+    } catch (error) {
+       console.error("Failed to update payments in localStorage", error);
     }
+    
+    setPlayerToDelete(null);
+    toast({
+      title: "Joueur supprimé",
+      description: "Le joueur et ses paiements ont été supprimés.",
+    })
   }
 
   const handleEditPlayer = (player: Player) => {
@@ -132,42 +130,17 @@ export default function PlayersPage() {
   
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
-    setPlayers(prevPlayers => {
-        let newPlayers: Player[];
-        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
-        if (existingPlayerIndex > -1) {
-            newPlayers = [...prevPlayers];
-            newPlayers[existingPlayerIndex] = playerWithDates;
-        } else {
-            newPlayers = [...prevPlayers, playerWithDates];
-        }
-        
-        try {
-            if (typeof window !== 'undefined') {
-                localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(newPlayers));
-            }
-        } catch(e) {
-            console.error("Failed to save players to local storage", e);
-        }
-        return newPlayers;
-    });
+    let newPlayers: Player[];
+    const isNew = !players.some(p => p.id === updatedPlayer.id);
 
-    try {
-      if(typeof window !== 'undefined') {
-        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        const payments: Payment[] = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw) : initialPayments;
-        const updatedPayments = payments.map(p => {
-          if (p.memberId === updatedPlayer.id) {
-            return { ...p, memberName: `${updatedPlayer.firstName} ${updatedPlayer.lastName}`};
-          }
-          return p;
-        });
-        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
-      }
-    } catch (error) {
-      console.error("Failed to update payments for player:", error);
+    if (isNew) {
+        newPlayers = [...players, playerWithDates];
+    } else {
+        newPlayers = players.map(p => (p.id === updatedPlayer.id ? playerWithDates : p));
     }
 
+    setPlayers(newPlayers);
+    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(newPlayers));
   };
 
   const filteredPlayers = players.filter(player =>

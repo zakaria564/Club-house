@@ -19,7 +19,7 @@ import { ClubLogo } from '@/components/club-logo';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 
-const LOCAL_STORAGE_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 
@@ -55,49 +55,45 @@ export default function PlayerDetailPage() {
   const router = useRouter();
   const params = useParams();
   const playerId = params.id as string;
-  const [isClient, setIsClient] = React.useState(false);
 
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [payments, setPayments] = React.useState<Payment[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
 
   React.useEffect(() => {
-    setIsClient(true);
     try {
-        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
-        let storedPlayers: Player[] = [];
+        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
+        let loadedPlayers: Player[];
         if (storedPlayersRaw) {
-            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-        }
-        
-        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
-        const allPlayersMap = new Map<string, Player>();
-
-        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
-        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); 
-
-        const mergedPlayers = Array.from(allPlayersMap.values());
-        setPlayers(mergedPlayers);
-
-        // Load payments
-        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        let allPayments: Payment[] = [];
-        if (storedPaymentsRaw) {
-            allPayments = JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}));
+            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
         } else {
-            allPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
+            loadedPlayers = initialPlayers.map(parsePlayerDates);
+            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
         }
-        setPayments(allPayments.filter(p => p.memberType === 'player' && p.memberId === playerId));
+        setPlayers(loadedPlayers);
 
-        // Load coaches
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        let loadedPayments: Payment[];
+        if (storedPaymentsRaw) {
+            loadedPayments = JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}));
+        } else {
+            loadedPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
+            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
+        }
+        setPayments(loadedPayments.filter(p => p.memberType === 'player' && p.memberId === playerId));
+        
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
-        setCoaches(storedCoaches);
+        let loadedCoaches: Coach[];
+        if (storedCoachesRaw) {
+            loadedCoaches = JSON.parse(storedCoachesRaw);
+        } else {
+            loadedCoaches = initialCoaches;
+            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
+        }
+        setCoaches(loadedCoaches);
 
     } catch (error) {
         console.error("Failed to load or merge data:", error);
-        setPlayers(initialPlayers.map(parsePlayerDates));
-        setCoaches(initialCoaches);
     }
   }, [playerId]);
 
@@ -118,9 +114,7 @@ export default function PlayerDetailPage() {
     const playerWithDates = parsePlayerDates(updatedPlayer);
     const updatedPlayers = players.map((p) => (p.id === playerWithDates.id ? playerWithDates : p));
     setPlayers(updatedPlayers);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedPlayers));
-    }
+    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
   };
 
   const handlePrint = () => {

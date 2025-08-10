@@ -61,28 +61,24 @@ export default function CoachDetailPage() {
    React.useEffect(() => {
     try {
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        let storedCoaches: Coach[] = [];
+        let loadedCoaches: Coach[];
         if (storedCoachesRaw) {
-            storedCoaches = JSON.parse(storedCoachesRaw).map(parseCoachDates);
-        }
-        
-        const allCoachesMap = new Map<string, Coach>();
-        initialCoaches.map(parseCoachDates).forEach(c => allCoachesMap.set(c.id, c));
-        storedCoaches.forEach(c => allCoachesMap.set(c.id, c)); 
-
-        const mergedCoaches = Array.from(allCoachesMap.values());
-        setCoaches(mergedCoaches);
-
-        // Load payments
-        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        let allPayments: Payment[] = [];
-        if (storedPaymentsRaw) {
-            allPayments = JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}));
+            loadedCoaches = JSON.parse(storedCoachesRaw).map(parseCoachDates);
         } else {
-            allPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
+            loadedCoaches = initialCoaches.map(parseCoachDates);
+            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
         }
-        setPayments(allPayments.filter(p => p.memberType === 'coach' && p.memberId === coachId));
+        setCoaches(loadedCoaches);
 
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        let loadedPayments: Payment[];
+        if (storedPaymentsRaw) {
+            loadedPayments = JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}));
+        } else {
+            loadedPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
+            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
+        }
+        setPayments(loadedPayments.filter(p => p.memberType === 'coach' && p.memberId === coachId));
 
     } catch (error) {
         console.error("Failed to load data:", error);

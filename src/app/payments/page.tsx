@@ -31,6 +31,11 @@ const parsePlayerDates = (player: any): Player => ({
     clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
 });
 
+const parsePaymentDates = (payment: any): Payment => ({
+    ...payment,
+    date: new Date(payment.date),
+});
+
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
   const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
@@ -72,62 +77,47 @@ function PaymentsPageContent() {
   const memberId = searchParams.get('memberId')
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
-  const [isClient, setIsClient] = React.useState(false);
   const [memberTypeFilter, setMemberTypeFilter] = React.useState<'all' | 'player' | 'coach'>('all');
   
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
+  const [payments, setPayments] = React.useState<Payment[]>([]);
 
   React.useEffect(() => {
-    setIsClient(true);
-    // Load Players
     try {
         const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : [];
-        const allPlayersMap = new Map<string, Player>();
-        initialPlayers.map(parsePlayerDates).forEach(p => allPlayersMap.set(p.id, p));
-        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); 
-        setPlayers(Array.from(allPlayersMap.values()));
-    } catch (error) {
-        console.error("Failed to load players:", error);
-        setPlayers(initialPlayers.map(parsePlayerDates));
-    }
-    // Load Coaches
-    try {
+        let loadedPlayers: Player[];
+        if (storedPlayersRaw) {
+            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
+        } else {
+            loadedPlayers = initialPlayers.map(parsePlayerDates);
+            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
+        }
+        setPlayers(loadedPlayers);
+
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : [];
-        const allCoachesMap = new Map<string, Coach>();
-        initialCoaches.forEach(c => allCoachesMap.set(c.id, c));
-        storedCoaches.forEach(c => allCoachesMap.set(c.id, c));
-        setCoaches(Array.from(allCoachesMap.values()));
+        let loadedCoaches: Coach[];
+        if (storedCoachesRaw) {
+            loadedCoaches = JSON.parse(storedCoachesRaw);
+        } else {
+            loadedCoaches = initialCoaches;
+            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
+        }
+        setCoaches(loadedCoaches);
+        
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        let loadedPayments: Payment[];
+        if (storedPaymentsRaw) {
+            loadedPayments = JSON.parse(storedPaymentsRaw).map(parsePaymentDates);
+        } else {
+            loadedPayments = initialPayments.map(parsePaymentDates);
+            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
+        }
+        setPayments(loadedPayments);
     } catch (error) {
-        console.error("Failed to load coaches:", error);
-        setCoaches(initialCoaches);
+        console.error("Failed to load data:", error);
     }
   }, []);
-
-
-  const [payments, setPayments] = React.useState<Payment[]>(() => {
-    if (typeof window === 'undefined') return initialPayments.map(p => ({...p, date: new Date(p.date)}));
-    try {
-        const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        return storedPayments ? JSON.parse(storedPayments).map((p: any) => ({...p, date: new Date(p.date)})) : initialPayments.map(p => ({...p, date: new Date(p.date)}));
-    } catch (error) {
-        console.error("Failed to parse payments from localStorage", error);
-        return initialPayments.map(p => ({...p, date: new Date(p.date)}));
-    }
-  });
-
-   React.useEffect(() => {
-    try {
-        if (isClient) {
-          localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(payments));
-        }
-    } catch (error) {
-        console.error("Failed to save payments to localStorage", error);
-    }
-  }, [payments, isClient]);
-
 
   const statusTranslations: { [key in Payment['status']]: string } = {
     'Paid': 'Payé',
@@ -166,15 +156,18 @@ function PaymentsPageContent() {
     }
 
     const paymentWithId = { ...newPayment, id: getNextId() };
-    setPayments([...payments, paymentWithId]);
+    const newPayments = [...payments, paymentWithId];
+    setPayments(newPayments);
+    localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(newPayments));
   }
   
   const handleMarkAsPaid = (paymentId: string) => {
-    setPayments(currentPayments =>
-      currentPayments.map(p =>
-        p.id === paymentId ? { ...p, advance: p.totalAmount, remaining: 0, status: 'Paid' } : p
-      )
+    const newPayments = payments.map(p =>
+      p.id === paymentId ? { ...p, advance: p.totalAmount, remaining: 0, status: 'Paid' as const } : p
     );
+    setPayments(newPayments);
+    localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(newPayments));
+    
     const payment = payments.find(p => p.id === paymentId);
     toast({
         title: "Paiement mis à jour",

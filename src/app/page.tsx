@@ -73,21 +73,34 @@ export default function Dashboard() {
     if (typeof window === 'undefined') return;
     try {
         const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : [];
-        const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
-        const allPlayersMap = new Map<string, Player>();
-        initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
-        storedPlayers.forEach(p => allPlayersMap.set(p.id, p));
-        const mergedPlayers = Array.from(allPlayersMap.values());
-        setPlayers(mergedPlayers);
+        let loadedPlayers: Player[];
+        if (storedPlayersRaw) {
+            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
+        } else {
+            loadedPlayers = initialPlayers.map(parsePlayerDates);
+            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
+        }
+        setPlayers(loadedPlayers);
 
         const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        const storedPayments = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw).map(parsePaymentDates) : initialPayments.map(parsePaymentDates);
-        setPayments(storedPayments);
+        let loadedPayments: Payment[];
+        if (storedPaymentsRaw) {
+            loadedPayments = JSON.parse(storedPaymentsRaw).map(parsePaymentDates);
+        } else {
+            loadedPayments = initialPayments.map(parsePaymentDates);
+            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
+        }
+        setPayments(loadedPayments);
 
         const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
-        const storedEvents = storedEventsRaw ? JSON.parse(storedEventsRaw).map(parseEventDates) : initialClubEvents.map(parseEventDates);
-        setEvents(storedEvents);
+        let loadedEvents: ClubEvent[];
+        if (storedEventsRaw) {
+            loadedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
+        } else {
+            loadedEvents = initialClubEvents.map(parseEventDates);
+            localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(loadedEvents));
+        }
+        setEvents(loadedEvents);
 
     } catch (error) {
         console.error("Failed to load or merge data:", error);
@@ -101,36 +114,28 @@ export default function Dashboard() {
     setIsClient(true);
     loadData();
 
-    window.addEventListener('focus', loadData);
+    const handleFocus = () => {
+        loadData();
+    };
+
+    window.addEventListener('focus', handleFocus);
     return () => {
-        window.removeEventListener('focus', loadData);
+        window.removeEventListener('focus', handleFocus);
     }
   }, [loadData]);
   
-  React.useEffect(() => {
-    try {
-        if (isClient) {
-          localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(players));
-          localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(payments));
-          localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(events));
-        }
-    } catch (error) {
-        console.error("Failed to save data to localStorage", error);
-    }
-  }, [players, payments, events, isClient]);
-
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
-    setPlayers(prevPlayers => {
-        const existingPlayerIndex = prevPlayers.findIndex(p => p.id === updatedPlayer.id);
-        if (existingPlayerIndex > -1) {
-            const newPlayers = [...prevPlayers];
-            newPlayers[existingPlayerIndex] = playerWithDates;
-            return newPlayers;
-        } else {
-            return [...prevPlayers, playerWithDates];
-        }
-    });
+    let newPlayers: Player[];
+    const existingPlayerIndex = players.findIndex(p => p.id === updatedPlayer.id);
+    if (existingPlayerIndex > -1) {
+        newPlayers = [...players];
+        newPlayers[existingPlayerIndex] = playerWithDates;
+    } else {
+        newPlayers = [...players, playerWithDates];
+    }
+    setPlayers(newPlayers);
+    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(newPlayers));
   };
 
   const handlePlayerSelect = (playerId: string) => {

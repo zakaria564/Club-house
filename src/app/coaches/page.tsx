@@ -70,71 +70,36 @@ export default function CoachesPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
-  const [isClient, setIsClient] = React.useState(false);
   const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
   const [selectedCoach, setSelectedCoach] = React.useState<Coach | null>(null);
   const [coachToDelete, setCoachToDelete] = React.useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
 
   React.useEffect(() => {
-    setIsClient(true);
     try {
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        let storedCoaches: Coach[] = [];
+        let loadedCoaches: Coach[];
         if (storedCoachesRaw) {
-            storedCoaches = JSON.parse(storedCoachesRaw);
+            loadedCoaches = JSON.parse(storedCoachesRaw);
+        } else {
+            loadedCoaches = initialCoaches;
+            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
         }
-        
-        const allCoachesMap = new Map<string, Coach>();
-        initialCoaches.forEach(c => allCoachesMap.set(c.id, c));
-        storedCoaches.forEach(c => allCoachesMap.set(c.id, c)); 
-
-        const mergedCoaches = Array.from(allCoachesMap.values());
-        setCoaches(mergedCoaches);
-
+        setCoaches(loadedCoaches);
     } catch (error) {
         console.error("Failed to load coaches:", error);
         setCoaches(initialCoaches);
     }
   }, []);
 
-  React.useEffect(() => {
-    try {
-        if (isClient) {
-          localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(coaches));
-        }
-    } catch (error) {
-        console.error("Failed to save coaches to localStorage", error);
-    }
-  }, [coaches, isClient]);
-
   const handleCoachUpdate = (updatedCoach: Coach) => {
-    setCoaches(prevCoaches => {
-        const existingCoachIndex = prevCoaches.findIndex(c => c.id === updatedCoach.id);
-        if (existingCoachIndex > -1) {
-            const newCoaches = [...prevCoaches];
-            newCoaches[existingCoachIndex] = updatedCoach;
-            return newCoaches;
-        } else {
-            return [...prevCoaches, updatedCoach];
-        }
-    });
-
-    try {
-      if(typeof window !== 'undefined') {
-        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        const payments: Payment[] = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw) : initialPayments;
-        const updatedPayments = payments.map(p => {
-          if (p.memberId === updatedCoach.id) {
-            return { ...p, memberName: `${updatedCoach.firstName} ${updatedCoach.lastName}`};
-          }
-          return p;
-        });
-        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
-      }
-    } catch (error) {
-      console.error("Failed to update payments for coach:", error);
+    const newCoaches = coaches.map(c => (c.id === updatedCoach.id ? updatedCoach : c));
+    const isNew = !coaches.some(c => c.id === updatedCoach.id);
+    if (isNew) {
+      newCoaches.push(updatedCoach);
     }
+    setCoaches(newCoaches);
+    localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(newCoaches));
   };
 
   const handleEditCoach = (coach: Coach) => {
@@ -152,29 +117,28 @@ export default function CoachesPage() {
   }
 
   const handleDeleteConfirm = () => {
-    if (coachToDelete) {
-      const updatedCoaches = coaches.filter(c => c.id !== coachToDelete)
-      setCoaches(updatedCoaches);
+    if (!coachToDelete) return;
 
-      try {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(updatedCoaches));
-            
-            const storedPayments = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-            let payments: Payment[] = storedPayments ? JSON.parse(storedPayments) : initialPayments;
-            const updatedPayments = payments.filter(p => p.memberId !== coachToDelete);
-            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
-        }
-      } catch (error) {
-         console.error("Failed to update payments in localStorage", error);
+    const updatedCoaches = coaches.filter(c => c.id !== coachToDelete);
+    setCoaches(updatedCoaches);
+    localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(updatedCoaches));
+
+    try {
+      const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+      if (storedPaymentsRaw) {
+        let payments: Payment[] = JSON.parse(storedPaymentsRaw);
+        const updatedPayments = payments.filter(p => p.memberId !== coachToDelete);
+        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
       }
-
-      setCoachToDelete(null);
-      toast({
-        title: "Entraîneur supprimé",
-        description: "L'entraîneur et ses paiements ont été supprimés.",
-      })
+    } catch (error) {
+      console.error("Failed to update payments in localStorage", error);
     }
+
+    setCoachToDelete(null);
+    toast({
+      title: "Entraîneur supprimé",
+      description: "L'entraîneur et ses paiements ont été supprimés.",
+    });
   }
 
   const handleExport = () => {

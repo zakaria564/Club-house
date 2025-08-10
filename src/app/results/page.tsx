@@ -99,26 +99,27 @@ export default function ResultsPage() {
     React.useEffect(() => {
         try {
             const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
-            let storedEvents: ClubEvent[] = [];
+            let loadedEvents: ClubEvent[];
             if (storedEventsRaw) {
-                storedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
+                loadedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
+            } else {
+                loadedEvents = initialClubEvents.map(parseEventDates);
+                localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(loadedEvents));
             }
-            
-            const initialEventsWithDates = initialClubEvents.map(parseEventDates);
-            const allEventsMap = new Map<string, ClubEvent>();
-
-            initialEventsWithDates.forEach(e => allEventsMap.set(e.id, e));
-            storedEvents.forEach(e => allEventsMap.set(e.id, e)); 
-
-            const mergedEvents = Array.from(allEventsMap.values());
-            setEvents(mergedEvents);
+            setEvents(loadedEvents);
 
             const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-            const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : initialPlayers.map(parsePlayerDates);
-            setPlayers(storedPlayers);
+            let loadedPlayers: Player[];
+            if (storedPlayersRaw) {
+                loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
+            } else {
+                loadedPlayers = initialPlayers.map(parsePlayerDates);
+                localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
+            }
+            setPlayers(loadedPlayers);
 
         } catch (error) {
-            console.error("Failed to load or merge events:", error);
+            console.error("Failed to load data:", error);
             setEvents(initialClubEvents.map(parseEventDates));
             setPlayers(initialPlayers.map(parsePlayerDates));
         }

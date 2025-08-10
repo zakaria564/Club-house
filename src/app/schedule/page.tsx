@@ -38,7 +38,6 @@ export default function SchedulePage() {
   const [isEventDialogOpen, setEventDialogOpen] = React.useState(false);
   const [selectedEvent, setSelectedEvent] = React.useState<ClubEvent | null>(null);
   const [eventToDelete, setEventToDelete] = React.useState<ClubEvent['id'] | null>(null);
-  const [isClient, setIsClient] = React.useState(false);
   const [dialogDate, setDialogDate] = React.useState<Date | undefined>();
   const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
   
@@ -46,57 +45,40 @@ export default function SchedulePage() {
   const [selectedDateForSheet, setSelectedDateForSheet] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
-      setIsClient(true);
       try {
         const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
-        let storedEvents: ClubEvent[] = [];
+        let loadedEvents: ClubEvent[];
         if (storedEventsRaw) {
-            storedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
+            loadedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
+        } else {
+            loadedEvents = initialClubEvents.map(parseEventDates);
+            localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(loadedEvents));
         }
-        
-        const initialEventsWithDates = initialClubEvents.map(parseEventDates);
-        const allEventsMap = new Map<string, ClubEvent>();
-
-        initialEventsWithDates.forEach(e => allEventsMap.set(e.id, e));
-        storedEvents.forEach(e => allEventsMap.set(e.id, e)); 
-
-        const mergedEvents = Array.from(allEventsMap.values());
-        setEvents(mergedEvents);
-
+        setEvents(loadedEvents);
     } catch (error) {
         console.error("Failed to load or merge events:", error);
         setEvents(initialClubEvents.map(parseEventDates));
     }
   }, []);
 
-  React.useEffect(() => {
-    try {
-        if (isClient) {
-          localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(events));
-        }
-    } catch (error) {
-        console.error("Failed to save events to localStorage", error);
-    }
-  }, [events, isClient]);
-
-
   const handleEventSubmit = (submittedEvent: ClubEvent) => {
-    setEvents(prevEvents => {
-      const existingEventIndex = prevEvents.findIndex(e => e.id === submittedEvent.id);
-      if (existingEventIndex > -1) {
-        const newEvents = [...prevEvents];
-        newEvents[existingEventIndex] = submittedEvent;
-        return newEvents;
-      } else {
-        return [...prevEvents, submittedEvent];
-      }
-    });
+    let newEvents: ClubEvent[];
+    const isNew = !events.some(e => e.id === submittedEvent.id);
+    if (isNew) {
+      newEvents = [...events, submittedEvent];
+    } else {
+      newEvents = events.map(e => (e.id === submittedEvent.id ? submittedEvent : e));
+    }
+    setEvents(newEvents);
+    localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(newEvents));
     setDialogDate(undefined);
   };
 
   const handleDeleteConfirm = () => {
     if (eventToDelete) {
-      setEvents(events.filter(e => e.id !== eventToDelete));
+      const newEvents = events.filter(e => e.id !== eventToDelete);
+      setEvents(newEvents);
+      localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(newEvents));
       toast({
         title: "Événement supprimé",
         description: "L'événement a été supprimé du calendrier.",
