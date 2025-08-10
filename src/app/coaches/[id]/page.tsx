@@ -26,6 +26,7 @@ const PrintHeader = () => (
             <ClubLogo className="w-16 h-16" />
             <div className="text-center">
                 <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
+                <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
             </div>
         </div>
         <hr className="w-full mt-4 border-t-2 border-primary" />
