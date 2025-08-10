@@ -4,9 +4,9 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer } from 'lucide-react';
-import type { Player, Payment } from '@/types';
-import { players as initialPlayers, payments as initialPayments } from '@/lib/mock-data';
+import { ArrowLeft, Edit, Printer, UserCheck } from 'lucide-react';
+import type { Player, Payment, Coach } from '@/types';
+import { players as initialPlayers, payments as initialPayments, coaches as initialCoaches } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,8 @@ import { ClubLogo } from '@/components/club-logo';
 
 const LOCAL_STORAGE_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
+const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
+
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
@@ -56,6 +58,7 @@ export default function PlayerDetailPage() {
 
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [payments, setPayments] = React.useState<Payment[]>([]);
+  const [coaches, setCoaches] = React.useState<Coach[]>([]);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -85,15 +88,33 @@ export default function PlayerDetailPage() {
         }
         setPayments(allPayments.filter(p => p.memberType === 'player' && p.memberId === playerId));
 
+        // Load coaches
+        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
+        const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
+        setCoaches(storedCoaches);
+
     } catch (error) {
         console.error("Failed to load or merge data:", error);
         setPlayers(initialPlayers.map(parsePlayerDates));
+        setCoaches(initialCoaches);
     }
   }, [playerId]);
 
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
 
   const player = players.find((p) => p.id === playerId);
+  
+  const getCoachForPlayer = React.useCallback((player?: Player) => {
+    if (!player) return null;
+    const coach = coaches.find(c => {
+        const categoryMatch = c.specialty.match(/\((U\d+|Senior|Vétéran)\)/);
+        return categoryMatch ? categoryMatch[1] === player.category : false;
+    });
+    return coach ? `${coach.firstName} ${coach.lastName}` : 'Non assigné';
+  }, [coaches]);
+  
+  const coachName = getCoachForPlayer(player);
+
 
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
@@ -187,6 +208,11 @@ export default function PlayerDetailPage() {
                   <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
                   <span className="font-medium">Date de sortie:</span>
                   <span>{player.clubExitDate && isValidDate(player.clubExitDate) ? format(player.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
+                   <span className="font-medium">Entraîneur:</span>
+                   <span className="flex items-center gap-2">
+                    <UserCheck className="h-4 w-4 text-muted-foreground" />
+                    {coachName}
+                  </span>
                 </div>
               </div>
             </div>

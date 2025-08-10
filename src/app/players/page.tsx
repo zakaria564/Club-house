@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,8 +10,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { players as initialPlayers, payments as initialPayments } from "@/lib/mock-data"
-import type { Player, Payment } from "@/types"
+import { players as initialPlayers, payments as initialPayments, coaches as initialCoaches } from "@/lib/mock-data"
+import type { Player, Payment, Coach } from "@/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import AddPlayerDialog from "@/components/add-player-dialog"
@@ -28,6 +28,7 @@ import {
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
+const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 
 
 const parsePlayerDates = (player: any): Player => ({
@@ -41,6 +42,7 @@ const parsePlayerDates = (player: any): Player => ({
 export default function PlayersPage() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>([]);
+  const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isClient, setIsClient] = React.useState(false);
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -66,9 +68,14 @@ export default function PlayersPage() {
         const mergedPlayers = Array.from(allPlayersMap.values());
         setPlayers(mergedPlayers);
 
+        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
+        const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
+        setCoaches(storedCoaches);
+
     } catch (error) {
-        console.error("Failed to load or merge players:", error);
+        console.error("Failed to load or merge data:", error);
         setPlayers(initialPlayers.map(parsePlayerDates));
+        setCoaches(initialCoaches);
     }
   }, []);
 
@@ -160,6 +167,15 @@ export default function PlayersPage() {
     `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     player.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  const coachByCategory = new Map<string, string>();
+  coaches.forEach(coach => {
+      const categoryMatch = coach.specialty.match(/\((U\d+|Senior|Vétéran)\)/);
+      if (categoryMatch) {
+          coachByCategory.set(categoryMatch[1], `${coach.firstName} ${coach.lastName}`);
+      }
+  });
+
 
   return (
     <>
@@ -206,7 +222,9 @@ export default function PlayersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPlayers.map(player => (
+              {filteredPlayers.map(player => {
+                const coachName = coachByCategory.get(player.category);
+                return (
                 <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -214,7 +232,15 @@ export default function PlayersPage() {
                          <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
                          <AvatarFallback>{player.firstName[0]}{player.lastName[0]}</AvatarFallback>
                       </Avatar>
-                       <div className="font-medium">{player.firstName} {player.lastName}</div>
+                       <div>
+                          <div className="font-medium">{player.firstName} {player.lastName}</div>
+                          {coachName && (
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <UserCheck className="h-3 w-3" />
+                                {coachName}
+                            </div>
+                          )}
+                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -260,7 +286,7 @@ export default function PlayersPage() {
                       </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
             </TableBody>
           </Table>
         </CardContent>
