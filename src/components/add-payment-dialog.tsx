@@ -36,7 +36,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   const { toast } = useToast();
   const [memberType, setMemberType] = React.useState<'player' | 'coach'>('player');
   const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(null);
-  const [totalAmount, setTotalAmount] = React.useState<string>("300");
+  const [totalAmount, setTotalAmount] = React.useState<string>("300.00");
   const [advance, setAdvance] = React.useState<string>("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
@@ -50,6 +50,28 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   React.useEffect(() => {
     setSelectedMemberId(null); // Reset selection when type changes
   }, [memberType]);
+  
+  React.useEffect(() => {
+    if (open) {
+        setTotalAmount("300.00");
+        setAdvance("");
+        setSelectedMemberId(null);
+        setMemberType('player');
+        setDate(new Date());
+    }
+  }, [open]);
+
+  const handleAmountBlur = (
+    e: React.FocusEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      setter(value.toFixed(2));
+    } else {
+      setter("");
+    }
+  };
 
 
   const handleSubmit = () => {
@@ -100,12 +122,6 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
       description: `Le paiement pour ${selectedMember.name} a été ajouté.`,
     });
 
-    // Reset form and close dialog
-    setMemberType('player');
-    setSelectedMemberId(null);
-    setTotalAmount("300");
-    setAdvance("");
-    setDate(new Date());
     onOpenChange(false);
   }
 
@@ -124,7 +140,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
               Type
             </Label>
             <RadioGroup
-              defaultValue="player"
+              value={memberType}
               onValueChange={(value: 'player' | 'coach') => setMemberType(value)}
               className="col-span-3 flex gap-4"
             >
@@ -160,6 +176,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
               className="col-span-3" 
               value={totalAmount} 
               onChange={(e) => setTotalAmount(e.target.value)} 
+              onBlur={(e) => handleAmountBlur(e, setTotalAmount)}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -173,6 +190,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
               className="col-span-3" 
               value={advance} 
               onChange={(e) => setAdvance(e.target.value)} 
+              onBlur={(e) => handleAmountBlur(e, setAdvance)}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
