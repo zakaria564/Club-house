@@ -144,12 +144,21 @@ export default function ResultsPage() {
                                         <div className="text-sm text-muted-foreground mt-1">
                                             {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
                                         </div>
-                                        {match.scorers && (
+                                        {(match.scorers || match.assists) && (
                                             <>
-                                            <Separator className="my-3"/>
-                                            <div className="text-sm">
-                                                <span className="font-medium">Buteurs:</span> {match.scorers}
-                                            </div>
+                                                <Separator className="my-3"/>
+                                                <div className="text-sm space-y-1">
+                                                    {match.scorers && (
+                                                        <div>
+                                                            <span className="font-medium">Buteurs:</span> {match.scorers}
+                                                        </div>
+                                                    )}
+                                                    {match.assists && (
+                                                        <div>
+                                                            <span className="font-medium">Passeurs:</span> {match.assists}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </>
                                         )}
                                     </div>
