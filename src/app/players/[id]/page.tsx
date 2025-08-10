@@ -119,17 +119,17 @@ export default function PlayerDetailPage() {
     <>
       <div className="no-print">
         <PageHeader title="Fiche du Joueur">
-          <div className="flex gap-2">
+           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Retour
             </Button>
             <Button onClick={() => setPlayerDialogOpen(true)}>
-              <Edit className="mr-2" />
+              <Edit className="mr-2 h-4 w-4" />
               Modifier
             </Button>
             <Button onClick={handlePrint}>
-              <Printer className="mr-2" />
+              <Printer className="mr-2 h-4 w-4" />
               Imprimer
             </Button>
           </div>
@@ -158,7 +158,7 @@ export default function PlayerDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
-                <div className="grid grid-cols-[150px,1fr] gap-2 text-sm">
+                <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
                   <span className="font-medium">Date de naissance:</span>
                   <span>{isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
                   <span className="font-medium">Genre:</span>
@@ -173,7 +173,7 @@ export default function PlayerDetailPage() {
               </div>
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations du Tuteur</h3>
-                <div className="grid grid-cols-[150px,1fr] gap-2 text-sm">
+                <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
                   <span className="font-medium">Nom du tuteur:</span>
                   <span>{player.guardianName}</span>
                   <span className="font-medium">Téléphone du tuteur:</span>
@@ -182,7 +182,7 @@ export default function PlayerDetailPage() {
               </div>
               <div className="space-y-4 md:col-span-2">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
-                <div className="grid grid-cols-[150px,1fr,150px,1fr] gap-2 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-[auto,1fr,auto,1fr] gap-x-4 gap-y-2 text-sm">
                   <span className="font-medium">Date d'entrée:</span>
                   <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
                   <span className="font-medium">Date de sortie:</span>
@@ -207,8 +207,8 @@ export default function PlayerDetailPage() {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Statut</TableHead>
-                                <TableHead className="text-right">Montant Total</TableHead>
-                                <TableHead className="text-right">Avance</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                                <TableHead className="text-right hidden sm:table-cell">Avance</TableHead>
                                 <TableHead className="text-right">Reste</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -229,7 +229,7 @@ export default function PlayerDetailPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
-                                        <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
+                                        <TableCell className="text-right hidden sm:table-cell">{payment.advance.toFixed(2)} DH</TableCell>
                                         <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
                                     </TableRow>
                                 ))

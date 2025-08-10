@@ -204,16 +204,16 @@ export default function CoachesPage() {
   return (
     <>
       <PageHeader title="Entraîneurs">
-        <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => router.back()}>
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
             </Button>
-            <Button variant="outline" onClick={handleExport}>
+            <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
                 <File className="mr-2 h-4 w-4" />
                 Exporter
             </Button>
-            <Button onClick={handleAddNewCoach}>
+            <Button onClick={handleAddNewCoach} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Ajouter un entraîneur
             </Button>
@@ -240,7 +240,7 @@ export default function CoachesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nom</TableHead>
-                <TableHead>Spécialité</TableHead>
+                <TableHead className="hidden sm:table-cell">Spécialité</TableHead>
                 <TableHead className="hidden md:table-cell">Contact</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -259,11 +259,11 @@ export default function CoachesPage() {
                        <div className="font-medium">{coach.firstName} {coach.lastName}</div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Badge variant="secondary">{coach.specialty}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="font-medium">{coach.email}</div>
+                    <div className="font-medium truncate">{coach.email}</div>
                     <div className="text-sm text-muted-foreground">{coach.phone}</div>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>

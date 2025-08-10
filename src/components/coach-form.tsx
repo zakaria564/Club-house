@@ -422,7 +422,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                 </div>
             </div>
 
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4">
+          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
             <Button type="submit">{coach ? "Sauvegarder les modifications" : "Créer l'entraîneur"}</Button>
           </div>

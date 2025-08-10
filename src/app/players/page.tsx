@@ -164,12 +164,12 @@ export default function PlayersPage() {
   return (
     <>
       <PageHeader title="Joueurs">
-        <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => router.back()}>
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
             </Button>
-            <Button onClick={handleAddNewPlayer}>
+            <Button onClick={handleAddNewPlayer} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Ajouter un joueur
             </Button>
@@ -199,7 +199,7 @@ export default function PlayersPage() {
                 <TableHead>Catégorie</TableHead>
                 <TableHead className="hidden md:table-cell">Poste</TableHead>
                 <TableHead className="hidden md:table-cell">N°</TableHead>
-                <TableHead className="hidden md:table-cell">ID joueur</TableHead>
+                <TableHead className="hidden lg:table-cell">ID joueur</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -226,7 +226,7 @@ export default function PlayersPage() {
                   <TableCell className="hidden md:table-cell">
                     {player.playerNumber}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden lg:table-cell">
                     {player.id}
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>

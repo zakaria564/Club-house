@@ -127,14 +127,14 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader title="Tableau de bord">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
                 <PopoverTrigger asChild>
                     <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={openCombobox}
-                    className="w-[200px] justify-between"
+                    className="w-full sm:w-[200px] justify-between"
                     >
                     {selectedPlayerId
                         ? players.find((player) => player.id === selectedPlayerId)?.firstName + ' ' + players.find((player) => player.id === selectedPlayerId)?.lastName
@@ -142,7 +142,7 @@ export default function Dashboard() {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                     <Command filter={commandFilter}>
                     <CommandInput placeholder="Rechercher un joueur..." />
                     <CommandList>
@@ -169,7 +169,7 @@ export default function Dashboard() {
                 </PopoverContent>
             </Popover>
 
-            <Button onClick={() => setPlayerDialogOpen(true)}>
+            <Button onClick={() => setPlayerDialogOpen(true)} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Ajouter un joueur
             </Button>

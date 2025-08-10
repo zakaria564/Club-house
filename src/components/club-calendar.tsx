@@ -15,8 +15,7 @@ interface ClubCalendarProps {
     events: ClubEvent[];
     onDayClick: (date: Date) => void;
     onAddEvent: (date: Date) => void;
-    onEditEvent: (event: ClubEvent) => void;
-    onDeleteEvent: (eventId: string) => void;
+    isMobile: boolean;
 }
 
 const eventTypeColors: { [key in ClubEvent['type']]: string } = {
@@ -27,26 +26,26 @@ const eventTypeColors: { [key in ClubEvent['type']]: string } = {
   'Autre': 'bg-gray-500 border-gray-600 text-white',
 };
 
-export function ClubCalendar({ currentDate, events, onDayClick, onAddEvent }: ClubCalendarProps) {
+export function ClubCalendar({ currentDate, events, onDayClick, onAddEvent, isMobile }: ClubCalendarProps) {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
     const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
     const days = eachDayOfInterval({ start: startDate, end: endDate });
-    const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
     return (
         <div className="grid grid-cols-7 grid-rows-[auto,1fr] gap-px bg-border text-sm">
             {daysOfWeek.map(day => (
-                <div key={day} className="py-2 text-center font-semibold text-muted-foreground bg-card">
+                <div key={day} className="py-2 text-center font-semibold text-muted-foreground bg-card text-xs sm:text-sm">
                     {day}
                 </div>
             ))}
             
             {days.map(day => {
                 const dayEvents = events.filter(e => isSameDay(e.date, day)).sort((a,b) => a.time.localeCompare(b.time));
-                const MAX_VISIBLE_EVENTS = 2;
+                const MAX_VISIBLE_EVENTS = isMobile ? 1 : 2;
                 const visibleEvents = dayEvents.slice(0, MAX_VISIBLE_EVENTS);
                 const hiddenEventsCount = dayEvents.length - MAX_VISIBLE_EVENTS;
 
@@ -54,40 +53,40 @@ export function ClubCalendar({ currentDate, events, onDayClick, onAddEvent }: Cl
                     <div
                         key={day.toString()}
                         className={cn(
-                            "relative flex flex-col min-h-[140px] bg-card p-2 group cursor-pointer",
+                            "relative flex flex-col min-h-[100px] sm:min-h-[140px] bg-card p-1 sm:p-2 group cursor-pointer",
                              !isSameMonth(day, monthStart) && "bg-muted/50 text-muted-foreground"
                         )}
                          onClick={() => onDayClick(day)}
                     >
-                        <time dateTime={format(day, "yyyy-MM-dd")} className={cn("font-semibold self-start", isToday(day) && "flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground")}>
+                        <time dateTime={format(day, "yyyy-MM-dd")} className={cn("font-semibold self-start text-xs sm:text-sm", isToday(day) && "flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary text-primary-foreground")}>
                             {format(day, "d")}
                         </time>
                         
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex"
                             onClick={(e) => { e.stopPropagation(); onAddEvent(day); }}
                         >
                            <Plus className="h-4 w-4" />
                         </Button>
                         
-                        <div className="mt-2 flex-grow space-y-1 overflow-y-auto">
+                        <div className="mt-1 sm:mt-2 flex-grow space-y-1 overflow-hidden">
                             {visibleEvents.map(event => (
                                 <div key={event.id} className="relative">
                                     <div 
                                       className={cn(
-                                        "text-xs p-1.5 rounded-md text-white truncate",
+                                        "text-xs p-1 sm:p-1.5 rounded-md text-white truncate",
                                         eventTypeColors[event.type]
                                       )}
                                     >
-                                       <p className="font-semibold truncate">{event.opponent ? `CAOS vs ${event.opponent}` : event.title}</p>
-                                       <p className="text-white/80">{event.time}</p>
+                                       <p className="font-semibold truncate text-[10px] sm:text-xs">{event.opponent ? `vs ${event.opponent}` : event.title}</p>
+                                       <p className="text-white/80 hidden sm:block">{event.time}</p>
                                     </div>
                                 </div>
                             ))}
                              {hiddenEventsCount > 0 && (
-                                 <div className="text-xs text-primary font-semibold mt-1">
+                                 <div className="text-[10px] sm:text-xs text-primary font-semibold mt-1">
                                     + {hiddenEventsCount} de plus
                                 </div>
                             )}

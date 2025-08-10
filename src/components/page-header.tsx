@@ -1,3 +1,4 @@
+
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +13,7 @@ export function PageHeader({ title, children }: PageHeaderProps) {
       <h1 className={cn("text-3xl font-bold font-headline tracking-tight text-primary")}>
         {title}
       </h1>
-      {children && <div className="flex items-center gap-2">{children}</div>}
+      {children && <div className="flex w-full sm:w-auto items-center gap-2">{children}</div>}
     </div>
   );
 }

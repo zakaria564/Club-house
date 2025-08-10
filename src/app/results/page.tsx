@@ -181,16 +181,16 @@ export default function ResultsPage() {
         <>
             <div className="no-print">
                 <PageHeader title="Résultats & Statistiques">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                          {selectedMatchId && (
-                            <Button variant="outline" onClick={handlePrint}>
+                            <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto">
                                 <Printer className="mr-2 h-4 w-4" />
                                 Imprimer
                             </Button>
                         )}
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant="outline">
+                                <Button variant="outline" className="w-full sm:w-auto justify-start">
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : "Rechercher par date"}
                                 </Button>
@@ -209,11 +209,11 @@ export default function ResultsPage() {
                             </PopoverContent>
                         </Popover>
                         {(selectedDate || selectedMatchId) && (
-                            <Button variant="ghost" onClick={handleResetFilters}>
+                            <Button variant="ghost" onClick={handleResetFilters} className="w-full sm:w-auto">
                                 Voir tous les résultats
                             </Button>
                         )}
-                        <Button variant="outline" onClick={() => router.back()}>
+                        <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Retour
                         </Button>
@@ -262,8 +262,7 @@ export default function ResultsPage() {
                                         <div 
                                             key={match.id} 
                                             className={cn("border rounded-lg p-4 transition-colors print:border-2 print:shadow-lg", {
-                                                "cursor-pointer hover:bg-muted/50": !selectedMatchId,
-                                                "border-primary ring-2 ring-primary": selectedMatchId === match.id
+                                                "cursor-pointer hover:bg-muted/50": !selectedMatchId
                                             })}
                                             onClick={() => !selectedMatchId && handleMatchClick(match.id)}
                                         >
@@ -422,5 +421,3 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
-
-    

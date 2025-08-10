@@ -195,16 +195,16 @@ function PaymentsPageContent() {
   return (
     <>
       <PageHeader title="Paiements">
-        <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => router.back()}>
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
             </Button>
-            <Button variant="outline" onClick={handleExport}>
+            <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
             <File className="mr-2 h-4 w-4" />
             Exporter
             </Button>
-            <Button onClick={() => setAddPaymentOpen(true)}>
+            <Button onClick={() => setAddPaymentOpen(true)} className="w-full sm:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
             Ajouter un paiement
             </Button>
@@ -212,39 +212,39 @@ function PaymentsPageContent() {
       </PageHeader>
       <Tabs defaultValue="all-status">
       <Card>
-        <CardHeader className="flex-row items-center justify-between gap-4">
-            <div>
+        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="w-full">
               <CardTitle>Historique des paiements</CardTitle>
               <CardDescription>
                 Suivez et gérez tous les paiements des adhésions.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
                 <Tabs value={memberTypeFilter} onValueChange={(value) => setMemberTypeFilter(value as any)}>
-                    <TabsList>
+                    <TabsList className="grid grid-cols-3 w-full sm:w-auto">
                         <TabsTrigger value="all">Tous</TabsTrigger>
                         <TabsTrigger value="player">Joueurs</TabsTrigger>
                         <TabsTrigger value="coach">Entraîneurs</TabsTrigger>
                     </TabsList>
                 </Tabs>
-               <div className="relative">
+               <div className="relative w-full sm:w-auto">
                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                  <Input 
                    placeholder="Rechercher par nom..." 
-                   className="pl-8 w-48" 
+                   className="pl-8 w-full sm:w-48" 
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
                  />
                </div>
-                <TabsList>
-                  <TabsTrigger value="all-status">Tous</TabsTrigger>
-                  <TabsTrigger value="paid">Payé</TabsTrigger>
-                  <TabsTrigger value="pending">En attente</TabsTrigger>
-                  <TabsTrigger value="overdue">En retard</TabsTrigger>
-                </TabsList>
             </div>
         </CardHeader>
-        <CardContent>
+         <CardContent className="border-t pt-6">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto mb-4">
+              <TabsTrigger value="all-status">Tous</TabsTrigger>
+              <TabsTrigger value="paid">Payé</TabsTrigger>
+              <TabsTrigger value="pending">En attente</TabsTrigger>
+              <TabsTrigger value="overdue">En retard</TabsTrigger>
+            </TabsList>
             <TabsContent value="all-status">
               <PaymentTable 
                 payments={filteredPayments} 
@@ -315,11 +315,11 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
       <TableHeader>
         <TableRow>
           <TableHead>Membre</TableHead>
-          <TableHead>Statut</TableHead>
-          <TableHead className="hidden md:table-cell">Total</TableHead>
-          <TableHead className="hidden md:table-cell">Avance</TableHead>
-          <TableHead className="hidden md:table-cell">Reste</TableHead>
-          <TableHead className="hidden md:table-cell">Date</TableHead>
+          <TableHead className="hidden sm:table-cell">Statut</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
+          <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
+          <TableHead className="hidden lg:table-cell text-right">Date</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>
           </TableHead>
@@ -332,7 +332,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
               <div className="font-medium">{payment.memberName}</div>
               <div className="text-sm text-muted-foreground capitalize">{payment.memberType === 'player' ? 'Joueur' : 'Entraîneur'}</div>
             </TableCell>
-            <TableCell>
+            <TableCell className="hidden sm:table-cell">
               <Badge 
                 className={cn({
                   'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
@@ -343,16 +343,16 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
                 {statusTranslations[payment.status]}
               </Badge>
             </TableCell>
-            <TableCell className="hidden md:table-cell">
+            <TableCell className="text-right">
               {payment.totalAmount.toFixed(2)} DH
             </TableCell>
-            <TableCell className="hidden md:table-cell">
+            <TableCell className="hidden md:table-cell text-right">
               {payment.advance.toFixed(2)} DH
             </TableCell>
-            <TableCell className="hidden md:table-cell">
+            <TableCell className="hidden md:table-cell text-right">
               {payment.remaining.toFixed(2)} DH
             </TableCell>
-            <TableCell className="hidden md:table-cell">
+            <TableCell className="hidden lg:table-cell text-right">
               {new Date(payment.date).toLocaleDateString('fr-FR')}
             </TableCell>
             <TableCell onClick={(e) => e.stopPropagation()}>

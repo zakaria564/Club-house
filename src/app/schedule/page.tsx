@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { DayEventsSheet } from "@/components/day-events-sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 
@@ -31,6 +32,7 @@ const parseEventDates = (event: any): ClubEvent => ({
 export default function SchedulePage() {
   const router = useRouter();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [events, setEvents] = React.useState<ClubEvent[]>([])
   const [isEventDialogOpen, setEventDialogOpen] = React.useState(false);
@@ -139,67 +141,59 @@ export default function SchedulePage() {
   return (
     <>
       <PageHeader title="Calendrier du Club">
-        <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => router.back()}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour
+                {!isMobile && 'Retour'}
             </Button>
             
-            <div className="flex items-center gap-1 rounded-md border p-1">
+            <div className="flex items-center gap-1 rounded-md border p-1 w-full justify-between sm:w-auto">
                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
                     <ChevronLeft className="h-4 w-4" />
                  </Button>
-                 <Button variant="outline" className="h-8 px-3" onClick={() => setCurrentDate(new Date())}>
-                    Aujourd'hui
-                 </Button>
+                 <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" className="h-8 px-3 w-full sm:w-auto">
+                         <span className="capitalize">{format(currentDate, "MMMM yyyy", { locale: fr })}</span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                        mode="single"
+                        selected={currentDate}
+                        onSelect={(date) => {
+                            if (date) setCurrentDate(date);
+                            setDatePickerOpen(false);
+                        }}
+                        initialFocus
+                        locale={fr}
+                        />
+                    </PopoverContent>
+                 </Popover>
+                 
                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
                     <ChevronRight className="h-4 w-4" />
                  </Button>
             </div>
-             <h2 className="text-xl font-semibold w-48 text-center capitalize">
-                {format(currentDate, "MMMM yyyy", { locale: fr })}
-            </h2>
+             <Button variant="outline" className="h-10 px-3 hidden sm:flex" onClick={() => setCurrentDate(new Date())}>
+                Aujourd'hui
+            </Button>
             
-            <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  Rechercher par date
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={currentDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setCurrentDate(date);
-                      handleDayClick(date);
-                    }
-                    setDatePickerOpen(false);
-                  }}
-                  initialFocus
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Button onClick={() => handleAddNew()}>
+            <Button onClick={() => handleAddNew()} className="w-full sm:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Ajouter un événement
+              {!isMobile && 'Ajouter un événement'}
             </Button>
         </div>
       </PageHeader>
       
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 sm:p-0">
            <ClubCalendar 
               currentDate={currentDate}
               events={events}
               onDayClick={handleDayClick}
               onAddEvent={handleAddNew}
-              onEditEvent={handleEdit}
-              onDeleteEvent={setEventToDelete}
+              isMobile={isMobile}
            />
         </CardContent>
       </Card>
