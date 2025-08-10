@@ -55,12 +55,12 @@ const parsePlayerDates = (player: any): Player => ({
 });
 
 const formatStatString = (stats: StatEvent[] | undefined, players: Player[]): string => {
-    if (!stats || stats.length === 0 || !Array.isArray(stats)) return "N/A";
+    if (!stats || !Array.isArray(stats) || stats.length === 0) return "N/A";
     const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
     
     return stats.map(stat => {
         const name = playerMap.get(stat.playerId) || "Inconnu";
-        return `${name}${stat.count > 1 ? ` (${stat.count})` : ''}`;
+        return `${name} (${stat.count})`;
     }).join(', ');
 };
 
@@ -142,7 +142,7 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
                                       <>
                                       <Separator />
                                       <div className="space-y-2 text-sm">
-                                        {event.scorers && event.scorers.length > 0 && (
+                                        {Array.isArray(event.scorers) && event.scorers.length > 0 && (
                                           <div className="flex items-start gap-2">
                                             <Goal className="w-4 h-4 mt-0.5 text-muted-foreground" />
                                             <div>
@@ -151,7 +151,7 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
                                             </div>
                                           </div>
                                         )}
-                                         {event.assists && event.assists.length > 0 && (
+                                         {Array.isArray(event.assists) && event.assists.length > 0 && (
                                           <div className="flex items-start gap-2">
                                             <Footprints className="w-4 h-4 mt-0.5 text-muted-foreground" />
                                             <div>
