@@ -17,7 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { differenceInDays, isAfter } from 'date-fns';
-import { ClubLogo } from "@/components/club-logo"
 
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
