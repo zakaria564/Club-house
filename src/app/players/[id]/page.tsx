@@ -182,7 +182,7 @@ export default function PlayerDetailPage() {
                   <span className="font-medium">Genre:</span>
                   <span>{player.gender}</span>
                   <span className="font-medium">Nationalité:</span>
-                  <span>{player.country}</span>
+                  <span>{player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country}</span>
                   <span className="font-medium">Adresse:</span>
                   <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {`${player.address}, ${player.city}`}</span>
                   <span className="font-medium">Téléphone:</span>
