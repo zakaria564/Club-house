@@ -22,7 +22,7 @@ const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        <div className="flex justify-between items-center w-full">
+        <div className="w-full">
             <ClubLogo className="w-16 h-16" />
         </div>
         <div className="text-center mt-4">

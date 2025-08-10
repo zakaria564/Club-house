@@ -120,7 +120,7 @@ const ReceiptPage = () => {
       <div className="max-w-4xl mx-auto border border-gray-300 p-8 rounded-lg shadow-lg">
         {/* Header */}
         <header className="flex justify-between items-start pb-6 border-b border-gray-300">
-          <div className="flex items-center gap-4">
+          <div className="w-full">
             <ClubLogo className="w-16 h-16" />
           </div>
           <div className="text-right">

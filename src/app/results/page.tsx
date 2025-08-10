@@ -24,14 +24,14 @@ const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
 const PrintHeader = ({ date }: { date?: Date }) => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        <div className="flex justify-between items-center w-full">
+        <div className="w-full">
             <ClubLogo className="w-16 h-16" />
         </div>
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
             <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
         </div>
-        {date && <p className="text-lg font-semibold mt-2">{format(date, "eeee d MMMM yyyy", { locale: fr })}</p>}
+        {date && <p className="text-lg font-semibold mt-2 capitalize">{format(date, "eeee d MMMM yyyy", { locale: fr })}</p>}
         <hr className="w-full mt-4 border-t-2 border-primary" />
     </div>
 );
@@ -422,4 +422,3 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
-
