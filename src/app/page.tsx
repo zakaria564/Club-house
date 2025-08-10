@@ -159,7 +159,7 @@ export default function Dashboard() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const currentYear = today.getFullYear();
-    const seasonStartBoundary = new Date(currentYear, 8, 1); // September 1st
+    const seasonStartBoundary = new Date(currentYear, 8, 1); // 1er septembre
 
     const currentSeasonString = today >= seasonStartBoundary
       ? `${currentYear}-${currentYear + 1}`
@@ -187,9 +187,9 @@ export default function Dashboard() {
     );
 
     const currentPaidMemberships = currentPaidPlayerIds.size;
-    const currentPaidPercentage = currentTotalPlayers > 0 ? ((currentPaidMemberships / currentTotalPlayers) * 100).toFixed(0) : 0;
+    const currentPaidPercentage = currentTotalPlayers > 0 ? ((currentPaidMemberships / currentTotalPlayers) * 100).toFixed(0) : "0";
 
-    const currentUpcomingEvents = events.filter(e => isAfter(new Date(e.date), today) || isToday(new Date(e.date)));
+    const currentUpcomingEvents = events.filter(e => isAfter(e.date, today) || isToday(e.date));
     const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
     const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
 
