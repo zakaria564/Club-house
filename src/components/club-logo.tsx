@@ -9,7 +9,7 @@ interface ClubLogoProps {
 
 export function ClubLogo({ className }: ClubLogoProps) {
   return (
-    <div className="flex items-center justify-center w-full gap-8">
+    <div className="flex items-center justify-between w-full">
         <Image
             src="https://liguefootcasa.ma/wp-content/uploads/2020/09/logo-ligue-du-casablanca.png"
             width={50}
