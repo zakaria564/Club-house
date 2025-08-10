@@ -25,11 +25,7 @@ const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
 const PrintHeader = ({ date }: { date?: Date }) => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        <div className="flex justify-center items-center w-full gap-4">
-            <Image src="https://liguefootcasa.ma/wp-content/uploads/2020/09/logo-ligue-du-casablanca.png" width={64} height={64} alt="Ligue du grand Casablanca de football" className="h-16 w-auto" data-ai-hint="league logo" />
-            <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" width={64} height={64} alt="Club CAOS 2011 Logo" className="h-20 w-auto" data-ai-hint="club logo" />
-            <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754825161-20180719141912-maroc-logo-frmf.png" width={64} height={64} alt="Fédération Royale Marocaine de Football" className="h-16 w-auto" data-ai-hint="federation logo" />
-        </div>
+        <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" width={80} height={80} alt="Club CAOS 2011 Logo" className="h-24 w-auto" data-ai-hint="club logo" />
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
             <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
