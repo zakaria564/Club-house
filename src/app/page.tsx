@@ -156,10 +156,12 @@ export default function Dashboard() {
     seasonString,
     activePlayers,
   } = React.useMemo(() => {
-    const today = new Date();
+    // Using a fixed date to ensure calculations are consistent with mock data season
+    const today = new Date('2023-10-01T00:00:00'); 
     today.setHours(0, 0, 0, 0);
+
     const currentYear = today.getFullYear();
-    const seasonStartBoundary = new Date(currentYear, 8, 1); // 1er septembre
+    const seasonStartBoundary = new Date(currentYear, 8, 1); // September 1st
 
     const currentSeasonString = today >= seasonStartBoundary
       ? `${currentYear}-${currentYear + 1}`
