@@ -33,6 +33,7 @@ export type Payment = {
   remaining: number;
   date: Date;
   status: 'Paid' | 'Pending' | 'Overdue';
+  season: string;
 };
 
 export type StatEvent = {

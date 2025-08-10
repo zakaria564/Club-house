@@ -161,7 +161,7 @@ const ReceiptPage = () => {
             </thead>
             <tbody>
               <tr className="border-b border-gray-200">
-                <td className="p-3">{isCoachPayment ? `Prestation Entraîneur - Saison 2023-2024` : `Adhésion saison 2023-2024 (Joueur)`}</td>
+                <td className="p-3">{isCoachPayment ? `Prestation Entraîneur - Saison ${payment.season}` : `Adhésion saison ${payment.season} (Joueur)`}</td>
                 <td className="p-3 text-right">{payment.totalAmount.toFixed(2)} DH</td>
               </tr>
             </tbody>

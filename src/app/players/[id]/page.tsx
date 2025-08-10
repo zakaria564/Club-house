@@ -26,8 +26,10 @@ const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        <div className="w-full">
-            <ClubLogo className="w-16 h-16" />
+        <div className="flex justify-center w-full gap-4">
+            <Image src="https://liguefootcasa.ma/wp-content/uploads/2020/09/logo-ligue-du-casablanca.png" width={64} height={64} alt="Ligue du grand Casablanca de football" className="h-16 w-auto" data-ai-hint="league logo" />
+            <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" width={64} height={64} alt="Club CAOS 2011 Logo" className="h-16 w-auto" data-ai-hint="club logo" />
+            <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754825161-20180719141912-maroc-logo-frmf.png" width={64} height={64} alt="Fédération Royale Marocaine de Football" className="h-16 w-auto" data-ai-hint="federation logo" />
         </div>
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
@@ -284,7 +286,7 @@ export default function PlayerDetailPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Date</TableHead>
+                                <TableHead>Saison</TableHead>
                                 <TableHead>Statut</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
                                 <TableHead className="text-right hidden sm:table-cell">Avance</TableHead>
@@ -295,7 +297,7 @@ export default function PlayerDetailPage() {
                             {payments.length > 0 ? (
                                 payments.map(payment => (
                                     <TableRow key={payment.id}>
-                                        <TableCell>{isValidDate(payment.date) ? format(payment.date, 'dd/MM/yyyy', { locale: fr }) : 'N/A'}</TableCell>
+                                        <TableCell>{payment.season}</TableCell>
                                         <TableCell>
                                             <Badge
                                                 className={cn({

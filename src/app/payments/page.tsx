@@ -211,8 +211,7 @@ function PaymentsPageContent() {
             </Button>
         </div>
       </PageHeader>
-      <Tabs defaultValue="all-status">
-      <Card>
+       <Card>
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="w-full">
               <CardTitle>Historique des paiements</CardTitle>
@@ -242,49 +241,51 @@ function PaymentsPageContent() {
                </div>
             </div>
         </CardHeader>
-         <CardContent className="border-t pt-6">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto mb-4">
-              <TabsTrigger value="all-status">Tous</TabsTrigger>
-              <TabsTrigger value="paid">Payé</TabsTrigger>
-              <TabsTrigger value="pending">En attente</TabsTrigger>
-              <TabsTrigger value="overdue">En retard</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all-status">
-              <PaymentTable 
-                payments={filteredPayments} 
-                statusTranslations={statusTranslations} 
-                onMarkAsPaid={handleMarkAsPaid} 
-                onViewMember={handleViewMember}
-                onPrintReceipt={handlePrintReceipt}
-              />
-            </TabsContent>
-            <TabsContent value="paid">
-              <PaymentTable 
-                payments={filteredPayments.filter(p => p.status === 'Paid')} 
-                statusTranslations={statusTranslations}
-                onMarkAsPaid={handleMarkAsPaid} 
-                onViewMember={handleViewMember}
-                onPrintReceipt={handlePrintReceipt}
-              />
-            </TabsContent>
-            <TabsContent value="pending">
-              <PaymentTable 
-                payments={filteredPayments.filter(p => p.status === 'Pending')} 
-                statusTranslations={statusTranslations}
-                onMarkAsPaid={handleMarkAsPaid} 
-                onViewMember={handleViewMember}
-                onPrintReceipt={handlePrintReceipt}
-              />
-            </TabsContent>
-            <TabsContent value="overdue">
-              <PaymentTable 
-                payments={filteredPayments.filter(p => p.status === 'Overdue')} 
-                statusTranslations={statusTranslations} 
-                onMarkAsPaid={handleMarkAsPaid} 
-                onViewMember={handleViewMember}
-                onPrintReceipt={handlePrintReceipt}
-              />
-            </TabsContent>
+         <CardContent>
+            <Tabs defaultValue="all-status">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto mb-4">
+                <TabsTrigger value="all-status">Tous</TabsTrigger>
+                <TabsTrigger value="paid">Payé</TabsTrigger>
+                <TabsTrigger value="pending">En attente</TabsTrigger>
+                <TabsTrigger value="overdue">En retard</TabsTrigger>
+                </TabsList>
+                <TabsContent value="all-status">
+                <PaymentTable 
+                    payments={filteredPayments} 
+                    statusTranslations={statusTranslations} 
+                    onMarkAsPaid={handleMarkAsPaid} 
+                    onViewMember={handleViewMember}
+                    onPrintReceipt={handlePrintReceipt}
+                />
+                </TabsContent>
+                <TabsContent value="paid">
+                <PaymentTable 
+                    payments={filteredPayments.filter(p => p.status === 'Paid')} 
+                    statusTranslations={statusTranslations}
+                    onMarkAsPaid={handleMarkAsPaid} 
+                    onViewMember={handleViewMember}
+                    onPrintReceipt={handlePrintReceipt}
+                />
+                </TabsContent>
+                <TabsContent value="pending">
+                <PaymentTable 
+                    payments={filteredPayments.filter(p => p.status === 'Pending')} 
+                    statusTranslations={statusTranslations}
+                    onMarkAsPaid={handleMarkAsPaid} 
+                    onViewMember={handleViewMember}
+                    onPrintReceipt={handlePrintReceipt}
+                />
+                </TabsContent>
+                <TabsContent value="overdue">
+                <PaymentTable 
+                    payments={filteredPayments.filter(p => p.status === 'Overdue')} 
+                    statusTranslations={statusTranslations} 
+                    onMarkAsPaid={handleMarkAsPaid} 
+                    onViewMember={handleViewMember}
+                    onPrintReceipt={handlePrintReceipt}
+                />
+                </TabsContent>
+            </Tabs>
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
@@ -292,7 +293,6 @@ function PaymentsPageContent() {
           </div>
         </CardFooter>
       </Card>
-      </Tabs>
       <AddPaymentDialog
         open={isAddPaymentOpen}
         onOpenChange={setAddPaymentOpen}
@@ -323,7 +323,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
           <TableHead className="text-right">Total</TableHead>
           <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
           <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
-          <TableHead className="hidden lg:table-cell text-right">Date</TableHead>
+          <TableHead className="hidden lg:table-cell text-right">Saison</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>
           </TableHead>
@@ -357,7 +357,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
               {payment.remaining.toFixed(2)} DH
             </TableCell>
             <TableCell className="hidden lg:table-cell text-right">
-              {new Date(payment.date).toLocaleDateString('fr-FR')}
+              {payment.season}
             </TableCell>
             <TableCell onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
