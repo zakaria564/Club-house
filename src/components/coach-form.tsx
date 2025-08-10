@@ -430,5 +430,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    
