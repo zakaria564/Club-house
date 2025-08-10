@@ -10,15 +10,19 @@ import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDo
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { players as initialPlayers } from '@/lib/mock-data'
-import type { Player } from '@/types'
+import { players as initialPlayers, payments as initialPayments, clubEvents as initialClubEvents } from '@/lib/mock-data'
+import type { Player, Payment, ClubEvent } from '@/types'
 import AddPlayerDialog from "@/components/add-player-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
+import { differenceInDays, isAfter } from 'date-fns';
 
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
+const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
+const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
+
 
 const chartConfig = {
   players: {
@@ -34,6 +38,17 @@ const parsePlayerDates = (player: any): Player => ({
     clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
 });
 
+const parsePaymentDates = (payment: any): Payment => ({
+    ...payment,
+    date: new Date(payment.date),
+});
+
+const parseEventDates = (event: any): ClubEvent => ({
+    ...event,
+    date: new Date(event.date),
+});
+
+
 // Helper function to normalize strings for searching (remove accents, lowercase)
 const normalizeString = (str: string) => {
     return str
@@ -45,6 +60,9 @@ const normalizeString = (str: string) => {
 export default function Dashboard() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>([]);
+  const [payments, setPayments] = React.useState<Payment[]>([]);
+  const [events, setEvents] = React.useState<ClubEvent[]>([]);
+
   const [isClient, setIsClient] = React.useState(false)
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
   
@@ -56,24 +74,27 @@ export default function Dashboard() {
     setIsClient(true)
     try {
         const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        let storedPlayers: Player[] = [];
-        if (storedPlayersRaw) {
-            storedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-        }
-        
-        // Merge initialPlayers with storedPlayers, avoiding duplicates
+        const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : [];
         const initialPlayersWithDates = initialPlayers.map(parsePlayerDates);
         const allPlayersMap = new Map<string, Player>();
-
         initialPlayersWithDates.forEach(p => allPlayersMap.set(p.id, p));
-        storedPlayers.forEach(p => allPlayersMap.set(p.id, p)); // stored players overwrite initial ones if IDs match
-
+        storedPlayers.forEach(p => allPlayersMap.set(p.id, p));
         const mergedPlayers = Array.from(allPlayersMap.values());
         setPlayers(mergedPlayers);
 
+        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
+        const storedPayments = storedPaymentsRaw ? JSON.parse(storedPaymentsRaw).map(parsePaymentDates) : initialPayments.map(parsePaymentDates);
+        setPayments(storedPayments);
+
+        const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
+        const storedEvents = storedEventsRaw ? JSON.parse(storedEventsRaw).map(parseEventDates) : initialClubEvents.map(parseEventDates);
+        setEvents(storedEvents);
+
     } catch (error) {
-        console.error("Failed to load or merge players:", error);
+        console.error("Failed to load or merge data:", error);
         setPlayers(initialPlayers.map(parsePlayerDates));
+        setPayments(initialPayments.map(parsePaymentDates));
+        setEvents(initialClubEvents.map(parseEventDates));
     }
   }, []);
   
@@ -81,11 +102,13 @@ export default function Dashboard() {
     try {
         if (isClient) {
           localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(players));
+          localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(payments));
+          localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(events));
         }
     } catch (error) {
-        console.error("Failed to save players to localStorage", error);
+        console.error("Failed to save data to localStorage", error);
     }
-  }, [players, isClient]);
+  }, [players, payments, events, isClient]);
 
   const handlePlayerUpdate = (updatedPlayer: Player) => {
     const playerWithDates = parsePlayerDates(updatedPlayer);
@@ -107,13 +130,24 @@ export default function Dashboard() {
     setOpenCombobox(false);
   }
 
-  const totalPlayers = players.length;
-
   const commandFilter = (value: string, search: string) => {
       const normalizedValue = normalizeString(value);
       const normalizedSearch = normalizeString(search);
       return normalizedValue.includes(normalizedSearch) ? 1 : 0;
   }
+  
+  // Dashboard stats calculations
+  const totalPlayers = players.length;
+  
+  const paidMemberships = payments.filter(p => p.memberType === 'player' && p.status === 'Paid').length;
+  const paidPercentage = totalPlayers > 0 ? ((paidMemberships / totalPlayers) * 100).toFixed(0) : 0;
+
+  const upcomingEvents = events.filter(e => isAfter(e.date, new Date()));
+  const upcomingMatches = upcomingEvents.filter(e => e.type === 'Match').length;
+  const upcomingTrainings = upcomingEvents.filter(e => e.type === 'Entraînement').length;
+  
+  const recentPlayers = players.filter(p => differenceInDays(new Date(), new Date(p.clubEntryDate)) <= 7).length;
+
   
   const chartData = React.useMemo(() => {
     const categoryCounts: { [key: string]: number } = {};
@@ -190,7 +224,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">+5 depuis la saison dernière</p>
+            <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
           </CardContent>
         </Card>
         <Card>
@@ -199,8 +233,8 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">115 / {totalPlayers > 0 ? totalPlayers : '...'}</div>
-            <p className="text-xs text-muted-foreground">88% payé</p>
+            <div className="text-2xl font-bold">{paidMemberships} / {totalPlayers}</div>
+            <p className="text-xs text-muted-foreground">{paidPercentage}% des adhésions payées</p>
           </CardContent>
         </Card>
         <Card>
@@ -209,8 +243,8 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">2 matchs, 1 entraînement</p>
+            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
+            <p className="text-xs text-muted-foreground">{upcomingMatches} matchs, {upcomingTrainings} entraînements</p>
           </CardContent>
         </Card>
         <Card>
@@ -219,7 +253,7 @@ export default function Dashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2 nouveaux joueurs</div>
+            <div className="text-2xl font-bold">+{recentPlayers} nouveaux joueurs</div>
             <p className="text-xs text-muted-foreground">Inscrits cette semaine</p>
           </CardContent>
         </Card>
@@ -254,3 +288,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
