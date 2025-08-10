@@ -27,10 +27,10 @@ export function ClubLogo({ className }: ClubLogoProps) {
             data-ai-hint="club logo"
         />
          <Image
-            src="https://placehold.co/100x100.png"
+            src="https://liguefootcasa.ma/wp-content/uploads/2020/09/logo-ligue-du-casablanca.png"
             width={50}
             height={50}
-            alt="Partner Logo 2"
+            alt="Ligue du grand Casablanca de football"
             className={cn("hidden print:block", className)}
             data-ai-hint="league logo"
         />
