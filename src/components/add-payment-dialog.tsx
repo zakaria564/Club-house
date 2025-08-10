@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { useToast } from "@/hooks/use-toast"
-import { cn } from "@/lib/utils"
+import { cn, handleEnterKeyDown } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import type { Player, Payment, Coach } from "@/types"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
@@ -69,12 +69,13 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
     if (!isNaN(value)) {
       setter(value.toFixed(2));
     } else {
-      setter("");
+      setter("0.00");
     }
   };
 
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
     const totalAmountNum = parseFloat(totalAmount);
     const advanceNum = parseFloat(advance);
     
@@ -134,7 +135,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             Saisissez les détails ci-dessous pour enregistrer un nouveau paiement.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} onKeyDown={handleEnterKeyDown} className="space-y-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="memberType" className="text-right">
               Type
@@ -221,11 +222,12 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
               </PopoverContent>
             </Popover>
           </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button type="submit" onClick={handleSubmit}>Ajouter le paiement</Button>
-        </DialogFooter>
+        
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
+              <Button type="submit">Ajouter le paiement</Button>
+            </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
