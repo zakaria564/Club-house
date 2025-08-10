@@ -44,7 +44,7 @@ const combineStats = (events: ClubEvent[], field: 'scorers' | 'assists', players
 
     events.forEach(event => {
         const stats = event[field];
-        if (stats) {
+        if (stats && Array.isArray(stats)) {
             stats.forEach(stat => {
                 const playerName = playerMap.get(stat.playerId) || 'Joueur inconnu';
                 combined.set(playerName, (combined.get(playerName) || 0) + stat.count);
@@ -337,3 +337,5 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
+
+    

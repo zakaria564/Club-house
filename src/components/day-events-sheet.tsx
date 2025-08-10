@@ -14,10 +14,12 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { Button } from "./ui/button"
-import { ClubEvent } from "@/types"
+import { ClubEvent, Player, StatEvent } from "@/types"
 import { Separator } from "./ui/separator"
 import { ScrollArea } from "./ui/scroll-area"
 import { cn } from "@/lib/utils"
+import { players as initialPlayers } from "@/lib/mock-data"
+
 
 interface DayEventsSheetProps {
   open: boolean;
@@ -45,7 +47,33 @@ const eventTypeColors: Record<ClubEvent['type'], string> = {
   'Autre': 'text-gray-500',
 }
 
+const parsePlayerDates = (player: any): Player => ({
+    ...player,
+    dateOfBirth: new Date(player.dateOfBirth),
+    clubEntryDate: new Date(player.clubEntryDate),
+    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
+});
+
+const formatStatString = (stats: StatEvent[] | undefined, players: Player[]): string => {
+    if (!stats || stats.length === 0) return "N/A";
+    const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
+    
+    return stats.map(stat => {
+        const name = playerMap.get(stat.playerId) || "Inconnu";
+        return `${name}${stat.count > 1 ? ` (${stat.count})` : ''}`;
+    }).join(', ');
+};
+
 export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, onEditEvent, onDeleteEvent }: DayEventsSheetProps) {
+  const [players, setPlayers] = React.useState<Player[]>([]);
+
+   React.useEffect(() => {
+    // In a real app, you might fetch this from an API
+    const storedPlayersRaw = localStorage.getItem('clubhouse-players');
+    const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : initialPlayers.map(parsePlayerDates);
+    setPlayers(storedPlayers);
+  }, []);
+
   if (!date) return null;
 
   const handleAddNew = () => {
@@ -110,25 +138,25 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
                                         )}
                                     </div>
 
-                                    {(event.type === 'Match' && (event.scorers || event.assists)) && (
+                                    {(event.type === 'Match' && (event.scorers?.length || event.assists?.length)) && (
                                       <>
                                       <Separator />
                                       <div className="space-y-2 text-sm">
-                                        {event.scorers && (
+                                        {event.scorers && event.scorers.length > 0 && (
                                           <div className="flex items-start gap-2">
                                             <Goal className="w-4 h-4 mt-0.5 text-muted-foreground" />
                                             <div>
                                               <p className="font-medium text-foreground">Buteurs</p>
-                                              <p className="text-muted-foreground">{event.scorers}</p>
+                                              <p className="text-muted-foreground">{formatStatString(event.scorers, players)}</p>
                                             </div>
                                           </div>
                                         )}
-                                         {event.assists && (
+                                         {event.assists && event.assists.length > 0 && (
                                           <div className="flex items-start gap-2">
                                             <Footprints className="w-4 h-4 mt-0.5 text-muted-foreground" />
                                             <div>
                                               <p className="font-medium text-foreground">Passeurs décisifs</p>
-                                              <p className="text-muted-foreground">{event.assists}</p>
+                                              <p className="text-muted-foreground">{formatStatString(event.assists, players)}</p>
                                             </div>
                                           </div>
                                         )}
@@ -167,3 +195,5 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
     </Sheet>
   )
 }
+
+    
