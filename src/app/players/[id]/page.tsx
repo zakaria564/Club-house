@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText } from 'lucide-react';
 import type { Player, Payment, Coach } from '@/types';
 import { players as initialPlayers, payments as initialPayments, coaches as initialCoaches } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ClubLogo } from '@/components/club-logo';
+import { Separator } from '@/components/ui/separator';
 
 const LOCAL_STORAGE_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
@@ -173,7 +174,7 @@ export default function PlayerDetailPage() {
             </p>
           </CardHeader>
           <CardContent className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
                 <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
@@ -200,7 +201,24 @@ export default function PlayerDetailPage() {
                   <span>{player.guardianPhone}</span>
                 </div>
               </div>
-              <div className="space-y-4 md:col-span-2">
+            </div>
+            <Separator className="my-6" />
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Documents</h3>
+                {player.medicalCertificateUrl ? (
+                    <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline">
+                            <FileText className="mr-2 h-4 w-4" />
+                            Voir le certificat médical
+                        </Button>
+                    </a>
+                ) : (
+                    <p className="text-sm text-muted-foreground">Aucun certificat médical fourni.</p>
+                )}
+            </div>
+            <Separator className="my-6" />
+
+            <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                    <div className="grid grid-cols-[auto,1fr] gap-x-4">
@@ -220,7 +238,7 @@ export default function PlayerDetailPage() {
                   </div>
                 </div>
               </div>
-            </div>
+
           </CardContent>
         </Card>
         

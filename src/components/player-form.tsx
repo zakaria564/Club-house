@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
 import { coaches as initialCoaches } from "@/lib/mock-data"
+import { Separator } from "./ui/separator"
 
 const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
@@ -53,6 +54,7 @@ const playerFormSchema = z.object({
   }),
   clubExitDate: z.date().optional().nullable(),
   coachId: z.string().optional(),
+  medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -109,6 +111,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
       clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
       coachId: player.coachId || undefined,
+      medicalCertificateUrl: player.medicalCertificateUrl || '',
     } : {
       id: getNextId(players),
       firstName: '',
@@ -129,6 +132,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubEntryDate: new Date(),
       clubExitDate: null,
       coachId: undefined,
+      medicalCertificateUrl: '',
     },
   })
 
@@ -143,6 +147,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
         clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
         coachId: player.coachId || undefined,
+        medicalCertificateUrl: player.medicalCertificateUrl || '',
       });
     } else {
       originalId.current = undefined;
@@ -166,6 +171,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: new Date(),
         clubExitDate: null,
         coachId: undefined,
+        medicalCertificateUrl: '',
       });
     }
   }, [player, form, players]);
@@ -185,6 +191,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         clubEntryDate: new Date(data.clubEntryDate),
         clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
         coachId: data.coachId || undefined,
+        medicalCertificateUrl: data.medicalCertificateUrl || undefined,
     };
 
     onSave(newPlayerData);
@@ -423,6 +430,28 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                   </div>
               </div>
 
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium">Documents</h3>
+                  <FormField
+                    control={form.control}
+                    name="medicalCertificateUrl"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>URL du certificat médical</FormLabel>
+                        <FormControl>
+                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} value={field.value || ''} />
+                        </FormControl>
+                         <FormDescription>
+                          Collez un lien vers le certificat médical en ligne.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+              </div>
+              <Separator />
+
+
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Données du Club</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -496,6 +525,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         </FormItem>
                       )}
                     />
+                  </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="coachId"
@@ -519,6 +550,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         </FormItem>
                       )}
                     />
+                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="clubEntryDate"

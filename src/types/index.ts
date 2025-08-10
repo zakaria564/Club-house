@@ -19,6 +19,7 @@ export type Player = {
   clubEntryDate: Date;
   clubExitDate?: Date;
   coachId?: string;
+  medicalCertificateUrl?: string;
 };
 
 export type Payment = {

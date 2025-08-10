@@ -20,6 +20,7 @@ export const players: Player[] = [
     playerNumber: 10,
     email: 'john.doe@example.com',
     clubEntryDate: new Date('2020-09-01'),
+    medicalCertificateUrl: 'https://placehold.co/210x297.png'
   },
   { 
     id: '2', 
