@@ -10,6 +10,7 @@ interface ClubLogoProps {
 export function ClubLogo({ className }: ClubLogoProps) {
   return (
     <Image
+        // Remplacez le lien ci-dessous par l'URL de votre propre logo
         src="https://placehold.co/100x100.png"
         width={40}
         height={40}
