@@ -55,7 +55,7 @@ const parsePlayerDates = (player: any): Player => ({
 });
 
 const formatStatString = (stats: StatEvent[] | undefined, players: Player[]): string => {
-    if (!stats || stats.length === 0) return "N/A";
+    if (!stats || stats.length === 0 || !Array.isArray(stats)) return "N/A";
     const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
     
     return stats.map(stat => {
@@ -195,5 +195,3 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
     </Sheet>
   )
 }
-
-    
