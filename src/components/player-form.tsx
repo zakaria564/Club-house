@@ -96,7 +96,6 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
-  const originalId = React.useRef(player?.id);
 
    React.useEffect(() => {
     // In a real app, this would be a fetch call
@@ -140,13 +139,13 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
     defaultValues,
+    mode: "onChange",
   })
 
   const photoUrl = form.watch('photoUrl');
 
   React.useEffect(() => {
     if (player) {
-      originalId.current = player.id;
       form.reset({
         ...player,
         dateOfBirth: new Date(player.dateOfBirth),
@@ -157,7 +156,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         medicalCertificateUrl: player.medicalCertificateUrl || '',
       });
     } else {
-      originalId.current = undefined;
       form.reset({
         id: getNextId(players),
         firstName: '',
@@ -232,7 +230,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               <FormItem>
                               <FormLabel>URL de la photo</FormLabel>
                               <FormControl>
-                                  <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value ?? ''}/>
+                                  <Input placeholder="https://exemple.com/photo.png" {...field} />
                               </FormControl>
                               <FormMessage />
                               </FormItem>
@@ -448,7 +446,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormItem>
                         <FormLabel>URL du certificat médical</FormLabel>
                         <FormControl>
-                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} value={field.value ?? ''} />
+                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} />
                         </FormControl>
                          <FormDescription>
                           Collez un lien vers le certificat médical en ligne.
@@ -560,13 +558,14 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Entraîneur</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                          <Select onValueChange={field.onChange} value={field.value ?? ''}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                                <SelectItem value="">Non assigné</SelectItem>
                                 {coaches.map(coach => (
                                     <SelectItem key={coach.id} value={coach.id}>{coach.firstName} {coach.lastName}</SelectItem>
                                 ))}
@@ -673,5 +672,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
 
     
