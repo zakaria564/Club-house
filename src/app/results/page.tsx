@@ -58,7 +58,7 @@ const combineStats = (events: ClubEvent[], field: 'scorers' | 'assists', players
 }
 
 const formatStatString = (stats: StatEvent[] | undefined, players: Player[]): string => {
-    if (!stats || stats.length === 0) return "";
+    if (!stats || stats.length === 0 || !Array.isArray(stats)) return "";
     const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
     
     return stats.map(stat => {
