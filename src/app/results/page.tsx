@@ -170,7 +170,9 @@ export default function ResultsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Stats Column */}
-                <div className="lg:col-span-1 space-y-8">
+                 <div className={cn("lg:col-span-1 space-y-8", {
+                    "hidden lg:block": selectedMatchId,
+                })}>
                     <Card>
                         <CardHeader>
                             <CardTitle>Meilleurs Buteurs</CardTitle>
@@ -192,7 +194,9 @@ export default function ResultsPage() {
                 </div>
 
                 {/* Match Results Column */}
-                <div className="lg:col-span-2">
+                 <div className={cn("lg:col-span-2", {
+                    "lg:col-span-3": selectedMatchId,
+                })}>
                     <Card>
                          <CardHeader>
                             <CardTitle>{getCardTitle()}</CardTitle>
@@ -203,8 +207,10 @@ export default function ResultsPage() {
                                 {filteredMatches.length > 0 ? filteredMatches.map(match => (
                                     <div 
                                         key={match.id} 
-                                        className="border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                                        onClick={() => handleMatchClick(match.id)}
+                                        className={cn("border rounded-lg p-4 transition-colors", {
+                                            "cursor-pointer hover:bg-muted/50": !selectedMatchId
+                                        })}
+                                        onClick={() => !selectedMatchId && handleMatchClick(match.id)}
                                     >
                                         <div className="flex justify-between items-center">
                                             <div className="font-semibold text-lg">{match.title}</div>
@@ -318,4 +324,3 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
-
