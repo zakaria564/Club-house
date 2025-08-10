@@ -69,9 +69,8 @@ export default function Dashboard() {
   const [openCombobox, setOpenCombobox] = React.useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = React.useState<string | null>(null)
 
-
-  React.useEffect(() => {
-    setIsClient(true)
+  const loadData = React.useCallback(() => {
+    if (typeof window === 'undefined') return;
     try {
         const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
         const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : [];
@@ -97,6 +96,16 @@ export default function Dashboard() {
         setEvents(initialClubEvents.map(parseEventDates));
     }
   }, []);
+
+  React.useEffect(() => {
+    setIsClient(true);
+    loadData();
+
+    window.addEventListener('focus', loadData);
+    return () => {
+        window.removeEventListener('focus', loadData);
+    }
+  }, [loadData]);
   
   React.useEffect(() => {
     try {
