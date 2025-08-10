@@ -15,7 +15,7 @@ export function ClubLogo({ className }: ClubLogoProps) {
             width={50}
             height={50}
             alt="Ligue du grand Casablanca de football"
-            className={cn("hidden print:block", className)}
+            className={cn("print:block", className)}
             data-ai-hint="league logo"
         />
         <Image
@@ -31,7 +31,7 @@ export function ClubLogo({ className }: ClubLogoProps) {
             width={50}
             height={50}
             alt="Fédération Royale Marocaine de Football"
-            className={cn("hidden print:block", className)}
+            className={cn("print:block", className)}
             data-ai-hint="federation logo"
         />
     </div>
