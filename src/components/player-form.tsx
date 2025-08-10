@@ -185,7 +185,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
             <div className="flex-1 space-y-6">
                  <div className="flex flex-col md:flex-row items-center gap-6">
                     <Avatar className="h-24 w-24">
-                        <AvatarImage src={photoUrl || 'https://placehold.co/200x200.png'} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                        <AvatarImage src={photoUrl || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                         <AvatarFallback>
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
@@ -199,7 +199,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                 <FormItem>
                                 <FormLabel>URL de la photo</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="https://exemple.com/photo.png" {...field} />
+                                    <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value || ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>

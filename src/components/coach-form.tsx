@@ -153,7 +153,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
                 <Avatar className="h-24 w-24">
-                    <AvatarImage src={photoUrl || 'https://placehold.co/200x200.png'} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                    <AvatarImage src={photoUrl || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                     <AvatarFallback>
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
@@ -167,7 +167,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                             <FormLabel>URL de la photo</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://exemple.com/photo.png" {...field} />
+                                <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value || ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
