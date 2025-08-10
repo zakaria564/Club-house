@@ -430,7 +430,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                   </div>
               </div>
 
-            <div className="space-y-4">
+              <div className="space-y-4">
                 <h3 className="text-lg font-medium">Documents</h3>
                   <FormField
                     control={form.control}
@@ -449,8 +449,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                     )}
                     />
               </div>
-              <Separator />
-
 
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Données du Club</h3>
@@ -525,8 +523,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         </FormItem>
                       )}
                     />
-                  </div>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="coachId"

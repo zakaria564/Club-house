@@ -202,6 +202,7 @@ export default function PlayerDetailPage() {
                 </div>
               </div>
             </div>
+            
             <Separator className="my-6" />
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Documents</h3>
@@ -216,8 +217,8 @@ export default function PlayerDetailPage() {
                     <p className="text-sm text-muted-foreground">Aucun certificat médical fourni.</p>
                 )}
             </div>
-            <Separator className="my-6" />
 
+            <Separator className="my-6" />
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
