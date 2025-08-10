@@ -66,6 +66,7 @@ export default function ResultsPage() {
     const router = useRouter();
     const [events, setEvents] = React.useState<ClubEvent[]>([]);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
+    const [selectedMatchId, setSelectedMatchId] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         try {
@@ -94,12 +95,42 @@ export default function ResultsPage() {
         .filter(event => event.type === 'Match' && event.result)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    const filteredMatches = selectedDate
-        ? allPlayedMatches.filter(match => isSameDay(new Date(match.date), selectedDate as Date))
-        : allPlayedMatches;
+    let filteredMatches = allPlayedMatches;
+
+    if (selectedMatchId) {
+        filteredMatches = allPlayedMatches.filter(match => match.id === selectedMatchId);
+    } else if (selectedDate) {
+        filteredMatches = allPlayedMatches.filter(match => isSameDay(new Date(match.date), selectedDate as Date));
+    }
+
+    const handleMatchClick = (matchId: string) => {
+        setSelectedMatchId(matchId);
+        setSelectedDate(undefined);
+    }
     
+    const handleResetFilters = () => {
+        setSelectedDate(undefined);
+        setSelectedMatchId(null);
+    }
+
     const topScorers = combineStats(allPlayedMatches, 'scorers');
     const topAssists = combineStats(allPlayedMatches, 'assists');
+
+    const getCardTitle = () => {
+        if (selectedMatchId) return "Détail du match";
+        if (selectedDate) return `Matchs joués le ${format(selectedDate, "d MMMM yyyy", { locale: fr })}`;
+        return "Matchs Joués";
+    }
+
+    const getCardDescription = () => {
+        if (selectedMatchId) {
+            const match = filteredMatches[0];
+            return `Résultat du match ${match.title} du ${format(new Date(match.date), "d MMMM yyyy", { locale: fr })}`;
+        }
+        if (selectedDate) return "Cliquez sur un match pour voir ses détails.";
+        return "Historique de tous les matchs de la saison. Cliquez sur un match pour le détailler.";
+    }
+
 
     return (
         <>
@@ -116,14 +147,17 @@ export default function ResultsPage() {
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
-                                onSelect={setSelectedDate}
+                                onSelect={(date) => {
+                                    setSelectedDate(date);
+                                    setSelectedMatchId(null);
+                                }}
                                 initialFocus
                                 locale={fr}
                             />
                         </PopoverContent>
                     </Popover>
-                    {selectedDate && (
-                        <Button variant="ghost" onClick={() => setSelectedDate(undefined)}>
+                    {(selectedDate || selectedMatchId) && (
+                        <Button variant="ghost" onClick={handleResetFilters}>
                             Voir tous les résultats
                         </Button>
                     )}
@@ -161,18 +195,17 @@ export default function ResultsPage() {
                 <div className="lg:col-span-2">
                     <Card>
                          <CardHeader>
-                            <CardTitle>Matchs Joués</CardTitle>
-                            <CardDescription>
-                               {selectedDate 
-                                    ? `Matchs joués le ${format(selectedDate, "d MMMM yyyy", { locale: fr })}`
-                                    : "Historique de tous les matchs de la saison."
-                                }
-                            </CardDescription>
+                            <CardTitle>{getCardTitle()}</CardTitle>
+                            <CardDescription>{getCardDescription()}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-6">
                                 {filteredMatches.length > 0 ? filteredMatches.map(match => (
-                                    <div key={match.id} className="border rounded-lg p-4">
+                                    <div 
+                                        key={match.id} 
+                                        className="border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                                        onClick={() => handleMatchClick(match.id)}
+                                    >
                                         <div className="flex justify-between items-center">
                                             <div className="font-semibold text-lg">{match.title}</div>
                                             <div className="text-2xl font-bold text-primary">{match.result}</div>
@@ -183,15 +216,15 @@ export default function ResultsPage() {
                                         {(match.scorers || match.assists) && (
                                             <>
                                                 <Separator className="my-3"/>
-                                                <div className="text-sm space-y-1">
+                                                <div className="text-sm space-y-2">
                                                     {match.scorers && (
                                                         <div>
-                                                            <span className="font-medium">Buteurs:</span> {match.scorers}
+                                                            <span className="font-medium">Buteurs :</span> {match.scorers}
                                                         </div>
                                                     )}
                                                     {match.assists && (
                                                         <div>
-                                                            <span className="font-medium">Passeurs décisifs:</span> {match.assists}
+                                                            <span className="font-medium">Passeurs décisifs :</span> {match.assists}
                                                         </div>
                                                     )}
                                                 </div>
@@ -285,3 +318,4 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
+
