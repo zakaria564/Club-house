@@ -49,17 +49,19 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
 
   React.useEffect(() => {
     setSelectedMemberId(null); // Reset selection when type changes
+    setTotalAmount(memberType === 'player' ? "300.00" : "500.00");
+    setAdvance("");
   }, [memberType]);
   
   React.useEffect(() => {
     if (open) {
-        setTotalAmount(memberType === 'player' ? "300.00" : "500.00");
+        setTotalAmount("300.00");
         setAdvance("");
         setSelectedMemberId(null);
         setMemberType('player');
         setDate(new Date());
     }
-  }, [open, memberType]);
+  }, [open]);
 
   const handleAmountBlur = (
     e: React.FocusEvent<HTMLInputElement>,
