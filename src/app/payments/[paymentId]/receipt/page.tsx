@@ -65,8 +65,8 @@ const ReceiptPage = () => {
         } else { // salary
             const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
             const coaches: Coach[] = storedCoachesRaw
-            ? JSON.parse(storedCoachesRaw)
-            : initialCoaches;
+              ? JSON.parse(storedCoachesRaw)
+              : initialCoaches;
             const currentCoach = coaches.find(c => c.id === currentPayment.memberId);
              if (currentCoach) {
                 setMember({
