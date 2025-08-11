@@ -158,9 +158,7 @@ export default function Dashboard() {
     upcomingMatches,
     upcomingTrainings,
     paidMemberships,
-    paidPercentage,
     activePlayers,
-    monthString,
   } = React.useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -170,21 +168,16 @@ export default function Dashboard() {
     const currentTotalPlayers = currentActivePlayers.length;
     const currentInjuredPlayers = currentActivePlayers.filter(p => p.status === 'Blessé').length;
     
-    const paidPlayerIdsForMonth = new Set(
-        payments
-            .filter(p => p.paymentType === 'membership' && p.status === 'Paid' && isSameMonth(p.date, today))
-            .map(p => p.memberId)
-    );
-    
-    const currentPaidMemberships = currentActivePlayers.filter(p => paidPlayerIdsForMonth.has(p.id)).length;
-    const currentPaidPercentage = currentTotalPlayers > 0 ? ((currentPaidMemberships / currentTotalPlayers) * 100).toFixed(0) : "0";
+    const currentPaidMemberships = payments.filter(p => 
+        p.paymentType === 'membership' && 
+        p.status === 'Paid' && 
+        isSameMonth(p.date, today)
+    ).length;
 
     const currentUpcomingEvents = events.filter(e => isAfter(e.date, today) || isToday(e.date));
     const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
     const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
     
-    const currentMonthString = today.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-
     return {
         totalPlayers: currentTotalPlayers,
         injuredPlayers: currentInjuredPlayers,
@@ -192,9 +185,7 @@ export default function Dashboard() {
         upcomingMatches: currentUpcomingMatches,
         upcomingTrainings: currentUpcomingTrainings,
         paidMemberships: currentPaidMemberships,
-        paidPercentage: currentPaidPercentage,
         activePlayers: currentActivePlayers,
-        monthString: currentMonthString,
     };
   }, [players, payments, events]);
 
@@ -304,7 +295,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{paidMemberships} / {totalPlayers}</div>
-            <p className="text-xs text-muted-foreground capitalize">{paidPercentage}% payé pour {monthString}</p>
+            <p className="text-xs text-muted-foreground capitalize">paiements ce mois-ci</p>
           </CardContent>
         </Card>
       </div>
