@@ -16,7 +16,8 @@ import AddPlayerDialog from "@/components/add-player-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
-import { differenceInDays, isAfter, isToday } from 'date-fns';
+import { differenceInDays, isAfter, isSameMonth, isToday, startOfMonth } from 'date-fns';
+import { fr } from "date-fns/locale"
 
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
@@ -158,40 +159,31 @@ export default function Dashboard() {
     upcomingTrainings,
     paidMemberships,
     paidPercentage,
-    seasonString,
     activePlayers,
+    monthString,
   } = React.useMemo(() => {
-    const today = new Date('2023-10-01T00:00:00'); 
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const currentYear = today.getFullYear();
-    const seasonStartMonth = 8; // September is month 8 (0-indexed)
-
-    const currentSeasonString = today.getMonth() >= seasonStartMonth
-      ? `${currentYear}-${currentYear + 1}`
-      : `${currentYear - 1}-${currentYear}`;
-    
-    const seasonStartDate = today.getMonth() >= seasonStartMonth
-      ? new Date(currentYear, seasonStartMonth, 1)
-      : new Date(currentYear - 1, seasonStartMonth, 1);
-
-    const currentActivePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
+    const currentActivePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, startOfMonth(today)));
     
     const currentTotalPlayers = currentActivePlayers.length;
     const currentInjuredPlayers = currentActivePlayers.filter(p => p.status === 'Blessé').length;
     
-    const paidPlayerIdsForSeason = new Set(
+    const paidPlayerIdsForMonth = new Set(
         payments
-            .filter(p => p.paymentType === 'membership' && p.status === 'Paid' && p.season === currentSeasonString)
+            .filter(p => p.paymentType === 'membership' && p.status === 'Paid' && isSameMonth(p.date, today))
             .map(p => p.memberId)
     );
-
-    const currentPaidMemberships = currentActivePlayers.filter(p => paidPlayerIdsForSeason.has(p.id)).length;
+    
+    const currentPaidMemberships = currentActivePlayers.filter(p => paidPlayerIdsForMonth.has(p.id)).length;
     const currentPaidPercentage = currentTotalPlayers > 0 ? ((currentPaidMemberships / currentTotalPlayers) * 100).toFixed(0) : "0";
 
     const currentUpcomingEvents = events.filter(e => isAfter(e.date, today) || isToday(e.date));
     const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
     const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
+    
+    const currentMonthString = today.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
     return {
         totalPlayers: currentTotalPlayers,
@@ -201,8 +193,8 @@ export default function Dashboard() {
         upcomingTrainings: currentUpcomingTrainings,
         paidMemberships: currentPaidMemberships,
         paidPercentage: currentPaidPercentage,
-        seasonString: currentSeasonString,
         activePlayers: currentActivePlayers,
+        monthString: currentMonthString,
     };
   }, [players, payments, events]);
 
@@ -282,7 +274,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">joueurs actifs cette saison ({seasonString})</p>
+            <p className="text-xs text-muted-foreground">joueurs actifs</p>
           </CardContent>
         </Card>
         <Card>
@@ -307,12 +299,12 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Adhésions payées</CardTitle>
+            <CardTitle className="text-sm font-medium">Adhésions Payées</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{paidMemberships} / {totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">{paidPercentage}% des adhésions payées</p>
+            <p className="text-xs text-muted-foreground capitalize">{paidPercentage}% payé pour {monthString}</p>
           </CardContent>
         </Card>
       </div>
@@ -320,7 +312,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
-            <CardDescription>Nombre de joueurs par catégorie pour la saison en cours.</CardDescription>
+            <CardDescription>Nombre de joueurs par catégorie.</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">

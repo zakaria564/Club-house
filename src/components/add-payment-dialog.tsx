@@ -39,14 +39,6 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   const [totalAmount, setTotalAmount] = React.useState<string>("300.00");
   const [advance, setAdvance] = React.useState<string>("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [season, setSeason] = React.useState<string>("");
-
-  React.useEffect(() => {
-    const currentYear = new Date().getFullYear();
-    const nextYear = currentYear + 1;
-    setSeason(`${currentYear}-${nextYear}`);
-  }, [])
-
 
   const members = React.useMemo(() => {
     if (memberType === 'player') {
@@ -66,8 +58,6 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
         setSelectedMemberId(null);
         setMemberType('player');
         setDate(new Date());
-        const currentYear = new Date().getFullYear();
-        setSeason(`${currentYear}-${currentYear + 1}`);
     }
   }, [open, memberType]);
 
@@ -89,7 +79,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
     const totalAmountNum = parseFloat(totalAmount);
     const advanceNum = parseFloat(advance);
     
-    if (!selectedMemberId || isNaN(totalAmountNum) || isNaN(advanceNum) || !date || !season) {
+    if (!selectedMemberId || isNaN(totalAmountNum) || isNaN(advanceNum) || !date) {
       toast({
         variant: "destructive",
         title: "Informations manquantes ou incorrectes",
@@ -126,7 +116,6 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
       remaining: remaining,
       date,
       status,
-      season,
     });
 
     toast({
@@ -175,18 +164,6 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
               value={selectedMemberId}
               onValueChange={setSelectedMemberId}
               memberType={memberType}
-            />
-          </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="season" className="text-right">
-              Saison
-            </Label>
-            <Input 
-              id="season" 
-              placeholder="Ex: 2023-2024" 
-              className="col-span-3" 
-              value={season} 
-              onChange={(e) => setSeason(e.target.value)} 
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

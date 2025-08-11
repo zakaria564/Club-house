@@ -192,9 +192,9 @@ export default function PlayerDetailPage() {
                     <span className="font-medium">Adresse:</span>
                     <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {`${player.address}, ${player.city}`}</span>
                     <span className="font-medium">Téléphone:</span>
-                    <a href={`tel:${player.phone}`} className="hover:underline">{player.phone}</a>
+                    <a href={`tel:${player.phone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.phone}</a>
                     <span className="font-medium">Email:</span>
-                    <a href={`mailto:${player.email}`} className="truncate hover:underline">{player.email}</a>
+                    <a href={`mailto:${player.email}`} className="truncate hover:underline flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{player.email}</a>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -203,7 +203,7 @@ export default function PlayerDetailPage() {
                     <span className="font-medium">Nom du tuteur:</span>
                     <span>{player.guardianName}</span>
                     <span className="font-medium">Téléphone du tuteur:</span>
-                    <a href={`tel:${player.guardianPhone}`} className="hover:underline">{player.guardianPhone}</a>
+                    <a href={`tel:${player.guardianPhone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.guardianPhone}</a>
                   </div>
                 </div>
               </div>
@@ -279,7 +279,7 @@ export default function PlayerDetailPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Saison</TableHead>
+                                <TableHead>Mois du Paiement</TableHead>
                                 <TableHead>Statut</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
                                 <TableHead className="text-right hidden sm:table-cell">Avance</TableHead>
@@ -290,7 +290,7 @@ export default function PlayerDetailPage() {
                             {payments.length > 0 ? (
                                 payments.map(payment => (
                                     <TableRow key={payment.id}>
-                                        <TableCell>{payment.season}</TableCell>
+                                        <TableCell className="capitalize">{format(payment.date, "MMMM yyyy", { locale: fr })}</TableCell>
                                         <TableCell>
                                             <Badge
                                                 className={cn({

@@ -161,7 +161,7 @@ const ReceiptPage = () => {
             </thead>
             <tbody>
               <tr className="border-b border-gray-200">
-                <td className="p-3">{isSalaryPayment ? `Prestation Entraîneur - Saison ${payment.season}` : `Adhésion saison ${payment.season} (Joueur)`}</td>
+                <td className="p-3">{isSalaryPayment ? `Prestation Entraîneur - ${format(payment.date, 'MMMM yyyy', { locale: fr })}` : `Adhésion ${format(payment.date, 'MMMM yyyy', { locale: fr })} (Joueur)`}</td>
                 <td className="p-3 text-right">{payment.totalAmount.toFixed(2)} DH</td>
               </tr>
             </tbody>

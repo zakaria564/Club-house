@@ -147,13 +147,13 @@ export const players: Player[] = [
 ];
 
 export const payments: Payment[] = [
-  { id: 'p1', memberId: '1', memberName: 'John Doe', paymentType: 'membership', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-01'), status: 'Paid', season: '2023-2024' },
-  { id: 'p2', memberId: '2', memberName: 'Jane Smith', paymentType: 'membership', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-05'), status: 'Paid', season: '2023-2024' },
-  { id: 'p3', memberId: '3', memberName: 'Mike Johnson', paymentType: 'membership', totalAmount: 300, advance: 150, remaining: 150, date: new Date('2023-09-10'), status: 'Pending', season: '2023-2024' },
-  { id: 'p4', memberId: '4', memberName: 'Emily Brown', paymentType: 'membership', totalAmount: 300, advance: 0, remaining: 300, date: new Date('2023-08-15'), status: 'Overdue', season: '2023-2024' },
-  { id: 'p5', memberId: '5', memberName: 'Chris Davis', paymentType: 'membership', totalAmount: 300, advance: 300, remaining: 0, date: new Date('2023-09-02'), status: 'Paid', season: '2023-2024' },
-  { id: 'p6', memberId: 'c1', memberName: 'Didier Deschamps', paymentType: 'salary', totalAmount: 500, advance: 500, remaining: 0, date: new Date('2023-10-01'), status: 'Paid', season: '2023-2024' },
-  { id: 'p7', memberId: 'c2', memberName: 'Zinedine Zidane', paymentType: 'salary', totalAmount: 500, advance: 250, remaining: 250, date: new Date('2023-10-05'), status: 'Pending', season: '2023-2024' },
+  { id: 'p1', memberId: '1', memberName: 'John Doe', paymentType: 'membership', totalAmount: 300, advance: 300, remaining: 0, date: new Date(), status: 'Paid' },
+  { id: 'p2', memberId: '2', memberName: 'Jane Smith', paymentType: 'membership', totalAmount: 300, advance: 300, remaining: 0, date: new Date(), status: 'Paid' },
+  { id: 'p3', memberId: '3', memberName: 'Mike Johnson', paymentType: 'membership', totalAmount: 300, advance: 150, remaining: 150, date: new Date(), status: 'Pending' },
+  { id: 'p4', memberId: '4', memberName: 'Emily Brown', paymentType: 'membership', totalAmount: 300, advance: 0, remaining: 300, date: new Date(new Date().setMonth(new Date().getMonth() - 2)), status: 'Overdue' },
+  { id: 'p5', memberId: '5', memberName: 'Chris Davis', paymentType: 'membership', totalAmount: 300, advance: 300, remaining: 0, date: new Date(), status: 'Paid' },
+  { id: 'p6', memberId: 'c1', memberName: 'Didier Deschamps', paymentType: 'salary', totalAmount: 500, advance: 500, remaining: 0, date: new Date(), status: 'Paid' },
+  { id: 'p7', memberId: 'c2', memberName: 'Zinedine Zidane', paymentType: 'salary', totalAmount: 500, advance: 250, remaining: 250, date: new Date(), status: 'Pending' },
 ];
 
 export const clubEvents: ClubEvent[] = [

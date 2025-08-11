@@ -18,6 +18,8 @@ import type { Payment, Player, Coach } from "@/types"
 import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
@@ -316,10 +318,10 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
         <TableRow>
           <TableHead>Membre</TableHead>
           <TableHead className="hidden sm:table-cell">Statut</TableHead>
+          <TableHead className="hidden lg:table-cell">Mois du paiement</TableHead>
           <TableHead className="text-right">Total</TableHead>
           <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
           <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
-          <TableHead className="hidden lg:table-cell text-right">Saison</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>
           </TableHead>
@@ -343,6 +345,9 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
                 {statusTranslations[payment.status]}
               </Badge>
             </TableCell>
+            <TableCell className="hidden lg:table-cell capitalize">
+              {format(payment.date, 'MMMM yyyy', { locale: fr })}
+            </TableCell>
             <TableCell className="text-right">
               {payment.totalAmount.toFixed(2)} DH
             </TableCell>
@@ -351,9 +356,6 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
             </TableCell>
             <TableCell className="hidden md:table-cell text-right">
               {payment.remaining.toFixed(2)} DH
-            </TableCell>
-            <TableCell className="hidden lg:table-cell text-right">
-              {payment.season}
             </TableCell>
             <TableCell onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>

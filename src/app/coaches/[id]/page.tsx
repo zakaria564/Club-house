@@ -198,14 +198,14 @@ export default function CoachDetailPage() {
                 <CardHeader>
                     <CardTitle>Historique des salaires</CardTitle>
                     <CardDescription>
-                        Liste de tous les salaires enregistrés pour cet entraîneur.
+                        Liste de tous les salaires enregistrés for cet entraîneur.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Saison</TableHead>
+                                <TableHead>Mois du Paiement</TableHead>
                                 <TableHead>Statut</TableHead>
                                 <TableHead className="text-right">Montant Total</TableHead>
                                 <TableHead className="text-right hidden sm:table-cell">Avance</TableHead>
@@ -216,7 +216,7 @@ export default function CoachDetailPage() {
                             {payments.length > 0 ? (
                                 payments.map(payment => (
                                     <TableRow key={payment.id}>
-                                        <TableCell>{payment.season}</TableCell>
+                                        <TableCell className="capitalize">{format(payment.date, 'MMMM yyyy', { locale: fr })}</TableCell>
                                         <TableCell>
                                             <Badge
                                                 className={cn({
