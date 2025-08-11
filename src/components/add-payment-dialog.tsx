@@ -61,7 +61,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   
   React.useEffect(() => {
     if (open) {
-        setTotalAmount("300.00");
+        setTotalAmount(memberType === 'player' ? "300.00" : "500.00");
         setAdvance("");
         setSelectedMemberId(null);
         setMemberType('player');
@@ -69,7 +69,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
         const currentYear = new Date().getFullYear();
         setSeason(`${currentYear}-${currentYear + 1}`);
     }
-  }, [open]);
+  }, [open, memberType]);
 
   const handleAmountBlur = (
     e: React.FocusEvent<HTMLInputElement>,
@@ -120,7 +120,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
     onAddPayment({
       memberId: selectedMemberId,
       memberName: selectedMember.name,
-      memberType,
+      paymentType: memberType === 'player' ? 'membership' : 'salary',
       totalAmount: totalAmountNum,
       advance: advanceNum,
       remaining: remaining,
@@ -141,9 +141,9 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Ajouter un nouveau paiement</DialogTitle>
+          <DialogTitle>Ajouter une transaction</DialogTitle>
           <DialogDescription>
-            Saisissez les détails ci-dessous pour enregistrer un nouveau paiement.
+            Saisissez les détails pour une cotisation de joueur ou un salaire d'entraîneur.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} onKeyDown={handleEnterKeyDown} className="space-y-4 py-4">
@@ -158,11 +158,11 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="player" id="r-player" />
-                <Label htmlFor="r-player">Joueur</Label>
+                <Label htmlFor="r-player">Joueur (Cotisation)</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="coach" id="r-coach" />
-                <Label htmlFor="r-coach">Entraîneur</Label>
+                <Label htmlFor="r-coach">Entraîneur (Salaire)</Label>
               </div>
             </RadioGroup>
           </div>
@@ -205,7 +205,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="advance" className="text-right">
-              Avance
+              Montant versé
             </Label>
             <Input 
               id="advance" 

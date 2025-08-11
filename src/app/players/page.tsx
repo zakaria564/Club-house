@@ -96,7 +96,7 @@ export default function PlayersPage() {
       const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
       if (storedPaymentsRaw) {
         const payments: Payment[] = JSON.parse(storedPaymentsRaw);
-        const updatedPayments = payments.filter(p => p.memberType !== 'player' || p.memberId !== playerToDelete);
+        const updatedPayments = payments.filter(p => p.paymentType !== 'membership' || p.memberId !== playerToDelete);
         localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
       }
     } catch (error) {

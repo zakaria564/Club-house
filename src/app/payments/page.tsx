@@ -77,7 +77,7 @@ function PaymentsPageContent() {
   const memberId = searchParams.get('memberId')
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
-  const [memberTypeFilter, setMemberTypeFilter] = React.useState<'all' | 'player' | 'coach'>('all');
+  const [paymentTypeFilter, setPaymentTypeFilter] = React.useState<'all' | 'membership' | 'salary'>('all');
   
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
@@ -130,9 +130,9 @@ function PaymentsPageContent() {
 
   const basePayments = memberId ? payments.filter(p => p.memberId === memberId) : payments;
   
-  const filteredByMemberType = basePayments.filter(p => memberTypeFilter === 'all' || p.memberType === memberTypeFilter);
+  const filteredByType = basePayments.filter(p => paymentTypeFilter === 'all' || p.paymentType === paymentTypeFilter);
 
-  const filteredPayments = filteredByMemberType.filter(payment =>
+  const filteredPayments = filteredByType.filter(payment =>
     payment.memberName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -178,8 +178,8 @@ function PaymentsPageContent() {
     })
   }
 
-  const handleViewMember = (memberId: string, memberType: 'player' | 'coach') => {
-    const path = memberType === 'player' ? 'players' : 'coaches';
+  const handleViewMember = (memberId: string, paymentType: 'membership' | 'salary') => {
+    const path = paymentType === 'membership' ? 'players' : 'coaches';
     router.push(`/${path}/${memberId}`);
   }
   
@@ -210,20 +210,20 @@ function PaymentsPageContent() {
        <Card>
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="w-full">
-              <CardTitle>Historique des paiements</CardTitle>
+              <CardTitle>Historique des transactions</CardTitle>
               <CardDescription>
-                Suivez et gérez tous les paiements des adhésions.
+                Suivez et gérez tous les paiements et salaires.
               </CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                <Select value={memberTypeFilter} onValueChange={(value) => setMemberTypeFilter(value as any)}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
+                <Select value={paymentTypeFilter} onValueChange={(value) => setPaymentTypeFilter(value as any)}>
+                    <SelectTrigger className="w-full sm:w-[220px]">
                         <SelectValue placeholder="Filtrer par type" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">Tous</SelectItem>
-                        <SelectItem value="player">Joueurs</SelectItem>
-                        <SelectItem value="coach">Entraîneurs</SelectItem>
+                        <SelectItem value="all">Toutes les transactions</SelectItem>
+                        <SelectItem value="membership">Cotisations (Joueurs)</SelectItem>
+                        <SelectItem value="salary">Salaires (Entraîneurs)</SelectItem>
                     </SelectContent>
                 </Select>
                <div className="relative w-full sm:w-auto">
@@ -304,7 +304,7 @@ interface PaymentTableProps {
   payments: Payment[];
   statusTranslations: { [key in Payment['status']]: string };
   onMarkAsPaid: (paymentId: string) => void;
-  onViewMember: (memberId: string, memberType: 'player' | 'coach') => void;
+  onViewMember: (memberId: string, paymentType: 'membership' | 'salary') => void;
   onPrintReceipt: (paymentId: string) => void;
 }
 
@@ -327,10 +327,10 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
       </TableHeader>
       <TableBody>
         {payments.map(payment => (
-          <TableRow key={payment.id} onClick={() => onViewMember(payment.memberId, payment.memberType)} className="cursor-pointer">
+          <TableRow key={payment.id} onClick={() => onViewMember(payment.memberId, payment.paymentType)} className="cursor-pointer">
             <TableCell>
               <div className="font-medium">{payment.memberName}</div>
-              <div className="text-sm text-muted-foreground capitalize">{payment.memberType === 'player' ? 'Joueur' : 'Entraîneur'}</div>
+              <div className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</div>
             </TableCell>
             <TableCell className="hidden sm:table-cell">
               <Badge 
@@ -369,7 +369,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.memberType)}>Voir le profil</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.paymentType)}>Voir le profil</DropdownMenuItem>
                   {payment.status !== 'Paid' && (
                     <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
                   )}

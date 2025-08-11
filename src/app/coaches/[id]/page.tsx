@@ -77,7 +77,7 @@ export default function CoachDetailPage() {
             loadedPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
             localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
         }
-        setPayments(loadedPayments.filter(p => p.memberType === 'coach' && p.memberId === coachId));
+        setPayments(loadedPayments.filter(p => p.paymentType === 'salary' && p.memberId === coachId));
 
     } catch (error) {
         console.error("Failed to load data:", error);
@@ -196,9 +196,9 @@ export default function CoachDetailPage() {
          <div className="no-print">
             <Card>
                 <CardHeader>
-                    <CardTitle>Historique des paiements</CardTitle>
+                    <CardTitle>Historique des salaires</CardTitle>
                     <CardDescription>
-                        Liste de tous les paiements enregistrés pour cet entraîneur.
+                        Liste de tous les salaires enregistrés pour cet entraîneur.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

@@ -182,7 +182,7 @@ export default function Dashboard() {
     
     const paidPlayerIdsForSeason = new Set(
         payments
-            .filter(p => p.memberType === 'player' && p.status === 'Paid' && p.season === currentSeasonString)
+            .filter(p => p.paymentType === 'membership' && p.status === 'Paid' && p.season === currentSeasonString)
             .map(p => p.memberId)
     );
 

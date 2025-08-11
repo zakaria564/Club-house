@@ -27,7 +27,7 @@ export type Payment = {
   id: string;
   memberId: string; // Can be playerId or coachId
   memberName: string;
-  memberType: 'player' | 'coach';
+  paymentType: 'membership' | 'salary'; // 'membership' for players, 'salary' for coaches
   totalAmount: number;
   advance: number;
   remaining: number;

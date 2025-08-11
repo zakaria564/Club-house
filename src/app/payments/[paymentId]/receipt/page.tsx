@@ -47,7 +47,7 @@ const ReceiptPage = () => {
       setPayment(currentPayment);
 
       if (currentPayment) {
-        if (currentPayment.memberType === 'player') {
+        if (currentPayment.paymentType === 'membership') {
             const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
             const players: Player[] = storedPlayersRaw
             ? JSON.parse(storedPlayersRaw).map(parsePlayerDates)
@@ -62,7 +62,7 @@ const ReceiptPage = () => {
                     email: currentPlayer.email,
                 })
             }
-        } else { // coach
+        } else { // salary
             const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
             const coaches: Coach[] = storedCoachesRaw
             ? JSON.parse(storedCoachesRaw)
@@ -87,7 +87,7 @@ const ReceiptPage = () => {
   React.useEffect(() => {
     if (payment && member) {
       const originalTitle = document.title;
-      document.title = payment.memberType === 'coach' ? 'Attestation de Paiement' : 'Reçu de Paiement';
+      document.title = payment.paymentType === 'salary' ? 'Attestation de Paiement' : 'Reçu de Paiement';
       document.body.classList.add('print-receipt');
       setTimeout(() => {
         window.print();
@@ -110,10 +110,10 @@ const ReceiptPage = () => {
     );
   }
 
-  const isCoachPayment = payment.memberType === 'coach';
+  const isSalaryPayment = payment.paymentType === 'salary';
 
-  const payer = isCoachPayment ? { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' } : member;
-  const payee = isCoachPayment ? member : { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' };
+  const payer = isSalaryPayment ? { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' } : member;
+  const payee = isSalaryPayment ? member : { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' };
 
   return (
     <div className="bg-white text-black font-sans p-8 md:p-12 printable-area">
@@ -124,7 +124,7 @@ const ReceiptPage = () => {
             <ClubLogo className="h-16 w-auto" />
           </div>
           <div className="text-right">
-            <h2 className="text-3xl font-bold text-gray-800">{isCoachPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>
+            <h2 className="text-3xl font-bold text-gray-800">{isSalaryPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>
             <p className="text-gray-500">Référence #: {payment.id}</p>
             <p className="text-gray-500">Date: {format(new Date(payment.date), 'd MMMM yyyy', { locale: fr })}</p>
           </div>
@@ -140,7 +140,7 @@ const ReceiptPage = () => {
             {payer.phone && <p>{payer.phone}</p>}
             <p>{payer.email}</p>
           </div>
-          <div className={isCoachPayment ? "" : "text-right"}>
+          <div className={isSalaryPayment ? "" : "text-right"}>
              <h3 className="text-lg font-semibold text-gray-700 mb-2">Payé à :</h3>
              <p className="font-bold">{payee.name}</p>
              <p>{payee.address}</p>
@@ -161,7 +161,7 @@ const ReceiptPage = () => {
             </thead>
             <tbody>
               <tr className="border-b border-gray-200">
-                <td className="p-3">{isCoachPayment ? `Prestation Entraîneur - Saison ${payment.season}` : `Adhésion saison ${payment.season} (Joueur)`}</td>
+                <td className="p-3">{isSalaryPayment ? `Prestation Entraîneur - Saison ${payment.season}` : `Adhésion saison ${payment.season} (Joueur)`}</td>
                 <td className="p-3 text-right">{payment.totalAmount.toFixed(2)} DH</td>
               </tr>
             </tbody>
@@ -176,15 +176,15 @@ const ReceiptPage = () => {
               <span>{payment.totalAmount.toFixed(2)} DH</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">{isCoachPayment ? `Montant versé` : `Avance payée`}</span>
+              <span className="text-gray-600">{isSalaryPayment ? `Montant versé` : `Avance payée`}</span>
               <span>{payment.advance.toFixed(2)} DH</span>
             </div>
             <div className="flex justify-between font-bold text-xl border-t border-gray-300 pt-3">
-              <span className="text-gray-800">{isCoachPayment ? `Solde restant dû` : `Reste à payer`}</span>
+              <span className="text-gray-800">{isSalaryPayment ? `Solde restant dû` : `Reste à payer`}</span>
               <span className="text-primary">{payment.remaining.toFixed(2)} DH</span>
             </div>
              <div className="flex justify-between font-bold text-xl bg-green-100 text-green-800 p-3 rounded-md mt-2">
-              <span >{isCoachPayment ? `Montant Total Versé` : `Montant Total Payé`}</span>
+              <span >{isSalaryPayment ? `Montant Total Versé` : `Montant Total Payé`}</span>
               <span >{payment.advance.toFixed(2)} DH</span>
             </div>
           </div>

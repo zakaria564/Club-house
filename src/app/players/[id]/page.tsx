@@ -79,7 +79,7 @@ export default function PlayerDetailPage() {
             loadedPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
             localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
         }
-        setPayments(loadedPayments.filter(p => p.memberType === 'player' && p.memberId === playerId));
+        setPayments(loadedPayments.filter(p => p.paymentType === 'membership' && p.memberId === playerId));
         
         const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
         let loadedCoaches: Coach[];

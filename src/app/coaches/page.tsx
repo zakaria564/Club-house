@@ -129,7 +129,7 @@ export default function CoachesPage() {
       const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
       if (storedPaymentsRaw) {
         let payments: Payment[] = JSON.parse(storedPaymentsRaw);
-        const updatedPayments = payments.filter(p => p.memberType !== 'coach' || p.memberId !== coachToDelete);
+        const updatedPayments = payments.filter(p => p.paymentType !== 'salary' || p.memberId !== coachToDelete);
         localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
       }
     } catch (error) {
