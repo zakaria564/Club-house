@@ -161,12 +161,11 @@ export default function Dashboard() {
     seasonString,
     activePlayers,
   } = React.useMemo(() => {
-    // Using a fixed date to ensure calculations are consistent with mock data season
     const today = new Date('2023-10-01T00:00:00'); 
     today.setHours(0, 0, 0, 0);
 
     const currentYear = today.getFullYear();
-    const seasonStartBoundary = new Date(currentYear, 8, 1); // September 1st
+    const seasonStartBoundary = new Date(currentYear, 8, 1); 
 
     const currentSeasonString = today >= seasonStartBoundary
       ? `${currentYear}-${currentYear + 1}`
@@ -177,23 +176,17 @@ export default function Dashboard() {
       : new Date(currentYear - 1, 8, 1);
 
     const currentActivePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
-    const activePlayerIds = new Set(currentActivePlayers.map(p => p.id));
-
+    
     const currentTotalPlayers = currentActivePlayers.length;
     const currentInjuredPlayers = currentActivePlayers.filter(p => p.status === 'Blessé').length;
     
-    const currentPaidPlayerIds = new Set(
-      payments
-        .filter(p => 
-          p.memberType === 'player' && 
-          p.status === 'Paid' &&
-          p.season === currentSeasonString &&
-          activePlayerIds.has(p.memberId)
-        )
-        .map(p => p.memberId)
+    const paidPlayerIdsForSeason = new Set(
+        payments
+            .filter(p => p.memberType === 'player' && p.status === 'Paid' && p.season === currentSeasonString)
+            .map(p => p.memberId)
     );
 
-    const currentPaidMemberships = currentPaidPlayerIds.size;
+    const currentPaidMemberships = currentActivePlayers.filter(p => paidPlayerIdsForSeason.has(p.id)).length;
     const currentPaidPercentage = currentTotalPlayers > 0 ? ((currentPaidMemberships / currentTotalPlayers) * 100).toFixed(0) : "0";
 
     const currentUpcomingEvents = events.filter(e => isAfter(e.date, today) || isToday(e.date));
