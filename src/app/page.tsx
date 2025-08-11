@@ -165,15 +165,15 @@ export default function Dashboard() {
     today.setHours(0, 0, 0, 0);
 
     const currentYear = today.getFullYear();
-    const seasonStartBoundary = new Date(currentYear, 8, 1); 
+    const seasonStartMonth = 8; // September is month 8 (0-indexed)
 
-    const currentSeasonString = today >= seasonStartBoundary
+    const currentSeasonString = today.getMonth() >= seasonStartMonth
       ? `${currentYear}-${currentYear + 1}`
       : `${currentYear - 1}-${currentYear}`;
     
-    const seasonStartDate = today >= seasonStartBoundary
-      ? seasonStartBoundary
-      : new Date(currentYear - 1, 8, 1);
+    const seasonStartDate = today.getMonth() >= seasonStartMonth
+      ? new Date(currentYear, seasonStartMonth, 1)
+      : new Date(currentYear - 1, seasonStartMonth, 1);
 
     const currentActivePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, seasonStartDate));
     
@@ -346,3 +346,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
