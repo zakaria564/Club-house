@@ -21,6 +21,14 @@ const parsePlayerDates = (player: any): Player => ({
   clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
 });
 
+const parseCoachDates = (coach: any): Coach => ({
+  ...coach,
+  clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
+  clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : undefined,
+  age: coach.age || undefined
+});
+
+
 type Member = {
     name: string;
     address: string;
@@ -65,8 +73,8 @@ const ReceiptPage = () => {
         } else { // salary
             const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
             const coaches: Coach[] = storedCoachesRaw
-              ? JSON.parse(storedCoachesRaw)
-              : initialCoaches;
+              ? JSON.parse(storedCoachesRaw).map(parseCoachDates)
+              : initialCoaches.map(parseCoachDates);
             const currentCoach = coaches.find(c => c.id === currentPayment.memberId);
              if (currentCoach) {
                 setMember({
