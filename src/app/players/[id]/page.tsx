@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail } from 'lucide-react';
 import type { Player, Payment, Coach } from '@/types';
 import { players as initialPlayers, payments as initialPayments, coaches as initialCoaches } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
@@ -26,8 +26,7 @@ const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club CAOS 2011 Logo" className="h-24 w-auto" data-ai-hint="club logo" />
+        <ClubLogo className="h-24 w-auto" />
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
             <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
@@ -94,6 +93,9 @@ export default function PlayerDetailPage() {
 
     } catch (error) {
         console.error("Failed to load or merge data:", error);
+        setPlayers(initialPlayers.map(parsePlayerDates));
+        setCoaches(initialCoaches);
+        setPayments(initialPayments.map(p => ({...p, date: new Date(p.date)})));
     }
   }, [playerId]);
 
@@ -190,9 +192,9 @@ export default function PlayerDetailPage() {
                     <span className="font-medium">Adresse:</span>
                     <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {`${player.address}, ${player.city}`}</span>
                     <span className="font-medium">Téléphone:</span>
-                    <span>{player.phone}</span>
+                    <a href={`tel:${player.phone}`} className="hover:underline">{player.phone}</a>
                     <span className="font-medium">Email:</span>
-                    <span className="truncate">{player.email}</span>
+                    <a href={`mailto:${player.email}`} className="truncate hover:underline">{player.email}</a>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -201,7 +203,7 @@ export default function PlayerDetailPage() {
                     <span className="font-medium">Nom du tuteur:</span>
                     <span>{player.guardianName}</span>
                     <span className="font-medium">Téléphone du tuteur:</span>
-                    <span>{player.guardianPhone}</span>
+                    <a href={`tel:${player.guardianPhone}`} className="hover:underline">{player.guardianPhone}</a>
                   </div>
                 </div>
               </div>

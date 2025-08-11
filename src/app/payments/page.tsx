@@ -116,6 +116,9 @@ function PaymentsPageContent() {
         setPayments(loadedPayments);
     } catch (error) {
         console.error("Failed to load data:", error);
+        setPayments(initialPayments.map(parsePaymentDates));
+        setPlayers(initialPlayers.map(parsePlayerDates));
+        setCoaches(initialCoaches);
     }
   }, []);
 
@@ -236,7 +239,7 @@ function PaymentsPageContent() {
         </CardHeader>
          <CardContent>
             <Tabs defaultValue="all-status">
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto mb-4">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-sm sm:w-auto mb-4">
                 <TabsTrigger value="all-status">Tous</TabsTrigger>
                 <TabsTrigger value="paid">Payé</TabsTrigger>
                 <TabsTrigger value="pending">En attente</TabsTrigger>

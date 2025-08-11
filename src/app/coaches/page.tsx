@@ -93,10 +93,12 @@ export default function CoachesPage() {
   }, []);
 
   const handleCoachUpdate = (updatedCoach: Coach) => {
-    const newCoaches = coaches.map(c => (c.id === updatedCoach.id ? updatedCoach : c));
+    let newCoaches: Coach[];
     const isNew = !coaches.some(c => c.id === updatedCoach.id);
     if (isNew) {
-      newCoaches.push(updatedCoach);
+      newCoaches = [...coaches, updatedCoach]
+    } else {
+      newCoaches = coaches.map(c => (c.id === updatedCoach.id ? updatedCoach : c));
     }
     setCoaches(newCoaches);
     localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(newCoaches));
@@ -127,7 +129,7 @@ export default function CoachesPage() {
       const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
       if (storedPaymentsRaw) {
         let payments: Payment[] = JSON.parse(storedPaymentsRaw);
-        const updatedPayments = payments.filter(p => p.memberId !== coachToDelete);
+        const updatedPayments = payments.filter(p => p.memberType !== 'coach' || p.memberId !== coachToDelete);
         localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
       }
     } catch (error) {
@@ -221,7 +223,7 @@ export default function CoachesPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                          <AvatarImage src={coach.photoUrl} alt={coach.firstName} data-ai-hint="coach profile" />
-                         <AvatarFallback>{coach.firstName[0]}{coach.lastName[0]}</AvatarFallback>
+                         <AvatarFallback>{coach.firstName?.[0]}{coach.lastName?.[0]}</AvatarFallback>
                       </Avatar>
                        <div className="font-medium">{coach.firstName} {coach.lastName}</div>
                     </div>
@@ -230,8 +232,8 @@ export default function CoachesPage() {
                     <Badge variant="secondary">{coach.specialty}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="font-medium truncate">{coach.email}</div>
-                    <div className="text-sm text-muted-foreground">{coach.phone}</div>
+                    <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="font-medium truncate hover:underline">{coach.email}</a>
+                    <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-sm text-muted-foreground hover:underline">{coach.phone}</a>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>

@@ -76,6 +76,8 @@ export default function PlayersPage() {
 
     } catch (error) {
         console.error("Failed to load or merge data:", error);
+        setPlayers(initialPlayers.map(parsePlayerDates));
+        setCoaches(initialCoaches);
     }
   }, []);
 
@@ -86,17 +88,15 @@ export default function PlayersPage() {
   const handleDeleteConfirm = () => {
     if (!playerToDelete) return;
     
-    // Update players list
     const updatedPlayers = players.filter(p => p.id !== playerToDelete);
     setPlayers(updatedPlayers);
     localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
 
-    // Update associated payments
     try {
       const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
       if (storedPaymentsRaw) {
         const payments: Payment[] = JSON.parse(storedPaymentsRaw);
-        const updatedPayments = payments.filter(p => p.memberId !== playerToDelete);
+        const updatedPayments = payments.filter(p => p.memberType !== 'player' || p.memberId !== playerToDelete);
         localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
       }
     } catch (error) {
@@ -214,7 +214,7 @@ export default function PlayersPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                          <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
-                         <AvatarFallback>{player.firstName[0]}{player.lastName[0]}</AvatarFallback>
+                         <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
                       </Avatar>
                        <div>
                           <div className="font-medium">{player.firstName} {player.lastName}</div>

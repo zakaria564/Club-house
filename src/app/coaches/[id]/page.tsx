@@ -24,8 +24,7 @@ const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club CAOS 2011 Logo" className="h-24 w-auto" data-ai-hint="club logo" />
+        <ClubLogo className="h-24 w-auto" />
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
             <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
@@ -83,6 +82,7 @@ export default function CoachDetailPage() {
     } catch (error) {
         console.error("Failed to load data:", error);
         setCoaches(initialCoaches.map(parseCoachDates));
+        setPayments(initialPayments.map(p => ({...p, date: new Date(p.date) })));
     }
   }, [coachId]);
 
@@ -168,14 +168,14 @@ export default function CoachDetailPage() {
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informations de Contact</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-3">
+                    <a href={`mailto:${coach.email}`} className="flex items-center gap-3 hover:underline">
                         <Mail className="w-4 h-4 text-muted-foreground" />
                         <span className="truncate">{coach.email}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
+                    </a>
+                    <a href={`tel:${coach.phone}`} className="flex items-center gap-3 hover:underline">
                         <Phone className="w-4 h-4 text-muted-foreground" />
                         <span>{coach.phone}</span>
-                    </div>
+                    </a>
                 </div>
               </div>
                <div className="space-y-4">
