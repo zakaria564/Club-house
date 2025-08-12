@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { Toaster } from "@/components/ui/toaster";
+import { MobileHeader } from "@/components/layout/mobile-header";
 
 const fontPoppins = Poppins({
   subsets: ["latin"],
@@ -42,7 +43,8 @@ export default function RootLayout({
             <MainSidebar />
           </Sidebar>
           <SidebarInset>
-            <div className="p-4 sm:p-6 lg:p-8">
+            <MobileHeader />
+            <div className="p-4 sm:p-6 lg:p-8 pt-16 sm:pt-6 lg:pt-8">
               {children}
             </div>
           </SidebarInset>
