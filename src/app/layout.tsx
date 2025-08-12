@@ -44,9 +44,9 @@ export default function RootLayout({
           </Sidebar>
           <SidebarInset>
             <MobileHeader />
-            <div className="p-4 sm:p-6 lg:p-8 pt-16 sm:pt-6 lg:pt-8">
+            <main className="p-4 sm:p-6 lg:p-8 pt-20 md:pt-6">
               {children}
-            </div>
+            </main>
           </SidebarInset>
         </SidebarProvider>
         <Toaster />

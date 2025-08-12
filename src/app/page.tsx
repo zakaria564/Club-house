@@ -16,7 +16,7 @@ import AddPlayerDialog from "@/components/add-player-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
-import { differenceInDays, isAfter, isSameMonth, isToday, startOfMonth } from 'date-fns';
+import { differenceInDays, isAfter, isSameMonth, isToday, startOfMonth, format } from 'date-fns';
 import { fr } from "date-fns/locale"
 
 
@@ -159,6 +159,7 @@ export default function Dashboard() {
     upcomingTrainings,
     paidMemberships,
     activePlayers,
+    monthString
   } = React.useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -178,6 +179,8 @@ export default function Dashboard() {
     const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
     const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
     
+    const currentMonthString = format(today, "MMMM yyyy", { locale: fr });
+
     return {
         totalPlayers: currentTotalPlayers,
         injuredPlayers: currentInjuredPlayers,
@@ -186,6 +189,7 @@ export default function Dashboard() {
         upcomingTrainings: currentUpcomingTrainings,
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
+        monthString: currentMonthString,
     };
   }, [players, payments, events]);
 
@@ -295,7 +299,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{paidMemberships} / {totalPlayers}</div>
-            <p className="text-xs text-muted-foreground capitalize">paiements ce mois-ci</p>
+            <p className="text-xs text-muted-foreground capitalize">paiements ce mois-ci ({monthString})</p>
           </CardContent>
         </Card>
       </div>
