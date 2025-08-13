@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +23,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { handleEnterKeyDown } from "@/lib/utils"
+import { storage } from "@/lib/firebase"
+import { Loader2, Upload } from "lucide-react"
 
 
 const coachFormSchema = z.object({
@@ -86,6 +89,9 @@ const specialties = [
 
 export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
   const { toast } = useToast()
+  const [isUploading, setIsUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
 
   const defaultValues: CoachFormValues = coach ? { 
     ...coach,
@@ -133,6 +139,26 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     }
   }, [coach, form, coaches]);
 
+ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      try {
+        const coachId = form.getValues('id');
+        const storageRef = ref(storage, `coaches/${coachId}/photo/${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        form.setValue('photoUrl', downloadURL, { shouldValidate: true });
+        toast({ title: "Photo téléchargée", description: "La nouvelle photo a été enregistrée." });
+      } catch (error) {
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible de télécharger la photo." });
+        console.error("Upload error:", error);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
 
   function onSubmit(data: CoachFormValues) {
     const isEditing = !!coach;
@@ -163,23 +189,21 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         {form.watch('lastName')?.[0]}
                     </AvatarFallback>
                 </Avatar>
-                <div className="w-full">
-                    <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>URL de la photo</FormLabel>
-                            <FormControl>
-                                <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value ?? ''} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    <FormDescription>
-                        Collez l'URL d'une image accessible en ligne.
-                    </FormDescription>
+                <div className="w-full space-y-2">
+                    <FormLabel>Photo de l'entraîneur</FormLabel>
+                    <div className="flex gap-2">
+                         <Input
+                            value={photoUrl || ''}
+                            placeholder="URL de la photo ou téléchargez"
+                            onChange={(e) => form.setValue('photoUrl', e.target.value)}
+                         />
+                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                            {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2" />}
+                            Télécharger
+                         </Button>
+                    </div>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                    <FormMessage>{form.formState.errors.photoUrl?.message}</FormMessage>
                 </div>
             </div>
 
@@ -376,7 +400,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    
-
-    

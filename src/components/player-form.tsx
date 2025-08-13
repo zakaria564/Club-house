@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +24,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
 import { coaches as initialCoaches } from "@/lib/mock-data"
+import { storage } from "@/lib/firebase"
+import { Loader2, Upload } from "lucide-react"
 
 const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
@@ -96,6 +99,12 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
+  const [isUploadingCert, setIsUploadingCert] = React.useState(false);
+
+  const photoInputRef = React.useRef<HTMLInputElement>(null);
+  const certInputRef = React.useRef<HTMLInputElement>(null);
+
 
    React.useEffect(() => {
     // In a real app, this would be a fetch call
@@ -144,6 +153,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   })
 
   const photoUrl = form.watch('photoUrl');
+  const medicalCertificateUrl = form.watch('medicalCertificateUrl');
+
 
   React.useEffect(() => {
     if (player) {
@@ -165,6 +176,48 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         });
     }
   }, [player, form, players]);
+
+
+  const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
+    onUploadProgress(true);
+    try {
+        const storageRef = ref(storage, path);
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        toast({ title: "Fichier téléchargé", description: "Le fichier a été téléchargé avec succès." });
+        return downloadURL;
+    } catch (error) {
+        console.error("Upload error:", error);
+        toast({ variant: "destructive", title: "Erreur de téléchargement", description: "Le fichier n'a pas pu être téléchargé." });
+        return null;
+    } finally {
+        onUploadProgress(false);
+    }
+  };
+  
+  const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          const playerId = form.getValues('id');
+          const filePath = `players/${playerId}/photo/${file.name}`;
+          const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
+          if (url) {
+              form.setValue('photoUrl', url, { shouldValidate: true });
+          }
+      }
+  }
+
+  const onCertChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          const playerId = form.getValues('id');
+          const filePath = `players/${playerId}/certificates/${file.name}`;
+          const url = await handleFileUpload(file, filePath, setIsUploadingCert);
+          if (url) {
+              form.setValue('medicalCertificateUrl', url, { shouldValidate: true });
+          }
+      }
+  }
 
 
   function onSubmit(data: PlayerFormValues) {
@@ -206,23 +259,22 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       {form.watch('lastName')?.[0]}
                       </AvatarFallback>
                   </Avatar>
-                  <div className="w-full">
-                        <FormField
-                          control={form.control}
-                          name="photoUrl"
-                          render={({ field }) => (
-                              <FormItem>
-                              <FormLabel>URL de la photo</FormLabel>
-                              <FormControl>
-                                  <Input placeholder="https://exemple.com/photo.png" {...field} value={field.value ?? ''} />
-                              </FormControl>
-                              <FormMessage />
-                              </FormItem>
-                          )}
-                          />
-                      <FormDescription>
-                          Collez l'URL d'une image accessible en ligne.
-                      </FormDescription>
+                  <div className="w-full space-y-2">
+                        <FormLabel>Photo du joueur</FormLabel>
+                        <div className="flex gap-2">
+                            <Input
+                                value={photoUrl || ''}
+                                placeholder="URL de la photo ou téléchargez"
+                                onChange={(e) => form.setValue('photoUrl', e.target.value)}
+                                className="flex-grow"
+                            />
+                            <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
+                                {isUploadingPhoto ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2" />}
+                                Télécharger
+                            </Button>
+                        </div>
+                        <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
+                        <FormMessage>{form.formState.errors.photoUrl?.message}</FormMessage>
                   </div>
               </div>
 
@@ -391,22 +443,23 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Documents</h3>
-                  <FormField
-                    control={form.control}
-                    name="medicalCertificateUrl"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>URL du certificat médical</FormLabel>
-                        <FormControl>
-                            <Input placeholder="https://exemple.com/certificat.pdf" {...field} value={field.value ?? ''} />
-                        </FormControl>
-                         <FormDescription>
-                          Collez un lien vers le certificat médical en ligne.
-                        </FormDescription>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
+                 <div className="space-y-2">
+                        <FormLabel>Certificat médical</FormLabel>
+                         <div className="flex gap-2">
+                            <Input
+                                value={medicalCertificateUrl || ''}
+                                placeholder="URL du certificat ou téléchargez"
+                                onChange={(e) => form.setValue('medicalCertificateUrl', e.target.value)}
+                                className="flex-grow"
+                            />
+                            <Button type="button" variant="outline" onClick={() => certInputRef.current?.click()} disabled={isUploadingCert}>
+                                {isUploadingCert ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2" />}
+                                Télécharger
+                            </Button>
+                        </div>
+                        <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
+                        <FormMessage>{form.formState.errors.medicalCertificateUrl?.message}</FormMessage>
+                 </div>
               </div>
 
               <div className="space-y-4">
@@ -565,7 +618,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    
-
-    
