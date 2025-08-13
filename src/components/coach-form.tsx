@@ -95,15 +95,9 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const { toast } = useToast()
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = React.useState(coach?.photoUrl || '');
   
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    mode: "onChange",
-  })
-  
-  React.useEffect(() => {
-    const defaultValues = coach ? { 
+  const defaultValues = React.useMemo(() => {
+    return coach ? { 
         ...coach,
         clubEntryDate: dateToInputFormat(coach.clubEntryDate),
         clubExitDate: dateToInputFormat(coach.clubExitDate),
@@ -123,9 +117,20 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
           clubEntryDate: '',
           clubExitDate: null,
       }
+  }, [coach, coaches]);
+
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    defaultValues,
+    mode: "onChange",
+  });
+  
+  const [previewUrl, setPreviewUrl] = React.useState(defaultValues.photoUrl);
+  
+  React.useEffect(() => {
     form.reset(defaultValues);
-    setPreviewUrl(defaultValues.photoUrl || '');
-  }, [coach, coaches, form]);
+    setPreviewUrl(defaultValues.photoUrl);
+  }, [coach, coaches, form, defaultValues]);
   
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -136,8 +141,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       try {
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
-        form.setValue('photoUrl', downloadURL, { shouldValidate: true, shouldDirty: true });
         setPreviewUrl(downloadURL); 
+        form.setValue('photoUrl', downloadURL, { shouldValidate: true, shouldDirty: true });
         toast({ title: "Photo téléchargée", description: "La nouvelle photo a été enregistrée." });
       } catch (error) {
         toast({ variant: "destructive", title: "Erreur", description: "Impossible de télécharger la photo." });

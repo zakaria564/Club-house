@@ -107,17 +107,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
-
-  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(player?.photoUrl || '');
-  const [certPreviewUrl, setCertPreviewUrl] = React.useState(player?.medicalCertificateUrl || '');
   
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    mode: "onChange",
-  })
-  
-  React.useEffect(() => {
-    const defaultValues = player ? {
+  const defaultValues = React.useMemo(() => {
+    return player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
       clubEntryDate: dateToInputFormat(player.clubEntryDate),
@@ -148,10 +140,22 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       coachId: undefined,
       medicalCertificateUrl: '',
     };
+  }, [player, players]);
+
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues,
+    mode: "onChange",
+  });
+  
+  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(defaultValues.photoUrl);
+  const [certPreviewUrl, setCertPreviewUrl] = React.useState(defaultValues.medicalCertificateUrl);
+  
+  React.useEffect(() => {
     form.reset(defaultValues);
-    setPhotoPreviewUrl(defaultValues.photoUrl || '');
-    setCertPreviewUrl(defaultValues.medicalCertificateUrl || '');
-  }, [player, players, form]);
+    setPhotoPreviewUrl(defaultValues.photoUrl);
+    setCertPreviewUrl(defaultValues.medicalCertificateUrl);
+  }, [player, players, form, defaultValues]);
   
    React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
