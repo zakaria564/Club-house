@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 export function handleEnterKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
   if (e.key === 'Enter' && e.target instanceof HTMLElement) {
     // Prevent default form submission on Enter key
-    if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
+    if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON' && (e.target as HTMLInputElement).type !== 'submit') {
        e.preventDefault();
     } else {
         return
