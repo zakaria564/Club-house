@@ -104,6 +104,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
   const [isUploadingCert, setIsUploadingCert] = React.useState(false);
+  
+  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState<string | undefined>(player?.photoUrl);
+  const [certPreviewUrl, setCertPreviewUrl] = React.useState<string | undefined>(player?.medicalCertificateUrl);
+
 
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
@@ -174,6 +178,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const filePath = `players/${playerId}/photo/${file.name}`;
           const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
           if (url) {
+              setPhotoPreviewUrl(url);
               form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
           }
       }
@@ -186,6 +191,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const filePath = `players/${playerId}/certificates/${file.name}`;
           const url = await handleFileUpload(file, filePath, setIsUploadingCert);
           if (url) {
+              setCertPreviewUrl(url);
               form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
           }
       }
@@ -225,7 +231,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           <div className="space-y-8">
               <div className="flex flex-col md:flex-row items-center gap-6">
                   <Avatar className="h-24 w-24">
-                      <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={photoPreviewUrl} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback>
                       {form.watch('firstName')?.[0]}
                       {form.watch('lastName')?.[0]}
@@ -240,18 +246,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             </Button>
                         </div>
                         <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
-                        <FormField
-                            control={form.control}
-                            name="photoUrl"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormControl>
-                                    <Input placeholder="URL de la photo..." {...field} disabled />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                   </div>
               </div>
 
@@ -428,24 +422,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                 Télécharger le certificat
                             </Button>
                         </div>
-                        {form.watch('medicalCertificateUrl') && (
+                        {certPreviewUrl && (
                           <div className="text-sm text-center text-green-600 mt-2">
-                            Certificat téléchargé. <a href={form.watch('medicalCertificateUrl') || ''} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
+                            Certificat téléchargé. <a href={certPreviewUrl} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
                           </div>
                         )}
                         <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
-                        <FormField
-                            control={form.control}
-                            name="medicalCertificateUrl"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormControl>
-                                    <Input placeholder="URL du certificat..." {...field} disabled />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                  </div>
               </div>
 
