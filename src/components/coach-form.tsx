@@ -92,52 +92,55 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-
-  const defaultValues: CoachFormValues = coach ? { 
-    ...coach,
-    clubEntryDate: dateToInputFormat(coach.clubEntryDate),
-    clubExitDate: dateToInputFormat(coach.clubExitDate),
-    photoUrl: coach.photoUrl || '',
-   } : {
-      id: getNextId(coaches),
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      specialty: '',
-      photoUrl: '',
-      gender: "Homme",
-      age: '' as any,
-      country: '',
-      city: '',
-      clubEntryDate: '',
-      clubExitDate: null,
-  };
-
   const form = useForm<CoachFormValues>({
     resolver: zodResolver(coachFormSchema),
-    defaultValues,
+    defaultValues: React.useMemo(() => coach ? { 
+        ...coach,
+        clubEntryDate: dateToInputFormat(coach.clubEntryDate),
+        clubExitDate: dateToInputFormat(coach.clubExitDate),
+        photoUrl: coach.photoUrl || '',
+       } : {
+          id: getNextId(coaches),
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          specialty: '',
+          photoUrl: '',
+          gender: "Homme",
+          age: '' as any,
+          country: '',
+          city: '',
+          clubEntryDate: '',
+          clubExitDate: null,
+      }, [coach, coaches]),
     mode: "onChange",
   })
   
   const photoUrl = form.watch('photoUrl');
 
   React.useEffect(() => {
-    if (coach) {
-      form.reset({ 
-          ...coach,
-          clubEntryDate: dateToInputFormat(coach.clubEntryDate),
-          clubExitDate: dateToInputFormat(coach.clubExitDate),
-          photoUrl: coach.photoUrl || '',
-      });
-    } else {
-        const nextId = getNextId(coaches);
-        form.reset({
-            ...defaultValues,
-            id: nextId,
-        });
-    }
-  }, [coach, form, coaches, defaultValues]);
+    form.reset(coach ? { 
+        ...coach,
+        clubEntryDate: dateToInputFormat(coach.clubEntryDate),
+        clubExitDate: dateToInputFormat(coach.clubExitDate),
+        photoUrl: coach.photoUrl || '',
+    } : {
+        id: getNextId(coaches),
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        specialty: '',
+        photoUrl: '',
+        gender: "Homme",
+        age: '' as any,
+        country: '',
+        city: '',
+        clubEntryDate: '',
+        clubExitDate: null,
+    });
+  }, [coach, coaches, form]);
 
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -71,7 +71,6 @@ const getNextId = (players: Player[]) => {
 const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
-        // Format YYYY-MM-DD
         return new Date(date).toISOString().split('T')[0];
     } catch {
         return '';
@@ -113,7 +112,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     setCoaches(storedCoaches);
   }, []);
 
-  const defaultValues: PlayerFormValues = player ? {
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues: React.useMemo(() => player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
       clubEntryDate: dateToInputFormat(player.clubEntryDate),
@@ -144,38 +145,48 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: null,
       coachId: '',
       medicalCertificateUrl: '',
-    };
-
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues,
+    }, [player, players]),
     mode: "onChange",
   })
-
+  
   const photoUrl = form.watch('photoUrl');
   const medicalCertificateUrl = form.watch('medicalCertificateUrl');
 
 
   React.useEffect(() => {
-    if (player) {
-      form.reset({
-        ...player,
-        dateOfBirth: dateToInputFormat(player.dateOfBirth),
-        clubEntryDate: dateToInputFormat(player.clubEntryDate),
-        clubExitDate: dateToInputFormat(player.clubExitDate),
-        coachId: player.coachId || '',
-        photoUrl: player.photoUrl || '',
-        medicalCertificateUrl: player.medicalCertificateUrl || '',
-        country: player.country || '',
-      });
-    } else {
-        const nextId = getNextId(players);
-        form.reset({
-            ...defaultValues,
-            id: nextId,
-        });
-    }
-  }, [player, form, players, defaultValues]);
+    form.reset(player ? {
+      ...player,
+      dateOfBirth: dateToInputFormat(player.dateOfBirth),
+      clubEntryDate: dateToInputFormat(player.clubEntryDate),
+      clubExitDate: dateToInputFormat(player.clubExitDate),
+      coachId: player.coachId || '',
+      photoUrl: player.photoUrl || '',
+      medicalCertificateUrl: player.medicalCertificateUrl || '',
+      country: player.country || '',
+    } : {
+      id: getNextId(players),
+      firstName: '',
+      lastName: '',
+      gender: "Homme",
+      email: '',
+      dateOfBirth: '',
+      category: '',
+      status: 'En forme',
+      photoUrl: '',
+      address: '',
+      city: '',
+      country: '',
+      phone: '',
+      guardianName: '',
+      guardianPhone: '',
+      position: '',
+      playerNumber: '' as any,
+      clubEntryDate: '',
+      clubExitDate: null,
+      coachId: '',
+      medicalCertificateUrl: '',
+    });
+  }, [player, players, form]);
 
 
   const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
@@ -541,7 +552,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Statut</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Définir le statut du joueur" />
@@ -563,7 +574,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Entraîneur</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                          <Select onValueChange={field.onChange} value={field.value ?? ''}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
