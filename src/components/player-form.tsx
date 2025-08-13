@@ -1,4 +1,3 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -11,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -110,10 +108,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
   const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(player?.photoUrl || '');
   const [certPreviewUrl, setCertPreviewUrl] = React.useState(player?.medicalCertificateUrl || '');
-
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues: player ? {
+  
+  const defaultValues = React.useMemo(() => {
+    return player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
       clubEntryDate: dateToInputFormat(player.clubEntryDate),
@@ -126,11 +123,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       id: getNextId(players),
       firstName: '',
       lastName: '',
-      gender: "Homme",
+      gender: "Homme" as const,
       email: '',
       dateOfBirth: '',
       category: '',
-      status: 'En forme',
+      status: 'En forme' as const,
       photoUrl: '',
       address: '',
       city: '',
@@ -144,29 +141,21 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: null,
       coachId: '',
       medicalCertificateUrl: '',
-    },
+    };
+  }, [player, players]);
+
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues: defaultValues,
     mode: "onChange",
   })
   
-  React.useEffect(() => {
-    if (player) {
-      const defaultValues = {
-        ...player,
-        dateOfBirth: dateToInputFormat(player.dateOfBirth),
-        clubEntryDate: dateToInputFormat(player.clubEntryDate),
-        clubExitDate: dateToInputFormat(player.clubExitDate),
-        coachId: player.coachId || undefined,
-        photoUrl: player.photoUrl || '',
-        medicalCertificateUrl: player.medicalCertificateUrl || '',
-        country: player.country || '',
-      };
-      form.reset(defaultValues);
-      setPhotoPreviewUrl(player.photoUrl || '');
-      setCertPreviewUrl(player.medicalCertificateUrl || '');
-    }
-  }, [player, form]);
+   React.useEffect(() => {
+    form.reset(defaultValues);
+    setPhotoPreviewUrl(defaultValues.photoUrl || '');
+    setCertPreviewUrl(defaultValues.medicalCertificateUrl || '');
+  }, [player, defaultValues, form]);
   
-
    React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
     const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
@@ -265,11 +254,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             </Button>
                         </div>
                         <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
-                        <FormField
-                            control={form.control}
-                            name="photoUrl"
-                            render={() => <FormMessage />}
-                        />
                   </div>
               </div>
 
@@ -452,11 +436,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           </div>
                         )}
                         <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
-                        <FormField
-                            control={form.control}
-                            name="medicalCertificateUrl"
-                            render={() => <FormMessage />}
-                        />
                  </div>
               </div>
 

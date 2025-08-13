@@ -1,4 +1,3 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -11,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -97,9 +95,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = React.useState(coach?.photoUrl || '');
   
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    defaultValues: coach ? { 
+  const defaultValues = React.useMemo(() => {
+    return coach ? { 
         ...coach,
         clubEntryDate: dateToInputFormat(coach.clubEntryDate),
         clubExitDate: dateToInputFormat(coach.clubExitDate),
@@ -112,30 +109,26 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
           phone: '',
           specialty: '',
           photoUrl: '',
-          gender: "Homme",
+          gender: "Homme" as const,
           age: '' as any,
           country: '',
           city: '',
           clubEntryDate: '',
           clubExitDate: null,
-      },
+      }
+  }, [coach, coaches]);
+
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    defaultValues: defaultValues,
     mode: "onChange",
   })
 
   React.useEffect(() => {
-    if (coach) {
-      const defaultValues = {
-        ...coach,
-        clubEntryDate: dateToInputFormat(coach.clubEntryDate),
-        clubExitDate: dateToInputFormat(coach.clubExitDate),
-        photoUrl: coach.photoUrl || '',
-      }
-      form.reset(defaultValues);
-      setPreviewUrl(coach.photoUrl || '');
-    }
-  }, [coach, form]);
+    form.reset(defaultValues);
+    setPreviewUrl(defaultValues.photoUrl || '');
+  }, [coach, defaultValues, form]);
   
-
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -196,11 +189,6 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                          </Button>
                     </div>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                    <FormField
-                      control={form.control}
-                      name="photoUrl"
-                      render={() => <FormMessage />}
-                    />
                 </div>
             </div>
 
