@@ -1,9 +1,6 @@
-
 "use client"
 import * as React from "react"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
-import { Calendar as CalendarIcon, Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown } from "lucide-react"
 
 import {
   Dialog,
@@ -20,7 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { useToast } from "@/hooks/use-toast"
 import { cn, handleEnterKeyDown } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
 import type { Player, Payment, Coach } from "@/types"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 
@@ -32,14 +28,22 @@ interface AddPaymentDialogProps {
   coaches: Coach[];
 }
 
+const dateToInputFormat = (date?: Date | null): string => {
+    if (!date) return '';
+    try {
+        return new Date(date).toISOString().split('T')[0];
+    } catch {
+        return '';
+    }
+};
+
 export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, players, coaches }: AddPaymentDialogProps) {
   const { toast } = useToast();
   const [memberType, setMemberType] = React.useState<'player' | 'coach'>('player');
   const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(null);
   const [totalAmount, setTotalAmount] = React.useState<string>("300.00");
   const [advance, setAdvance] = React.useState<string>("");
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
+  const [date, setDate] = React.useState<string>(dateToInputFormat(new Date()));
 
   const members = React.useMemo(() => {
     if (memberType === 'player') {
@@ -60,7 +64,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
         setAdvance("");
         setSelectedMemberId(null);
         setMemberType('player');
-        setDate(new Date());
+        setDate(dateToInputFormat(new Date()));
     }
   }, [open]);
 
@@ -106,8 +110,9 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
         return;
     }
     
+    const paymentDate = new Date(date);
     const remaining = totalAmountNum - advanceNum;
-    const status: Payment['status'] = remaining === 0 ? 'Paid' : (new Date() > date ? 'Overdue' : 'Pending');
+    const status: Payment['status'] = remaining === 0 ? 'Paid' : (new Date() > paymentDate ? 'Overdue' : 'Pending');
 
 
     onAddPayment({
@@ -117,7 +122,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
       totalAmount: totalAmountNum,
       advance: advanceNum,
       remaining: remaining,
-      date,
+      date: paymentDate,
       status,
     });
 
@@ -201,32 +206,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             <Label className="text-right">
               Date
             </Label>
-            <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "col-span-3 justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(d) => {
-                    setDate(d);
-                    setDatePickerOpen(false);
-                  }}
-                  initialFocus
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
+            <Input type="date" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
         
             <DialogFooter>

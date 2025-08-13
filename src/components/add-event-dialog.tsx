@@ -1,8 +1,5 @@
-
 "use client"
 import * as React from "react"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 
 import {
   Dialog,
@@ -18,11 +15,8 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select"
 import { EventTypeCombobox } from "./event-type-combobox"
-import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover"
 import { Button } from "./ui/button"
-import { cn, handleEnterKeyDown } from "@/lib/utils"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "./ui/calendar"
+import { handleEnterKeyDown } from "@/lib/utils"
 import { Textarea } from "./ui/textarea"
 import { Separator } from "./ui/separator"
 import { players as initialPlayers } from "@/lib/mock-data"
@@ -53,6 +47,15 @@ const parsePlayerDates = (player: any): Player => ({
     clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
 });
 
+const dateToInputFormat = (date?: Date | null): string => {
+    if (!date) return '';
+    try {
+        return new Date(date).toISOString().split('T')[0];
+    } catch {
+        return '';
+    }
+};
+
 export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selectedDate }: AddEventDialogProps) {
     const { toast } = useToast();
     const isEditing = !!event;
@@ -68,7 +71,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
 
     const [title, setTitle] = React.useState(event?.title && !event.opponent ? event.title : "");
     const [customTitle, setCustomTitle] = React.useState("");
-    const [date, setDate] = React.useState<Date | undefined>(event ? new Date(event.date) : selectedDate);
+    const [date, setDate] = React.useState<string>(dateToInputFormat(event ? new Date(event.date) : selectedDate));
     const [time, setTime] = React.useState(event?.time || "");
     const [location, setLocation] = React.useState(event?.location || "");
     const [category, setCategory] = React.useState(event?.category || "");
@@ -78,7 +81,6 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
     const [result, setResult] = React.useState(event?.result || "");
     const [scorers, setScorers] = React.useState<StatEvent[]>(event?.scorers || []);
     const [assists, setAssists] = React.useState<StatEvent[]>(event?.assists || []);
-    const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
 
 
     const titleOptions = type ? eventTitleTemplates[type] : [];
@@ -88,7 +90,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             if (isEditing && event) {
                 setTitle(event.title && !event.opponent ? event.title : "");
                 setCustomTitle("");
-                setDate(new Date(event.date));
+                setDate(dateToInputFormat(new Date(event.date)));
                 setTime(event.time);
                 setLocation(event.location);
                 setCategory(event.category || "");
@@ -101,7 +103,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             } else {
                 resetForm();
                 if(selectedDate) {
-                  setDate(selectedDate)
+                  setDate(dateToInputFormat(selectedDate))
                 }
             }
         }
@@ -121,7 +123,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
     const resetForm = () => {
         setTitle("");
         setCustomTitle("");
-        setDate(new Date());
+        setDate(dateToInputFormat(new Date()));
         setTime("");
         setLocation("");
         setCategory("");
@@ -149,7 +151,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         const eventData: ClubEvent = {
             id: isEditing ? event.id : `e${Date.now()}`,
             title: finalTitle,
-            date,
+            date: new Date(date),
             type,
             time,
             location,
@@ -216,20 +218,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                     
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label className="text-right">Date</Label>
-                            <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                variant={"outline"}
-                                className={cn( "col-span-3 justify-start text-left font-normal", !date && "text-muted-foreground")}
-                                >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {date ? format(date, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={date} onSelect={(d) => { setDate(d); setDatePickerOpen(false); }} initialFocus locale={fr} />
-                            </PopoverContent>
-                            </Popover>
+                            <Input type="date" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="time" className="text-right">Heure</Label>
@@ -297,5 +286,3 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         </Dialog>
     )
 }
-
-    

@@ -1,13 +1,9 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { CalendarIcon } from "lucide-react"
 import * as React from "react"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -24,9 +20,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Calendar } from "./ui/calendar"
-import { cn, handleEnterKeyDown } from "@/lib/utils"
+import { handleEnterKeyDown } from "@/lib/utils"
 
 
 const coachFormSchema = z.object({
@@ -41,10 +35,8 @@ const coachFormSchema = z.object({
   age: z.coerce.number().min(18, "L'entraîneur doit être majeur."),
   country: z.string().min(2, "Le pays est requis."),
   city: z.string().min(2, "La ville est requise."),
-  clubEntryDate: z.date({
-    required_error: "Une date d'entrée est requise.",
-  }),
-  clubExitDate: z.date().optional().nullable(),
+  clubEntryDate: z.string({ required_error: "Une date d'entrée est requise." }),
+  clubExitDate: z.string().optional().nullable(),
 })
 
 type CoachFormValues = z.infer<typeof coachFormSchema>
@@ -62,6 +54,15 @@ const getNextId = (coaches: Coach[]) => {
     }
     const maxId = Math.max(...coaches.map(c => parseInt(c.id.replace('c', ''), 10)).filter(id => !isNaN(id)));
     return `c${maxId >= 0 ? maxId + 1 : 1}`;
+};
+
+const dateToInputFormat = (date?: Date | null): string => {
+    if (!date) return '';
+    try {
+        return new Date(date).toISOString().split('T')[0];
+    } catch {
+        return '';
+    }
 };
 
 const specialties = [
@@ -84,13 +85,11 @@ const specialties = [
 
 export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
   const { toast } = useToast()
-  const [isEntryDateOpen, setEntryDateOpen] = React.useState(false);
-  const [isExitDateOpen, setExitDateOpen] = React.useState(false);
 
-  const defaultValues: Partial<CoachFormValues> = coach ? { 
+  const defaultValues: CoachFormValues = coach ? { 
     ...coach,
-    clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
-    clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : null,
+    clubEntryDate: dateToInputFormat(coach.clubEntryDate),
+    clubExitDate: dateToInputFormat(coach.clubExitDate),
     photoUrl: coach.photoUrl || '',
    } : {
       id: getNextId(coaches),
@@ -100,17 +99,17 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       phone: '',
       specialty: '',
       photoUrl: '',
-      gender: undefined,
+      gender: "Homme",
       age: '' as any,
       country: '',
       city: '',
-      clubEntryDate: new Date(),
+      clubEntryDate: '',
       clubExitDate: null,
   };
 
   const form = useForm<CoachFormValues>({
     resolver: zodResolver(coachFormSchema),
-    defaultValues: defaultValues as CoachFormValues,
+    defaultValues,
     mode: "onChange",
   })
   
@@ -120,17 +119,16 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     if (coach) {
       form.reset({ 
           ...coach,
-          clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
-          clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : null,
+          clubEntryDate: dateToInputFormat(coach.clubEntryDate),
+          clubExitDate: dateToInputFormat(coach.clubExitDate),
           photoUrl: coach.photoUrl || '',
       });
     } else {
-      form.reset({
-        ...defaultValues,
-        id: getNextId(coaches),
-        age: '' as any,
-        photoUrl: '',
-      } as Partial<CoachFormValues>);
+        const nextId = getNextId(coaches);
+        form.reset({
+            ...defaultValues,
+            id: nextId,
+        });
     }
   }, [coach, form, coaches]);
 
@@ -344,44 +342,12 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                     control={form.control}
                     name="clubEntryDate"
                     render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Date d'entrée</FormLabel>
-                            <Popover open={isEntryDateOpen} onOpenChange={setEntryDateOpen}>
-                            <PopoverTrigger asChild>
+                        <FormItem>
+                            <FormLabel>Date d'entrée</FormLabel>
                             <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, "PPP", { locale: fr })
-                                ) : (
-                                    <span>Choisissez une date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
+                                <Input type="date" {...field} value={field.value ?? ''}/>
                             </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(date) => {
-                                  field.onChange(date);
-                                  setEntryDateOpen(false);
-                                }}
-                                initialFocus
-                                locale={fr}
-                                captionLayout="dropdown-buttons"
-                                fromYear={new Date().getFullYear() - 50}
-                                toYear={new Date().getFullYear()}
-                            />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
+                            <FormMessage />
                         </FormItem>
                     )}
                     />
@@ -389,45 +355,13 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         control={form.control}
                         name="clubExitDate"
                         render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Date de sortie (optionnel)</FormLabel>
-                            <Popover open={isExitDateOpen} onOpenChange={setExitDateOpen}>
-                            <PopoverTrigger asChild>
+                            <FormItem>
+                                <FormLabel>Date de sortie (optionnel)</FormLabel>
                                 <FormControl>
-                                <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                    )}
-                                >
-                                    {field.value ? (
-                                    format(field.value, "PPP", { locale: fr })
-                                    ) : (
-                                    <span>Choisissez une date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
+                                    <Input type="date" {...field} value={field.value ?? ''} />
                                 </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                mode="single"
-                                selected={field.value ?? undefined}
-                                onSelect={(date) => {
-                                  field.onChange(date);
-                                  setExitDateOpen(false);
-                                }}
-                                initialFocus
-                                locale={fr}
-                                captionLayout="dropdown-buttons"
-                                fromYear={new Date().getFullYear() - 50}
-                                toYear={new Date().getFullYear() + 5}
-                                />
-                            </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                        </FormItem>
+                                <FormMessage />
+                            </FormItem>
                         )}
                     />
                 </div>

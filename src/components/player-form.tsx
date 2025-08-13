@@ -1,12 +1,8 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
-import { CalendarIcon } from "lucide-react"
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -20,15 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { cn, handleEnterKeyDown } from "@/lib/utils"
-import { Calendar } from "./ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
 import { coaches as initialCoaches } from "@/lib/mock-data"
-import { Separator } from "./ui/separator"
 
 const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
@@ -36,9 +29,7 @@ const playerFormSchema = z.object({
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
   gender: z.enum(["Homme", "Femme"], { required_error: "Veuillez sélectionner un genre." }),
   email: z.string().email({ message: "Adresse e-mail invalide." }),
-  dateOfBirth: z.date({
-    required_error: "Une date de naissance est requise.",
-  }),
+  dateOfBirth: z.string().min(1, "Une date de naissance est requise."),
   category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
   status: z.enum(["En forme", "Blessé", "Suspendu", "Indisponible"], { required_error: "Veuillez sélectionner un statut." }),
   photoUrl: z.string().url("L'URL de la photo doit être une URL valide.").optional().or(z.literal('')),
@@ -50,10 +41,8 @@ const playerFormSchema = z.object({
   guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
   position: z.string({ required_error: "Veuillez sélectionner un poste." }),
   playerNumber: z.coerce.number().min(1, "Le numéro de joueur est requis."),
-  clubEntryDate: z.date({
-    required_error: "Une date d'entrée est requise.",
-  }),
-  clubExitDate: z.date().optional().nullable(),
+  clubEntryDate: z.string().min(1, "Une date d'entrée est requise."),
+  clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
 })
@@ -73,6 +62,16 @@ const getNextId = (players: Player[]) => {
     }
     const maxId = Math.max(...players.map(p => parseInt(p.id, 10)).filter(id => !isNaN(id)));
     return (maxId >= 0 ? maxId + 1 : 1).toString();
+};
+
+const dateToInputFormat = (date?: Date | null): string => {
+    if (!date) return '';
+    try {
+        // Format YYYY-MM-DD
+        return new Date(date).toISOString().split('T')[0];
+    } catch {
+        return '';
+    }
 };
 
 const positions = [
@@ -96,9 +95,6 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
-  const [isDobOpen, setDobOpen] = React.useState(false);
-  const [isEntryDateOpen, setEntryDateOpen] = React.useState(false);
-  const [isExitDateOpen, setExitDateOpen] = React.useState(false);
 
    React.useEffect(() => {
     // In a real app, this would be a fetch call
@@ -107,12 +103,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     setCoaches(storedCoaches);
   }, []);
 
-  const defaultValues: Partial<PlayerFormValues> = player ? {
+  const defaultValues: PlayerFormValues = player ? {
       ...player,
-      dateOfBirth: new Date(player.dateOfBirth),
-      clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
-      clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
-      coachId: player.coachId || undefined,
+      dateOfBirth: dateToInputFormat(player.dateOfBirth),
+      clubEntryDate: dateToInputFormat(player.clubEntryDate),
+      clubExitDate: dateToInputFormat(player.clubExitDate),
+      coachId: player.coachId || '',
       photoUrl: player.photoUrl || '',
       medicalCertificateUrl: player.medicalCertificateUrl || '',
       country: player.country || '',
@@ -120,9 +116,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       id: getNextId(players),
       firstName: '',
       lastName: '',
-      gender: undefined,
+      gender: "Homme",
       email: '',
-      dateOfBirth: undefined,
+      dateOfBirth: '',
       category: '',
       status: 'En forme',
       photoUrl: '',
@@ -134,9 +130,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       guardianPhone: '',
       position: '',
       playerNumber: '' as any,
-      clubEntryDate: new Date(),
+      clubEntryDate: '',
       clubExitDate: null,
-      coachId: undefined,
+      coachId: '',
       medicalCertificateUrl: '',
     };
 
@@ -152,38 +148,20 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     if (player) {
       form.reset({
         ...player,
-        dateOfBirth: new Date(player.dateOfBirth),
-        clubEntryDate: player.clubEntryDate ? new Date(player.clubEntryDate) : new Date(),
-        clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : null,
-        coachId: player.coachId || undefined,
+        dateOfBirth: dateToInputFormat(player.dateOfBirth),
+        clubEntryDate: dateToInputFormat(player.clubEntryDate),
+        clubExitDate: dateToInputFormat(player.clubExitDate),
+        coachId: player.coachId || '',
         photoUrl: player.photoUrl || '',
         medicalCertificateUrl: player.medicalCertificateUrl || '',
         country: player.country || '',
       });
     } else {
-      form.reset({
-        id: getNextId(players),
-        firstName: '',
-        lastName: '',
-        gender: undefined,
-        email: '',
-        dateOfBirth: undefined,
-        category: '',
-        status: 'En forme',
-        photoUrl: '',
-        address: '',
-        city: '',
-        country: '',
-        phone: '',
-        guardianName: '',
-        guardianPhone: '',
-        position: '',
-        playerNumber: '' as any,
-        clubEntryDate: new Date(),
-        clubExitDate: null,
-        coachId: undefined,
-        medicalCertificateUrl: '',
-      });
+        const nextId = getNextId(players);
+        form.reset({
+            ...defaultValues,
+            id: nextId,
+        });
     }
   }, [player, form, players]);
 
@@ -297,50 +275,15 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         </FormItem>
                       )}
                     />
-                    <FormField
+                     <FormField
                       control={form.control}
                       name="dateOfBirth"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col">
+                        <FormItem>
                           <FormLabel>Date de naissance</FormLabel>
-                          <Popover open={isDobOpen} onOpenChange={setDobOpen}>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP", { locale: fr })
-                                  ) : (
-                                    <span>Choisissez une date</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(date) => {
-                                  field.onChange(date);
-                                  setDobOpen(false);
-                                }}
-                                disabled={(date) =>
-                                  date > new Date() || date < new Date("1950-01-01")
-                                }
-                                initialFocus
-                                locale={fr}
-                                captionLayout="dropdown-buttons"
-                                fromYear={1950}
-                                toYear={new Date().getFullYear()}
-                              />
-                            </PopoverContent>
-                          </Popover>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -584,47 +527,15 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                     />
                    </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
+                     <FormField
                       control={form.control}
                       name="clubEntryDate"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col">
+                        <FormItem>
                           <FormLabel>Date d'entrée</FormLabel>
-                            <Popover open={isEntryDateOpen} onOpenChange={setEntryDateOpen}>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP", { locale: fr })
-                                  ) : (
-                                    <span>Choisissez une date</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(date) => {
-                                  field.onChange(date);
-                                  setEntryDateOpen(false);
-                                }}
-                                initialFocus
-                                locale={fr}
-                                captionLayout="dropdown-buttons"
-                                fromYear={new Date().getFullYear() - 20}
-                                toYear={new Date().getFullYear()}
-                              />
-                            </PopoverContent>
-                          </Popover>
+                          <FormControl>
+                            <Input type="date" {...field} value={field.value ?? ''} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -633,43 +544,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         control={form.control}
                         name="clubExitDate"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
+                          <FormItem>
                             <FormLabel>Date de sortie (optionnel)</FormLabel>
-                            <Popover open={isExitDateOpen} onOpenChange={setExitDateOpen}>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP", { locale: fr })
-                                    ) : (
-                                      <span>Choisissez une date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value ?? undefined}
-                                  onSelect={(date) => {
-                                    field.onChange(date);
-                                    setExitDateOpen(false);
-                                  }}
-                                  initialFocus
-                                  locale={fr}
-                                  captionLayout="dropdown-buttons"
-                                  fromYear={new Date().getFullYear() - 20}
-                                  toYear={new Date().getFullYear() + 5}
-                                />
-                              </PopoverContent>
-                            </Popover>
+                            <FormControl>
+                              <Input type="date" {...field} value={field.value ?? ''} />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
