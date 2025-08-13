@@ -71,6 +71,7 @@ const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
         const d = new Date(date);
+        if (isNaN(d.getTime())) return '';
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
@@ -112,43 +113,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
-    defaultValues: player ? {
-      ...player,
-      dateOfBirth: dateToInputFormat(player.dateOfBirth),
-      clubEntryDate: dateToInputFormat(player.clubEntryDate),
-      clubExitDate: dateToInputFormat(player.clubExitDate),
-      coachId: player.coachId || '',
-      photoUrl: player.photoUrl || '',
-      medicalCertificateUrl: player.medicalCertificateUrl || '',
-      country: player.country || '',
-    } : {
-      id: getNextId(players),
-      firstName: '',
-      lastName: '',
-      gender: "Homme",
-      email: '',
-      dateOfBirth: '',
-      category: '',
-      status: 'En forme',
-      photoUrl: '',
-      address: '',
-      city: '',
-      country: '',
-      phone: '',
-      guardianName: '',
-      guardianPhone: '',
-      position: '',
-      playerNumber: '' as any,
-      clubEntryDate: '',
-      clubExitDate: null,
-      coachId: '',
-      medicalCertificateUrl: '',
-    },
     mode: "onChange",
   })
-
-   React.useEffect(() => {
-    // This effect ensures the form resets if the `player` prop changes (e.g., from editing one player to adding a new one)
+  
+  React.useEffect(() => {
     const defaultValues = player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
@@ -624,5 +592,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    

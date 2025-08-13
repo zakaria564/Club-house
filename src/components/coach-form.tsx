@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -62,6 +63,7 @@ const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
         const d = new Date(date);
+        if (isNaN(d.getTime())) return '';
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
@@ -95,8 +97,13 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = React.useState(coach?.photoUrl || '');
   
-  const defaultValues = React.useMemo(() => {
-    return coach ? { 
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    mode: "onChange",
+  })
+  
+  React.useEffect(() => {
+    const defaultValues = coach ? { 
         ...coach,
         clubEntryDate: dateToInputFormat(coach.clubEntryDate),
         clubExitDate: dateToInputFormat(coach.clubExitDate),
@@ -116,18 +123,9 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
           clubEntryDate: '',
           clubExitDate: null,
       }
-  }, [coach, coaches]);
-
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    defaultValues: defaultValues,
-    mode: "onChange",
-  })
-
-  React.useEffect(() => {
     form.reset(defaultValues);
     setPreviewUrl(defaultValues.photoUrl || '');
-  }, [coach, defaultValues, form]);
+  }, [coach, coaches, form]);
   
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
