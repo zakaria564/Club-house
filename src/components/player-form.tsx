@@ -108,8 +108,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
 
-  const defaultValues = React.useMemo(() => (
-    player ? {
+  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(player?.photoUrl || '');
+  const [certPreviewUrl, setCertPreviewUrl] = React.useState(player?.medicalCertificateUrl || '');
+
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues: player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
       clubEntryDate: dateToInputFormat(player.clubEntryDate),
@@ -122,11 +126,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       id: getNextId(players),
       firstName: '',
       lastName: '',
-      gender: "Homme" as const,
+      gender: "Homme",
       email: '',
       dateOfBirth: '',
       category: '',
-      status: 'En forme' as const,
+      status: 'En forme',
       photoUrl: '',
       address: '',
       city: '',
@@ -140,23 +144,27 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: null,
       coachId: '',
       medicalCertificateUrl: '',
-    }
-  ), [player, players]);
-
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues,
+    },
     mode: "onChange",
   })
   
-  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(defaultValues.photoUrl);
-  const [certPreviewUrl, setCertPreviewUrl] = React.useState(defaultValues.medicalCertificateUrl);
-
   React.useEffect(() => {
-    form.reset(defaultValues);
-    setPhotoPreviewUrl(defaultValues.photoUrl);
-    setCertPreviewUrl(defaultValues.medicalCertificateUrl);
-  }, [player, form, defaultValues]);
+    if (player) {
+      const defaultValues = {
+        ...player,
+        dateOfBirth: dateToInputFormat(player.dateOfBirth),
+        clubEntryDate: dateToInputFormat(player.clubEntryDate),
+        clubExitDate: dateToInputFormat(player.clubExitDate),
+        coachId: player.coachId || undefined,
+        photoUrl: player.photoUrl || '',
+        medicalCertificateUrl: player.medicalCertificateUrl || '',
+        country: player.country || '',
+      };
+      form.reset(defaultValues);
+      setPhotoPreviewUrl(player.photoUrl || '');
+      setCertPreviewUrl(player.medicalCertificateUrl || '');
+    }
+  }, [player, form]);
   
 
    React.useEffect(() => {
@@ -190,7 +198,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
           if (url) {
               form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
-              setPhotoPreviewUrl(url); // Update preview immediately
+              setPhotoPreviewUrl(url);
           }
       }
   }
@@ -203,7 +211,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingCert);
           if (url) {
               form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
-              setCertPreviewUrl(url); // Update preview immediately
+              setCertPreviewUrl(url);
           }
       }
   }
@@ -608,5 +616,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    

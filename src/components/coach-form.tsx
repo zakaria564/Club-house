@@ -95,9 +95,11 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const { toast } = useToast()
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = React.useState(coach?.photoUrl || '');
   
-  const defaultValues = React.useMemo(() => (
-    coach ? { 
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    defaultValues: coach ? { 
         ...coach,
         clubEntryDate: dateToInputFormat(coach.clubEntryDate),
         clubExitDate: dateToInputFormat(coach.clubExitDate),
@@ -110,40 +112,41 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
           phone: '',
           specialty: '',
           photoUrl: '',
-          gender: "Homme" as const,
+          gender: "Homme",
           age: '' as any,
           country: '',
           city: '',
           clubEntryDate: '',
           clubExitDate: null,
-      }
-  ), [coach, coaches]);
-
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    defaultValues,
+      },
     mode: "onChange",
   })
-  
-  const [previewUrl, setPreviewUrl] = React.useState(defaultValues.photoUrl);
 
   React.useEffect(() => {
-    form.reset(defaultValues);
-    setPreviewUrl(defaultValues.photoUrl);
-  }, [coach, form, defaultValues]);
+    if (coach) {
+      const defaultValues = {
+        ...coach,
+        clubEntryDate: dateToInputFormat(coach.clubEntryDate),
+        clubExitDate: dateToInputFormat(coach.clubExitDate),
+        photoUrl: coach.photoUrl || '',
+      }
+      form.reset(defaultValues);
+      setPreviewUrl(coach.photoUrl || '');
+    }
+  }, [coach, form]);
   
 
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const coachId = form.getValues('id');
+      const storageRef = ref(storage, `coaches/${coachId}/photo/${file.name}`);
       setIsUploading(true);
       try {
-        const coachId = form.getValues('id');
-        const storageRef = ref(storage, `coaches/${coachId}/photo/${file.name}`);
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         form.setValue('photoUrl', downloadURL, { shouldValidate: true, shouldDirty: true });
-        setPreviewUrl(downloadURL); // Update preview immediately
+        setPreviewUrl(downloadURL); 
         toast({ title: "Photo téléchargée", description: "La nouvelle photo a été enregistrée." });
       } catch (error) {
         toast({ variant: "destructive", title: "Erreur", description: "Impossible de télécharger la photo." });
@@ -394,5 +397,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    
