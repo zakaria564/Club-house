@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -345,7 +346,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         <FormItem>
                             <FormLabel>Date d'entrée</FormLabel>
                             <FormControl>
-                                <Input type="date" {...field} value={field.value ?? ''}/>
+                                <Input type="text" placeholder="AAAA-MM-JJ" {...field} value={field.value ?? ''}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -358,7 +359,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                                 <FormLabel>Date de sortie (optionnel)</FormLabel>
                                 <FormControl>
-                                    <Input type="date" {...field} value={field.value ?? ''} />
+                                    <Input type="text" placeholder="AAAA-MM-JJ" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -375,3 +376,5 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
+
+    

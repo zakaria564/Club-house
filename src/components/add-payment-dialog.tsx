@@ -1,3 +1,4 @@
+
 "use client"
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
@@ -206,7 +207,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             <Label className="text-right">
               Date
             </Label>
-            <Input type="date" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input type="text" placeholder="AAAA-MM-JJ" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
         
             <DialogFooter>
@@ -276,3 +277,5 @@ function MemberCombobox({ members, value, onValueChange, memberType }: MemberCom
     </Popover>
   )
 }
+
+    

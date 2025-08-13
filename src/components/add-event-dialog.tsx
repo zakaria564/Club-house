@@ -1,3 +1,4 @@
+
 "use client"
 import * as React from "react"
 
@@ -218,7 +219,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                     
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label className="text-right">Date</Label>
-                            <Input type="date" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
+                            <Input type="text" placeholder="AAAA-MM-JJ" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="time" className="text-right">Heure</Label>
@@ -286,3 +287,5 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         </Dialog>
     )
 }
+
+    
