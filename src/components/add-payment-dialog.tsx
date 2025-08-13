@@ -50,7 +50,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
     if (memberType === 'player') {
       return players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`}));
     }
-    return coaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}`}));
+    return coaches.map(c => ({ id: c.id, name: `${p.firstName} ${p.lastName}`}));
   }, [memberType, players, coaches]);
 
   React.useEffect(() => {
@@ -207,7 +207,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             <Label className="text-right">
               Date
             </Label>
-            <Input type="text" placeholder="AAAA-MM-JJ" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input type="text" placeholder="JJ/MM/AAAA" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
         
             <DialogFooter>
@@ -277,5 +277,7 @@ function MemberCombobox({ members, value, onValueChange, memberType }: MemberCom
     </Popover>
   )
 }
+
+    
 
     
