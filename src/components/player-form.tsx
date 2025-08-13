@@ -96,6 +96,9 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
+  const [isDobOpen, setDobOpen] = React.useState(false);
+  const [isEntryDateOpen, setEntryDateOpen] = React.useState(false);
+  const [isExitDateOpen, setExitDateOpen] = React.useState(false);
 
    React.useEffect(() => {
     // In a real app, this would be a fetch call
@@ -300,7 +303,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
                           <FormLabel>Date de naissance</FormLabel>
-                          <Popover>
+                          <Popover open={isDobOpen} onOpenChange={setDobOpen}>
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
@@ -323,7 +326,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setDobOpen(false);
+                                }}
                                 disabled={(date) =>
                                   date > new Date() || date < new Date("1950-01-01")
                                 }
@@ -584,7 +590,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
                           <FormLabel>Date d'entrée</FormLabel>
-                            <Popover>
+                            <Popover open={isEntryDateOpen} onOpenChange={setEntryDateOpen}>
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
@@ -607,7 +613,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setEntryDateOpen(false);
+                                }}
                                 initialFocus
                                 locale={fr}
                                 captionLayout="dropdown-buttons"
@@ -626,7 +635,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
                             <FormLabel>Date de sortie (optionnel)</FormLabel>
-                            <Popover>
+                            <Popover open={isExitDateOpen} onOpenChange={setExitDateOpen}>
                               <PopoverTrigger asChild>
                                 <FormControl>
                                   <Button
@@ -649,7 +658,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                 <Calendar
                                   mode="single"
                                   selected={field.value ?? undefined}
-                                  onSelect={field.onChange}
+                                  onSelect={(date) => {
+                                    field.onChange(date);
+                                    setExitDateOpen(false);
+                                  }}
                                   initialFocus
                                   locale={fr}
                                   captionLayout="dropdown-buttons"

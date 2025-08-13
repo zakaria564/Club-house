@@ -84,6 +84,8 @@ const specialties = [
 
 export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
   const { toast } = useToast()
+  const [isEntryDateOpen, setEntryDateOpen] = React.useState(false);
+  const [isExitDateOpen, setExitDateOpen] = React.useState(false);
 
   const defaultValues: Partial<CoachFormValues> = coach ? { 
     ...coach,
@@ -344,7 +346,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                         <FormLabel>Date d'entrée</FormLabel>
-                            <Popover>
+                            <Popover open={isEntryDateOpen} onOpenChange={setEntryDateOpen}>
                             <PopoverTrigger asChild>
                             <FormControl>
                                 <Button
@@ -367,7 +369,10 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setEntryDateOpen(false);
+                                }}
                                 initialFocus
                                 locale={fr}
                                 captionLayout="dropdown-buttons"
@@ -386,7 +391,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         render={({ field }) => (
                         <FormItem className="flex flex-col">
                             <FormLabel>Date de sortie (optionnel)</FormLabel>
-                            <Popover>
+                            <Popover open={isExitDateOpen} onOpenChange={setExitDateOpen}>
                             <PopoverTrigger asChild>
                                 <FormControl>
                                 <Button
@@ -409,7 +414,10 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                                 <Calendar
                                 mode="single"
                                 selected={field.value ?? undefined}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setExitDateOpen(false);
+                                }}
                                 initialFocus
                                 locale={fr}
                                 captionLayout="dropdown-buttons"

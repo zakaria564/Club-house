@@ -78,6 +78,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
     const [result, setResult] = React.useState(event?.result || "");
     const [scorers, setScorers] = React.useState<StatEvent[]>(event?.scorers || []);
     const [assists, setAssists] = React.useState<StatEvent[]>(event?.assists || []);
+    const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
 
 
     const titleOptions = type ? eventTitleTemplates[type] : [];
@@ -215,7 +216,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                     
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label className="text-right">Date</Label>
-                            <Popover>
+                            <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
                             <PopoverTrigger asChild>
                                 <Button
                                 variant={"outline"}
@@ -226,7 +227,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus locale={fr} />
+                                <Calendar mode="single" selected={date} onSelect={(d) => { setDate(d); setDatePickerOpen(false); }} initialFocus locale={fr} />
                             </PopoverContent>
                             </Popover>
                         </div>

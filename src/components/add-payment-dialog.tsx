@@ -39,6 +39,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   const [totalAmount, setTotalAmount] = React.useState<string>("300.00");
   const [advance, setAdvance] = React.useState<string>("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
 
   const members = React.useMemo(() => {
     if (memberType === 'player') {
@@ -200,7 +201,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             <Label className="text-right">
               Date
             </Label>
-            <Popover>
+            <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
@@ -217,7 +218,10 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={setDate}
+                  onSelect={(d) => {
+                    setDate(d);
+                    setDatePickerOpen(false);
+                  }}
                   initialFocus
                   locale={fr}
                 />
