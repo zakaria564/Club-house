@@ -108,8 +108,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
 
-  const defaultValues = React.useMemo(() => {
-    return player ? {
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues: player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
       clubEntryDate: dateToInputFormat(player.clubEntryDate),
@@ -122,11 +123,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       id: getNextId(players),
       firstName: '',
       lastName: '',
-      gender: "Homme" as const,
+      gender: "Homme",
       email: '',
       dateOfBirth: '',
       category: '',
-      status: 'En forme' as const,
+      status: 'En forme',
       photoUrl: '',
       address: '',
       city: '',
@@ -140,19 +141,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: null,
       coachId: '',
       medicalCertificateUrl: '',
-    }
-  }, [player, players]);
-
-   React.useEffect(() => {
-    // In a real app, this would be a fetch call
-    const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
-    const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
-    setCoaches(storedCoaches);
-  }, []);
-
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues,
+    },
     mode: "onChange",
   })
   
@@ -160,10 +149,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const medicalCertificateUrl = form.watch('medicalCertificateUrl');
 
 
-  React.useEffect(() => {
-    form.reset(defaultValues);
-  }, [player, defaultValues, form]);
-
+   React.useEffect(() => {
+    const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
+    const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
+    setCoaches(storedCoaches);
+  }, []);
 
   const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
     onUploadProgress(true);
@@ -434,7 +424,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         </div>
                         {medicalCertificateUrl && (
                           <div className="text-sm text-center text-green-600 mt-2">
-                            Certificat téléchargé.
+                            Certificat téléchargé. <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
                           </div>
                         )}
                         <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
@@ -598,3 +588,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
