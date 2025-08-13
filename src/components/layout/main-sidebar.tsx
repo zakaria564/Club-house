@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import {
@@ -25,10 +26,15 @@ import { ClubLogo } from "../club-logo";
 
 export function MainSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
 
   const isActive = (path: string) => {
     return pathname === path || (path !== "/" && pathname.startsWith(path));
   };
+  
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  }
 
   return (
     <>
@@ -45,7 +51,7 @@ export function MainSidebar() {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          <SidebarMenuItem>
+          <SidebarMenuItem onClick={handleLinkClick}>
             <SidebarMenuButton
               asChild
               isActive={isActive("/")}
@@ -57,7 +63,7 @@ export function MainSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
+          <SidebarMenuItem onClick={handleLinkClick}>
             <SidebarMenuButton
               asChild
               isActive={isActive("/players")}
@@ -69,7 +75,7 @@ export function MainSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-           <SidebarMenuItem>
+           <SidebarMenuItem onClick={handleLinkClick}>
             <SidebarMenuButton
               asChild
               isActive={isActive("/coaches")}
@@ -81,7 +87,7 @@ export function MainSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
+          <SidebarMenuItem onClick={handleLinkClick}>
             <SidebarMenuButton
               asChild
               isActive={isActive("/schedule")}
@@ -93,7 +99,7 @@ export function MainSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
+          <SidebarMenuItem onClick={handleLinkClick}>
             <SidebarMenuButton
               asChild
               isActive={isActive("/payments")}
@@ -105,7 +111,7 @@ export function MainSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
+          <SidebarMenuItem onClick={handleLinkClick}>
             <SidebarMenuButton
               asChild
               isActive={isActive("/results")}
