@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -109,8 +110,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(player?.photoUrl || '');
   const [certPreviewUrl, setCertPreviewUrl] = React.useState(player?.medicalCertificateUrl || '');
   
-  const defaultValues = React.useMemo(() => {
-    return player ? {
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues: player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
       clubEntryDate: dateToInputFormat(player.clubEntryDate),
@@ -119,6 +121,42 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       photoUrl: player.photoUrl || '',
       medicalCertificateUrl: player.medicalCertificateUrl || '',
       country: player.country || '',
+    } : {
+      id: getNextId(players),
+      firstName: '',
+      lastName: '',
+      gender: "Homme",
+      email: '',
+      dateOfBirth: '',
+      category: '',
+      status: 'En forme',
+      photoUrl: '',
+      address: '',
+      city: '',
+      country: '',
+      phone: '',
+      guardianName: '',
+      guardianPhone: '',
+      position: '',
+      playerNumber: '' as any,
+      clubEntryDate: '',
+      clubExitDate: null,
+      coachId: '',
+      medicalCertificateUrl: '',
+    },
+    mode: "onChange",
+  })
+
+   React.useEffect(() => {
+    // This effect ensures the form resets if the `player` prop changes (e.g., from editing one player to adding a new one)
+    const defaultValues = player ? {
+      ...player,
+      dateOfBirth: dateToInputFormat(player.dateOfBirth),
+      clubEntryDate: dateToInputFormat(player.clubEntryDate),
+      clubExitDate: dateToInputFormat(player.clubExitDate),
+      coachId: player.coachId || undefined,
+      photoUrl: player.photoUrl || '',
+      medicalCertificateUrl: player.medicalCertificateUrl || '',
     } : {
       id: getNextId(players),
       firstName: '',
@@ -139,22 +177,13 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       playerNumber: '' as any,
       clubEntryDate: '',
       clubExitDate: null,
-      coachId: '',
+      coachId: undefined,
       medicalCertificateUrl: '',
     };
-  }, [player, players]);
-
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues: defaultValues,
-    mode: "onChange",
-  })
-  
-   React.useEffect(() => {
     form.reset(defaultValues);
     setPhotoPreviewUrl(defaultValues.photoUrl || '');
     setCertPreviewUrl(defaultValues.medicalCertificateUrl || '');
-  }, [player, defaultValues, form]);
+  }, [player, players, form]);
   
    React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
@@ -186,8 +215,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const filePath = `players/${playerId}/photo/${file.name}`;
           const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
           if (url) {
-              form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
               setPhotoPreviewUrl(url);
+              form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
           }
       }
   }
@@ -199,8 +228,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const filePath = `players/${playerId}/certificates/${file.name}`;
           const url = await handleFileUpload(file, filePath, setIsUploadingCert);
           if (url) {
-              form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
               setCertPreviewUrl(url);
+              form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
           }
       }
   }
@@ -595,3 +624,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
