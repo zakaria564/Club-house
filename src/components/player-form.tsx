@@ -175,7 +175,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
             id: nextId,
         });
     }
-  }, [player, form, players]);
+  }, [player, form, players, defaultValues]);
 
 
   const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
@@ -202,7 +202,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const filePath = `players/${playerId}/photo/${file.name}`;
           const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
           if (url) {
-              form.setValue('photoUrl', url, { shouldValidate: true });
+              form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
           }
       }
   }
@@ -214,7 +214,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const filePath = `players/${playerId}/certificates/${file.name}`;
           const url = await handleFileUpload(file, filePath, setIsUploadingCert);
           if (url) {
-              form.setValue('medicalCertificateUrl', url, { shouldValidate: true });
+              form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
           }
       }
   }

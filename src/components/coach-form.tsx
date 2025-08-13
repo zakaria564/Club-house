@@ -137,7 +137,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
             id: nextId,
         });
     }
-  }, [coach, form, coaches]);
+  }, [coach, form, coaches, defaultValues]);
 
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -148,7 +148,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
         const storageRef = ref(storage, `coaches/${coachId}/photo/${file.name}`);
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
-        form.setValue('photoUrl', downloadURL, { shouldValidate: true });
+        form.setValue('photoUrl', downloadURL, { shouldValidate: true, shouldDirty: true });
         toast({ title: "Photo téléchargée", description: "La nouvelle photo a été enregistrée." });
       } catch (error) {
         toast({ variant: "destructive", title: "Erreur", description: "Impossible de télécharger la photo." });
