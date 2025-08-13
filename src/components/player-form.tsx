@@ -108,9 +108,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
 
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues: player ? {
+  const defaultValues = React.useMemo(() => (
+    player ? {
       ...player,
       dateOfBirth: dateToInputFormat(player.dateOfBirth),
       clubEntryDate: dateToInputFormat(player.clubEntryDate),
@@ -123,11 +122,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       id: getNextId(players),
       firstName: '',
       lastName: '',
-      gender: "Homme",
+      gender: "Homme" as const,
       email: '',
       dateOfBirth: '',
       category: '',
-      status: 'En forme',
+      status: 'En forme' as const,
       photoUrl: '',
       address: '',
       city: '',
@@ -141,13 +140,24 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: null,
       coachId: '',
       medicalCertificateUrl: '',
-    },
+    }
+  ), [player, players]);
+
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues,
     mode: "onChange",
   })
   
-  const photoUrl = form.watch('photoUrl');
-  const medicalCertificateUrl = form.watch('medicalCertificateUrl');
+  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(defaultValues.photoUrl);
+  const [certPreviewUrl, setCertPreviewUrl] = React.useState(defaultValues.medicalCertificateUrl);
 
+  React.useEffect(() => {
+    form.reset(defaultValues);
+    setPhotoPreviewUrl(defaultValues.photoUrl);
+    setCertPreviewUrl(defaultValues.medicalCertificateUrl);
+  }, [player, form, defaultValues]);
+  
 
    React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
@@ -180,6 +190,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
           if (url) {
               form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
+              setPhotoPreviewUrl(url); // Update preview immediately
           }
       }
   }
@@ -192,6 +203,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingCert);
           if (url) {
               form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
+              setCertPreviewUrl(url); // Update preview immediately
           }
       }
   }
@@ -230,7 +242,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           <div className="space-y-8">
               <div className="flex flex-col md:flex-row items-center gap-6">
                   <Avatar className="h-24 w-24">
-                      <AvatarImage src={photoUrl || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={photoPreviewUrl || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback>
                       {form.watch('firstName')?.[0]}
                       {form.watch('lastName')?.[0]}
@@ -245,7 +257,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             </Button>
                         </div>
                         <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
-                        <FormMessage>{form.formState.errors.photoUrl?.message}</FormMessage>
+                        <FormField
+                            control={form.control}
+                            name="photoUrl"
+                            render={() => <FormMessage />}
+                        />
                   </div>
               </div>
 
@@ -422,13 +438,17 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                 Télécharger le certificat
                             </Button>
                         </div>
-                        {medicalCertificateUrl && (
+                        {certPreviewUrl && (
                           <div className="text-sm text-center text-green-600 mt-2">
-                            Certificat téléchargé. <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
+                            Certificat téléchargé. <a href={certPreviewUrl} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
                           </div>
                         )}
                         <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
-                        <FormMessage>{form.formState.errors.medicalCertificateUrl?.message}</FormMessage>
+                        <FormField
+                            control={form.control}
+                            name="medicalCertificateUrl"
+                            render={() => <FormMessage />}
+                        />
                  </div>
               </div>
 

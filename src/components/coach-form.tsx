@@ -95,10 +95,9 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const { toast } = useToast()
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    defaultValues: coach ? { 
+  
+  const defaultValues = React.useMemo(() => (
+    coach ? { 
         ...coach,
         clubEntryDate: dateToInputFormat(coach.clubEntryDate),
         clubExitDate: dateToInputFormat(coach.clubExitDate),
@@ -111,17 +110,28 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
           phone: '',
           specialty: '',
           photoUrl: '',
-          gender: "Homme",
+          gender: "Homme" as const,
           age: '' as any,
           country: '',
           city: '',
           clubEntryDate: '',
           clubExitDate: null,
-      },
+      }
+  ), [coach, coaches]);
+
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    defaultValues,
     mode: "onChange",
   })
   
-  const photoUrl = form.watch('photoUrl');
+  const [previewUrl, setPreviewUrl] = React.useState(defaultValues.photoUrl);
+
+  React.useEffect(() => {
+    form.reset(defaultValues);
+    setPreviewUrl(defaultValues.photoUrl);
+  }, [coach, form, defaultValues]);
+  
 
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -133,6 +143,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         form.setValue('photoUrl', downloadURL, { shouldValidate: true, shouldDirty: true });
+        setPreviewUrl(downloadURL); // Update preview immediately
         toast({ title: "Photo téléchargée", description: "La nouvelle photo a été enregistrée." });
       } catch (error) {
         toast({ variant: "destructive", title: "Erreur", description: "Impossible de télécharger la photo." });
@@ -167,7 +178,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
                 <Avatar className="h-24 w-24">
-                    <AvatarImage src={photoUrl || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                    <AvatarImage src={previewUrl || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                     <AvatarFallback>
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
@@ -182,7 +193,11 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                          </Button>
                     </div>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                    <FormMessage>{form.formState.errors.photoUrl?.message}</FormMessage>
+                    <FormField
+                      control={form.control}
+                      name="photoUrl"
+                      render={() => <FormMessage />}
+                    />
                 </div>
             </div>
 
