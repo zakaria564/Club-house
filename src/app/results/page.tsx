@@ -95,6 +95,7 @@ export default function ResultsPage() {
     const [players, setPlayers] = React.useState<Player[]>([]);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [selectedMatchId, setSelectedMatchId] = React.useState<string | null>(null);
+    const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
 
     React.useEffect(() => {
         try {
@@ -189,7 +190,7 @@ export default function ResultsPage() {
                                 Imprimer
                             </Button>
                         )}
-                        <Popover>
+                        <Popover open={isDatePickerOpen} onOpenChange={setDatePickerOpen}>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="w-full sm:w-auto justify-start">
                                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -203,6 +204,7 @@ export default function ResultsPage() {
                                     onSelect={(date) => {
                                         setSelectedDate(date);
                                         setSelectedMatchId(null);
+                                        setDatePickerOpen(false);
                                     }}
                                     initialFocus
                                     locale={fr}
