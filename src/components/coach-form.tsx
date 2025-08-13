@@ -63,7 +63,11 @@ const getNextId = (coaches: Coach[]) => {
 const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
-        return new Date(date).toISOString().split('T')[0];
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     } catch {
         return '';
     }
@@ -92,9 +96,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    defaultValues: React.useMemo(() => coach ? { 
+  const defaultValues = React.useMemo(() => {
+    return coach ? { 
         ...coach,
         clubEntryDate: dateToInputFormat(coach.clubEntryDate),
         clubExitDate: dateToInputFormat(coach.clubExitDate),
@@ -107,40 +110,26 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
           phone: '',
           specialty: '',
           photoUrl: '',
-          gender: "Homme",
+          gender: "Homme" as const,
           age: '' as any,
           country: '',
           city: '',
           clubEntryDate: '',
           clubExitDate: null,
-      }, [coach, coaches]),
+      }
+  }, [coach, coaches]);
+
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    defaultValues,
     mode: "onChange",
   })
   
   const photoUrl = form.watch('photoUrl');
 
   React.useEffect(() => {
-    form.reset(coach ? { 
-        ...coach,
-        clubEntryDate: dateToInputFormat(coach.clubEntryDate),
-        clubExitDate: dateToInputFormat(coach.clubExitDate),
-        photoUrl: coach.photoUrl || '',
-    } : {
-        id: getNextId(coaches),
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        specialty: '',
-        photoUrl: '',
-        gender: "Homme",
-        age: '' as any,
-        country: '',
-        city: '',
-        clubEntryDate: '',
-        clubExitDate: null,
-    });
-  }, [coach, coaches, form]);
+    form.reset(defaultValues);
+  }, [coach, defaultValues, form]);
 
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -195,12 +184,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                 <div className="w-full space-y-2">
                     <FormLabel>Photo de l'entraîneur</FormLabel>
                     <div className="flex gap-2">
-                         <Input
-                            value={photoUrl || ''}
-                            placeholder="URL de la photo ou téléchargez"
-                            onChange={(e) => form.setValue('photoUrl', e.target.value)}
-                         />
-                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full justify-center">
                             {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2" />}
                             Télécharger
                          </Button>

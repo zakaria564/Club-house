@@ -71,7 +71,11 @@ const getNextId = (players: Player[]) => {
 const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
-        return new Date(date).toISOString().split('T')[0];
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     } catch {
         return '';
     }
@@ -104,6 +108,40 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
 
+  const defaultValues = React.useMemo(() => {
+    return player ? {
+      ...player,
+      dateOfBirth: dateToInputFormat(player.dateOfBirth),
+      clubEntryDate: dateToInputFormat(player.clubEntryDate),
+      clubExitDate: dateToInputFormat(player.clubExitDate),
+      coachId: player.coachId || '',
+      photoUrl: player.photoUrl || '',
+      medicalCertificateUrl: player.medicalCertificateUrl || '',
+      country: player.country || '',
+    } : {
+      id: getNextId(players),
+      firstName: '',
+      lastName: '',
+      gender: "Homme" as const,
+      email: '',
+      dateOfBirth: '',
+      category: '',
+      status: 'En forme' as const,
+      photoUrl: '',
+      address: '',
+      city: '',
+      country: '',
+      phone: '',
+      guardianName: '',
+      guardianPhone: '',
+      position: '',
+      playerNumber: '' as any,
+      clubEntryDate: '',
+      clubExitDate: null,
+      coachId: '',
+      medicalCertificateUrl: '',
+    }
+  }, [player, players]);
 
    React.useEffect(() => {
     // In a real app, this would be a fetch call
@@ -114,38 +152,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
-    defaultValues: React.useMemo(() => player ? {
-      ...player,
-      dateOfBirth: dateToInputFormat(player.dateOfBirth),
-      clubEntryDate: dateToInputFormat(player.clubEntryDate),
-      clubExitDate: dateToInputFormat(player.clubExitDate),
-      coachId: player.coachId || '',
-      photoUrl: player.photoUrl || '',
-      medicalCertificateUrl: player.medicalCertificateUrl || '',
-      country: player.country || '',
-    } : {
-      id: getNextId(players),
-      firstName: '',
-      lastName: '',
-      gender: "Homme",
-      email: '',
-      dateOfBirth: '',
-      category: '',
-      status: 'En forme',
-      photoUrl: '',
-      address: '',
-      city: '',
-      country: '',
-      phone: '',
-      guardianName: '',
-      guardianPhone: '',
-      position: '',
-      playerNumber: '' as any,
-      clubEntryDate: '',
-      clubExitDate: null,
-      coachId: '',
-      medicalCertificateUrl: '',
-    }, [player, players]),
+    defaultValues,
     mode: "onChange",
   })
   
@@ -154,39 +161,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
 
   React.useEffect(() => {
-    form.reset(player ? {
-      ...player,
-      dateOfBirth: dateToInputFormat(player.dateOfBirth),
-      clubEntryDate: dateToInputFormat(player.clubEntryDate),
-      clubExitDate: dateToInputFormat(player.clubExitDate),
-      coachId: player.coachId || '',
-      photoUrl: player.photoUrl || '',
-      medicalCertificateUrl: player.medicalCertificateUrl || '',
-      country: player.country || '',
-    } : {
-      id: getNextId(players),
-      firstName: '',
-      lastName: '',
-      gender: "Homme",
-      email: '',
-      dateOfBirth: '',
-      category: '',
-      status: 'En forme',
-      photoUrl: '',
-      address: '',
-      city: '',
-      country: '',
-      phone: '',
-      guardianName: '',
-      guardianPhone: '',
-      position: '',
-      playerNumber: '' as any,
-      clubEntryDate: '',
-      clubExitDate: null,
-      coachId: '',
-      medicalCertificateUrl: '',
-    });
-  }, [player, players, form]);
+    form.reset(defaultValues);
+  }, [player, defaultValues, form]);
 
 
   const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
@@ -273,13 +249,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                   <div className="w-full space-y-2">
                         <FormLabel>Photo du joueur</FormLabel>
                         <div className="flex gap-2">
-                            <Input
-                                value={photoUrl || ''}
-                                placeholder="URL de la photo ou téléchargez"
-                                onChange={(e) => form.setValue('photoUrl', e.target.value)}
-                                className="flex-grow"
-                            />
-                            <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
+                            <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto} className="w-full justify-center">
                                 {isUploadingPhoto ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2" />}
                                 Télécharger
                             </Button>
@@ -457,17 +427,16 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                  <div className="space-y-2">
                         <FormLabel>Certificat médical</FormLabel>
                          <div className="flex gap-2">
-                            <Input
-                                value={medicalCertificateUrl || ''}
-                                placeholder="URL du certificat ou téléchargez"
-                                onChange={(e) => form.setValue('medicalCertificateUrl', e.target.value)}
-                                className="flex-grow"
-                            />
-                            <Button type="button" variant="outline" onClick={() => certInputRef.current?.click()} disabled={isUploadingCert}>
+                            <Button type="button" variant="outline" onClick={() => certInputRef.current?.click()} disabled={isUploadingCert} className="w-full justify-center">
                                 {isUploadingCert ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2" />}
-                                Télécharger
+                                Télécharger le certificat
                             </Button>
                         </div>
+                        {medicalCertificateUrl && (
+                          <div className="text-sm text-center text-green-600 mt-2">
+                            Certificat téléchargé.
+                          </div>
+                        )}
                         <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
                         <FormMessage>{form.formState.errors.medicalCertificateUrl?.message}</FormMessage>
                  </div>
