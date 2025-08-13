@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ClubEvent } from "@/types"
 import { useSidebar } from "./ui/sidebar"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ClubCalendarProps {
     currentDate: Date;
@@ -27,12 +28,14 @@ const eventTypeColors: { [key in ClubEvent['type']]: string } = {
   'Autre': 'bg-gray-500 border-gray-600 text-white',
 };
 
-export function ClubCalendar({ currentDate, events, onDayClick, onAddEvent, isMobile }: ClubCalendarProps) {
+export function ClubCalendar({ currentDate, events, onDayClick, onAddEvent }: ClubCalendarProps) {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
     const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
     const { setOpenMobile } = useSidebar();
+    const isMobile = useIsMobile();
+
 
     const days = eachDayOfInterval({ start: startDate, end: endDate });
     const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
