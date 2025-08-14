@@ -198,14 +198,14 @@ export function MainSidebar() {
                     <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-sm font-medium truncate">{user?.email ?? 'Chargement...'}</span>
+                    <span className="text-sm font-medium truncate">Mon Compte</span>
                   </div>
                 </div>
                 <MoreHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 mb-2 ml-2">
-             <DropdownMenuLabel className="truncate">Mon Compte</DropdownMenuLabel>
+             <DropdownMenuLabel className="truncate">{user?.email ?? 'Chargement...'}</DropdownMenuLabel>
              <DropdownMenuSeparator />
              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
