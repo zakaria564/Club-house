@@ -141,21 +141,16 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   }, [defaultValues, form]);
 
   const photoUrlValue = form.watch('photoUrl');
-  const [photoPreview, setPhotoPreview] = React.useState(photoUrlValue);
-
-  React.useEffect(() => {
-    setPhotoPreview(photoUrlValue);
-  }, [photoUrlValue]);
 
 
   React.useEffect(() => {
     // This effect is to clean up blob URLs to prevent memory leaks
     return () => {
-      if (photoPreview && photoPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(photoPreview);
+      if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
+        URL.revokeObjectURL(photoUrlValue);
       }
     };
-  }, [photoPreview]);
+  }, [photoUrlValue]);
 
 
   React.useEffect(() => {
@@ -208,12 +203,12 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (photoPreview && photoPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(photoPreview);
+    if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
+        URL.revokeObjectURL(photoUrlValue);
     }
     
     const tempPreviewUrl = URL.createObjectURL(file);
-    setPhotoPreview(tempPreviewUrl);
+    form.setValue('photoUrl', tempPreviewUrl, { shouldDirty: true });
     
     setIsUploading(true);
     try {
@@ -222,10 +217,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       const downloadURL = await getDownloadURL(storageRef);
       
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
-      setPhotoPreview(downloadURL);
-      if (tempPreviewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(tempPreviewUrl);
-      }
+
        toast({
         title: "Photo téléversée",
         description: "La photo de profil a été mise à jour.",
@@ -233,7 +225,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     } catch (error) {
       console.error("Error uploading file:", error);
       form.setValue('photoUrl', player?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
-       setPhotoPreview(player?.photoUrl || '');
       toast({
         variant: "destructive",
         title: "Échec du téléversement",
@@ -251,7 +242,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
               <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
                  <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                      <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={photoUrlValue || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}

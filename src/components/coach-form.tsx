@@ -176,7 +176,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     }
     
     const tempPreviewUrl = URL.createObjectURL(file);
-    setPhotoPreview(tempPreviewUrl);
+    form.setValue('photoUrl', tempPreviewUrl, { shouldDirty: true });
 
     setIsUploading(true);
     try {
@@ -185,11 +185,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       const downloadURL = await getDownloadURL(storageRef);
 
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
-      setPhotoPreview(downloadURL);
-       if (tempPreviewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(tempPreviewUrl);
-      }
-
        toast({
         title: "Photo téléversée",
         description: "La photo de profil a été mise à jour.",
@@ -197,7 +192,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     } catch (error) {
       console.error("Error uploading file:", error);
       form.setValue('photoUrl', coach?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
-       setPhotoPreview(coach?.photoUrl || '');
       toast({
         variant: "destructive",
         title: "Échec du téléversement",
@@ -215,7 +209,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={photoUrlValue || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
