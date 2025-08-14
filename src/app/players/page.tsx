@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
+import { PlayerMobileCard } from "@/components/player-mobile-card"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
@@ -191,88 +192,107 @@ export default function PlayersPage() {
             />
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="hidden md:table-cell">Catégorie</TableHead>
-                <TableHead className="hidden md:table-cell">Poste</TableHead>
-                <TableHead className="hidden lg:table-cell">ID joueur</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPlayers.map(player => {
-                const coachName = player.coachId ? coachMap.get(player.coachId) : null;
-                return (
-                <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                         <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
-                         <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
-                      </Avatar>
-                       <div className="min-w-0">
-                          <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
-                          {coachName && (
-                            <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                                <UserCheck className="h-3 w-3 shrink-0" />
-                                {coachName}
-                            </div>
-                          )}
-                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <Badge variant="secondary">{player.category}</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {player.position}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {player.id}
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Ouvrir le menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEditPlayer(player)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>
-                            <DollarSign className="mr-2 h-4 w-4" />
-                            Voir les paiements
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(player.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                  </TableCell>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
+          {/* Mobile view: list of cards */}
+          <div className="sm:hidden space-y-2 p-2">
+             {filteredPlayers.map(player => (
+               <PlayerMobileCard 
+                 key={player.id}
+                 player={player}
+                 coachName={player.coachId ? coachMap.get(player.coachId) : null}
+                 statusBadgeVariant={statusBadgeVariant}
+                 onViewPlayer={handleViewPlayer}
+                 onEditPlayer={handleEditPlayer}
+                 onViewPayments={handleViewPayments}
+                 onDeleteInitiate={handleDeleteInitiate}
+               />
+             ))}
+          </div>
+
+          {/* Desktop view: table */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="hidden md:table-cell">Catégorie</TableHead>
+                  <TableHead className="hidden md:table-cell">Poste</TableHead>
+                  <TableHead className="hidden lg:table-cell">ID joueur</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              )})}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredPlayers.map(player => {
+                  const coachName = player.coachId ? coachMap.get(player.coachId) : null;
+                  return (
+                  <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
+                          <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                            <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
+                            {coachName && (
+                              <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                                  <UserCheck className="h-3 w-3 shrink-0" />
+                                  {coachName}
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <Badge variant="secondary">{player.category}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {player.position}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {player.id}
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup="true"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Ouvrir le menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEditPlayer(player)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>
+                              <DollarSign className="mr-2 h-4 w-4" />
+                              Voir les paiements
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(player.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )})}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
