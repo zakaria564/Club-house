@@ -108,6 +108,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
   
+  const [photoPreview, setPhotoPreview] = React.useState(player?.photoUrl || '');
+  const [certPreview, setCertPreview] = React.useState(player?.medicalCertificateUrl || '');
+  
   const defaultValues = React.useMemo(() => {
     const p = player;
     return {
@@ -134,9 +137,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       medicalCertificateUrl: p?.medicalCertificateUrl || '',
     };
   }, [player, players]);
-  
-  const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
-  const [certPreview, setCertPreview] = React.useState(defaultValues.medicalCertificateUrl);
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),

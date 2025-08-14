@@ -96,6 +96,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
+  const [photoPreview, setPhotoPreview] = React.useState(coach?.photoUrl || '');
+  
   const defaultValues = React.useMemo(() => {
     const c = coach;
     return {
@@ -114,8 +116,6 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       clubExitDate: dateToInputFormat(c?.clubExitDate),
     };
   }, [coach, coaches]);
-
-  const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
 
   const form = useForm<CoachFormValues>({
     resolver: zodResolver(coachFormSchema),
