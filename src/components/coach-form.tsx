@@ -150,7 +150,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={photoPreview || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
@@ -343,7 +343,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormControl>
                                 <Input 
                                   type={isClient && isMobile ? 'text' : 'date'}
-                                  placeholder="AAAA-MM-JJ" 
+                                  placeholder="JJ/MM/AAAA" 
                                   {...field} 
                                   value={field.value ?? ''}
                                 />
@@ -361,7 +361,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                                 <FormControl>
                                     <Input 
                                       type={isClient && isMobile ? 'text' : 'date'}
-                                      placeholder="AAAA-MM-JJ" 
+                                      placeholder="JJ/MM/AAAA" 
                                       {...field} 
                                       value={field.value ?? ''} 
                                     />
@@ -381,5 +381,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    

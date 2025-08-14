@@ -221,7 +221,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             </Label>
             <Input 
               type={isClient && isMobile ? 'text' : 'date'}
-              placeholder="AAAA-MM-JJ" 
+              placeholder="JJ/MM/AAAA" 
               className="col-span-3" 
               value={date} 
               onChange={(e) => setDate(e.target.value)} 

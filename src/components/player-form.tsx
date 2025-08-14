@@ -185,7 +185,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
               <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
                  <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                      <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={photoPreview || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
@@ -269,7 +269,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                               <FormControl>
                                 <Input 
                                   type={isClient && isMobile ? 'text' : 'date'} 
-                                  placeholder="AAAA-MM-JJ" 
+                                  placeholder="JJ/MM/AAAA" 
                                   {...field} 
                                   value={field.value ?? ''} 
                                 />
@@ -538,7 +538,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           <FormControl>
                             <Input 
                               type={isClient && isMobile ? 'text' : 'date'}
-                              placeholder="AAAA-MM-JJ" 
+                              placeholder="JJ/MM/AAAA" 
                               {...field} 
                               value={field.value ?? ''} 
                             />
@@ -556,7 +556,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             <FormControl>
                               <Input 
                                 type={isClient && isMobile ? 'text' : 'date'}
-                                placeholder="AAAA-MM-JJ" 
+                                placeholder="JJ/MM/AAAA" 
                                 {...field} 
                                 value={field.value ?? ''} 
                               />
@@ -576,5 +576,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    
