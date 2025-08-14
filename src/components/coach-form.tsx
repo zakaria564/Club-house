@@ -222,7 +222,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             ) : (
                                 <Upload className="mr-2 h-4 w-4" />
                             )}
-                            {isUploading ? 'Téléversement...' : 'Choisir une photo...'}
+                            {isUploading ? 'Importation...' : 'Importer une photo'}
                         </Button>
                     </div>
                 </div>
@@ -426,5 +426,3 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
-
-    
