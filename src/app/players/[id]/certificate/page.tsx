@@ -69,7 +69,7 @@ const CertificatePage = () => {
 
   return (
     <div className="bg-white w-full h-full printable-area">
-        <div className="w-full h-screen flex items-center justify-center">
+        <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
             <Image 
                 src={player.medicalCertificateUrl} 
                 alt={`Certificat médical de ${player.firstName} ${player.lastName}`}
