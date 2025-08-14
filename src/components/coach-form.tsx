@@ -93,12 +93,8 @@ const specialties = [
 
 export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
   const { toast } = useToast()
-  const [isUploading, setIsUploading] = React.useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
-  const form = useForm<CoachFormValues>({
-    resolver: zodResolver(coachFormSchema),
-    defaultValues: {
+  const defaultValues = React.useMemo(() => ({
       id: coach?.id || getNextId(coaches),
       firstName: coach?.firstName || '',
       lastName: coach?.lastName || '',
@@ -112,33 +108,19 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       city: coach?.city || '',
       clubEntryDate: dateToInputFormat(coach?.clubEntryDate),
       clubExitDate: dateToInputFormat(coach?.clubExitDate),
-    },
+    }), [coach, coaches]);
+
+  const form = useForm<CoachFormValues>({
+    resolver: zodResolver(coachFormSchema),
+    defaultValues,
     mode: "onChange",
   });
   
-  const [photoPreview, setPhotoPreview] = React.useState(form.getValues('photoUrl'));
-
- const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const coachId = form.getValues('id');
-      const storageRef = ref(storage, `coaches/${coachId}/photo/${file.name}`);
-      setIsUploading(true);
-      try {
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        form.setValue('photoUrl', downloadURL, { shouldValidate: true, shouldDirty: true });
-        setPhotoPreview(downloadURL);
-        toast({ title: "Photo téléchargée", description: "La nouvelle photo a été enregistrée." });
-      } catch (error) {
-        toast({ variant: "destructive", title: "Erreur", description: "Impossible de télécharger la photo." });
-        console.error("Upload error:", error);
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
-
+  const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
+  
+  React.useEffect(() => {
+      setPhotoPreview(defaultValues.photoUrl);
+  }, [defaultValues]);
 
   function onSubmit(data: CoachFormValues) {
     const isEditing = !!coach;
@@ -161,42 +143,37 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
-            <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="flex flex-col items-center gap-4 flex-shrink-0">
-                    <Avatar className="h-32 w-32">
+            <div className="flex flex-col md:flex-row items-start gap-6">
+                <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
+                    <Avatar className="h-36 w-36">
                         <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
-                        <AvatarFallback className="text-3xl">
+                        <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                        {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                        Télécharger
-                      </Button>
-                      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                     <FormField
+                      control={form.control}
+                      name="photoUrl"
+                      render={({ field }) => (
+                          <FormItem className="w-full">
+                              <FormLabel className="sr-only">URL de la photo</FormLabel>
+                              <FormControl>
+                                  <Input
+                                      placeholder="Coller l'URL de l'image ici..."
+                                      {...field}
+                                      onChange={(e) => {
+                                          field.onChange(e);
+                                          setPhotoPreview(e.target.value);
+                                      }}
+                                  />
+                              </FormControl>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                    />
                 </div>
                  <div className="w-full space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>URL de la photo</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Coller l'URL de l'image ici..."
-                                        {...field}
-                                        onChange={(e) => {
-                                            field.onChange(e);
-                                            setPhotoPreview(e.target.value);
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
                     <FormField
                         control={form.control}
                         name="id"
@@ -210,13 +187,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         </FormItem>
                         )}
                     />
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium">Informations de l'entraîneur</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
+                     <FormField
                     control={form.control}
                     name="specialty"
                     render={({ field }) => (
@@ -238,6 +209,12 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         </FormItem>
                     )}
                     />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium">Informations de l'entraîneur</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                     control={form.control}
                     name="firstName"

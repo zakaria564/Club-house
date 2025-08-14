@@ -102,15 +102,11 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
-  const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
   const [isUploadingCert, setIsUploadingCert] = React.useState(false);
   
-  const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
   
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues: {
+  const defaultValues = React.useMemo(() => ({
       id: player?.id || getNextId(players),
       firstName: player?.firstName || '',
       lastName: player?.lastName || '',
@@ -132,13 +128,22 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: dateToInputFormat(player?.clubExitDate),
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
-    },
+  }), [player, players]);
+
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues,
     mode: "onChange",
   });
   
-  const [photoPreview, setPhotoPreview] = React.useState(form.getValues('photoUrl'));
-  const [certPreview, setCertPreview] = React.useState(form.getValues('medicalCertificateUrl'));
+  const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
+  const [certPreview, setCertPreview] = React.useState(defaultValues.medicalCertificateUrl);
   
+  React.useEffect(() => {
+    setPhotoPreview(defaultValues.photoUrl);
+    setCertPreview(defaultValues.medicalCertificateUrl);
+  }, [defaultValues]);
+
   React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
     const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
@@ -165,18 +170,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         setUploading(false);
     }
   };
-
-  const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-          const playerId = form.getValues('id');
-          const filePath = `players/${playerId}/photo/${file.name}`;
-          handleFileUpload(file, filePath, setIsUploadingPhoto, (url) => {
-              form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
-              setPhotoPreview(url);
-          });
-      }
-  }
 
   const onCertChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -221,20 +214,35 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-8">
           <div className="space-y-8">
-              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                 <div className="flex flex-col items-center gap-4 flex-shrink-0">
-                    <Avatar className="h-32 w-32">
+              <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
+                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
+                    <Avatar className="h-36 w-36">
                       <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                      <AvatarFallback className="text-3xl">
+                      <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                     <Button type="button" variant="outline" size="sm" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
-                        {isUploadingPhoto ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                        Télécharger
-                      </Button>
-                      <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
+                    <FormField
+                      control={form.control}
+                      name="photoUrl"
+                      render={({ field }) => (
+                          <FormItem className="w-full">
+                              <FormLabel className="sr-only">URL de la photo</FormLabel>
+                              <FormControl>
+                                  <Input
+                                      placeholder="Coller l'URL de l'image ici..."
+                                      {...field}
+                                      onChange={(e) => {
+                                          field.onChange(e);
+                                          setPhotoPreview(e.target.value);
+                                      }}
+                                  />
+                              </FormControl>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                    />
                  </div>
 
                 <div className="w-full space-y-4">
@@ -373,26 +381,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           </FormItem>
                         )}
                       />
-                    <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                            <FormItem className="sm:col-span-2">
-                                <FormLabel>URL de la photo</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Coller l'URL de l'image ici..."
-                                        {...field}
-                                        onChange={(e) => {
-                                            field.onChange(e);
-                                            setPhotoPreview(e.target.value);
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
                      <div className="sm:col-span-2 space-y-2">
                         <FormLabel>Certificat médical</FormLabel>
                          <div className="flex gap-2">
