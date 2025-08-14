@@ -24,7 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
 import { coaches as initialCoaches } from "@/lib/mock-data"
 import { storage } from "@/lib/firebase"
-import { Loader2, UploadCloud, Upload } from "lucide-react"
+import { Loader2, Upload } from "lucide-react"
 
 const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
@@ -104,6 +104,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
   const [isUploadingCert, setIsUploadingCert] = React.useState(false);
+  
+  const [photoPreview, setPhotoPreview] = React.useState(player?.photoUrl || '');
+  const [certPreview, setCertPreview] = React.useState(player?.medicalCertificateUrl || '');
+
 
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
@@ -143,6 +147,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
   React.useEffect(() => {
     form.reset(defaultValues);
+    setPhotoPreview(defaultValues.photoUrl);
+    setCertPreview(defaultValues.medicalCertificateUrl);
   }, [defaultValues, form]);
   
   React.useEffect(() => {
@@ -150,8 +156,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
     setCoaches(storedCoaches);
   }, []);
-
-  const photoUrlValue = form.watch("photoUrl");
 
   const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
     onUploadProgress(true);
@@ -178,6 +182,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
           if (url) {
               form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
+              setPhotoPreview(url);
           }
       }
   }
@@ -190,6 +195,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingCert);
           if (url) {
               form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
+              setCertPreview(url);
           }
       }
   }
@@ -227,7 +233,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           <div className="space-y-8">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={photoUrlValue} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                  <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                   <AvatarFallback>
                     {form.watch('firstName')?.[0]}
                     {form.watch('lastName')?.[0]}
@@ -237,21 +243,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                   <FormLabel>Photo du joueur</FormLabel>
                   <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto} className="w-full justify-center">
                     {isUploadingPhoto ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                    {photoUrlValue ? 'Changer la photo' : 'Télécharger une photo'}
+                    {photoPreview ? 'Changer la photo' : 'Télécharger une photo'}
                   </Button>
                   <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
-                  <FormField
-                    control={form.control}
-                    name="photoUrl"
-                    render={({ field }) => (
-                      <FormItem className="hidden">
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </div>
 
@@ -429,24 +423,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                 Télécharger le certificat
                             </Button>
                         </div>
-                        {form.watch('medicalCertificateUrl') && (
+                        {certPreview && (
                           <div className="text-sm text-center text-green-600 mt-2">
-                            Certificat téléchargé. <a href={form.watch('medicalCertificateUrl')} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
+                            Certificat téléchargé. <a href={certPreview} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
                           </div>
                         )}
                         <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
-                         <FormField
-                            control={form.control}
-                            name="medicalCertificateUrl"
-                            render={({ field }) => (
-                                <FormItem className="hidden">
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                  </div>
               </div>
 

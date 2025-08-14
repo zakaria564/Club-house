@@ -95,6 +95,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const { toast } = useToast()
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [photoPreview, setPhotoPreview] = React.useState(coach?.photoUrl || '');
   
   const defaultValues = React.useMemo(() => {
     const c = coach;
@@ -123,9 +124,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   
   React.useEffect(() => {
     form.reset(defaultValues);
+    setPhotoPreview(defaultValues.photoUrl);
   }, [defaultValues, form]);
-  
-  const photoUrlValue = form.watch('photoUrl');
 
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -137,6 +137,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         form.setValue('photoUrl', downloadURL, { shouldValidate: true, shouldDirty: true });
+        setPhotoPreview(downloadURL);
         toast({ title: "Photo téléchargée", description: "La nouvelle photo a été enregistrée." });
       } catch (error) {
         toast({ variant: "destructive", title: "Erreur", description: "Impossible de télécharger la photo." });
@@ -171,7 +172,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
                 <Avatar className="h-24 w-24">
-                    <AvatarImage src={photoUrlValue} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                    <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                     <AvatarFallback>
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
@@ -181,21 +182,9 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                   <FormLabel>Photo de l'entraîneur</FormLabel>
                   <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full justify-center">
                     {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                    {photoUrlValue ? "Changer la photo" : 'Télécharger une photo'}
+                    {photoPreview ? "Changer la photo" : 'Télécharger une photo'}
                   </Button>
                   <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                   <FormField
-                      control={form.control}
-                      name="photoUrl"
-                      render={({ field }) => (
-                          <FormItem className="hidden">
-                              <FormControl>
-                                  <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                          </FormItem>
-                      )}
-                  />
                 </div>
             </div>
 
