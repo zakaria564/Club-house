@@ -181,19 +181,19 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       const downloadURL = await getDownloadURL(storageRef);
 
       URL.revokeObjectURL(tempPreviewUrl);
-      form.setValue('photoUrl', downloadURL, { shouldValidate: true });
+      form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
        toast({
         title: "Photo téléversée",
         description: "La photo de profil a été mise à jour.",
       });
     } catch (error) {
       console.error("Error uploading file:", error);
+      form.setValue('photoUrl', coach?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
       toast({
         variant: "destructive",
         title: "Échec du téléversement",
         description: "Une erreur est survenue lors du téléversement de la photo.",
       });
-      form.setValue('photoUrl', coach?.photoUrl || '', { shouldValidate: true });
     } finally {
       setIsUploading(false);
     }
@@ -226,7 +226,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             ) : (
                                 <Upload className="mr-2 h-4 w-4" />
                             )}
-                            {isUploading ? 'Téléversement...' : 'Mettre à jour la photo'}
+                            {isUploading ? 'Téléversement...' : 'Téléverser une photo'}
                         </Button>
                     </div>
                 </div>

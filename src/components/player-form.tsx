@@ -143,6 +143,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const photoUrlValue = form.watch('photoUrl');
 
   React.useEffect(() => {
+    // This effect is to clean up blob URLs to prevent memory leaks
     return () => {
       if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
         URL.revokeObjectURL(photoUrlValue);
@@ -201,11 +202,13 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Clean up previous blob URL if it exists
     const currentPhotoUrl = form.getValues('photoUrl');
     if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:')) {
         URL.revokeObjectURL(currentPhotoUrl);
     }
     
+    // Create a temporary URL for instant preview
     const tempPreviewUrl = URL.createObjectURL(file);
     form.setValue('photoUrl', tempPreviewUrl, { shouldDirty: true, shouldValidate: false });
 
@@ -215,20 +218,23 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
       
+      // The upload is complete, now replace the blob URL with the permanent Firebase URL.
+      // We only need to revoke the new blob URL if the upload was successful and we are replacing it.
       URL.revokeObjectURL(tempPreviewUrl);
-      form.setValue('photoUrl', downloadURL, { shouldValidate: true });
+      form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
        toast({
         title: "Photo téléversée",
         description: "La photo de profil a été mise à jour.",
       });
     } catch (error) {
       console.error("Error uploading file:", error);
+      // If upload fails, revert to the original photo or clear it.
+      form.setValue('photoUrl', player?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
       toast({
         variant: "destructive",
         title: "Échec du téléversement",
         description: "Une erreur est survenue lors du téléversement de la photo.",
       });
-      form.setValue('photoUrl', player?.photoUrl || '', { shouldValidate: true });
     } finally {
       setIsUploading(false);
     }
@@ -261,7 +267,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             ) : (
                                 <Upload className="mr-2 h-4 w-4" />
                             )}
-                            {isUploading ? 'Téléversement...' : 'Mettre à jour la photo'}
+                            {isUploading ? 'Téléversement...' : 'Téléverser une photo'}
                         </Button>
                     </div>
                  </div>
