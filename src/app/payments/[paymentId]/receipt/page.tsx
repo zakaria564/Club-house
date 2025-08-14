@@ -5,10 +5,10 @@ import * as React from 'react';
 import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import Image from 'next/image';
 
 import type { Payment, Player, Coach } from '@/types';
 import { payments as initialPayments, players as initialPlayers, coaches as initialCoaches } from '@/lib/mock-data';
-import { ClubLogo } from '@/components/club-logo';
 
 const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
@@ -124,15 +124,15 @@ const ReceiptPage = () => {
   const payee = isSalaryPayment ? member : { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' };
 
   return (
-    <div className="bg-white text-black font-sans p-8 md:p-12 printable-area">
-      <div className="max-w-4xl mx-auto border border-gray-300 p-8 rounded-lg shadow-lg">
+    <div className="bg-white text-black font-sans printable-area flex items-center justify-center min-h-screen">
+      <div className="max-w-4xl w-full border border-gray-300 p-8 rounded-lg shadow-lg">
         {/* Header */}
         <header className="flex justify-between items-start pb-6 border-b border-gray-300">
           <div className="w-full">
-            <ClubLogo className="h-16 w-auto" />
+            <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club Logo" width={80} height={80} className="h-20 w-auto" data-ai-hint="club logo" />
           </div>
-          <div className="text-right">
-            <h2 className="text-3xl font-bold text-gray-800">{isSalaryPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>
+          <div className="text-right flex-shrink-0">
+            <h2 className="text-3xl font-bold text-gray-800 whitespace-nowrap">{isSalaryPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>
             <p className="text-gray-500">Référence #: {payment.id}</p>
             <p className="text-gray-500">Date: {format(new Date(payment.date), 'd MMMM yyyy', { locale: fr })}</p>
           </div>
