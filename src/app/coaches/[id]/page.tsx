@@ -289,6 +289,7 @@ export default function CoachDetailPage() {
       </div>
 
       <AddCoachDialog
+        key={coach?.id || 'new'}
         open={isCoachDialogOpen}
         onOpenChange={setCoachDialogOpen}
         coach={coach}

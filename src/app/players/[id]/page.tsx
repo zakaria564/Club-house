@@ -333,9 +333,9 @@ export default function PlayerDetailPage() {
                                             <TableCell>
                                                 <Badge
                                                     className={cn({
-                                                        'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80': payment.status === 'Paid',
-                                                        'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80': payment.status === 'Pending',
-                                                        'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80': payment.status === 'Overdue'
+                                                        'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
+                                                        'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
+                                                        'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
                                                     })}
                                                 >
                                                     {statusTranslations[payment.status]}
@@ -363,6 +363,7 @@ export default function PlayerDetailPage() {
       </div>
 
       <AddPlayerDialog
+        key={player?.id || 'new'}
         open={isPlayerDialogOpen}
         onOpenChange={setPlayerDialogOpen}
         player={player}
