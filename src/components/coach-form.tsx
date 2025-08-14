@@ -90,14 +90,11 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [coachId, setCoachId] = React.useState(coach?.id || "");
-  const [photoPreview, setPhotoPreview] = React.useState<string | null>(coach?.photoUrl || null);
 
   React.useEffect(() => {
     setIsClient(true);
     if(!coach?.id) {
-        // Generate a new ID for a new coach
-        const newId = doc(collection(db, "coaches")).id;
-        setCoachId(newId);
+        setCoachId(doc(collection(db, "coaches")).id);
     }
   }, [coach?.id]);
   
@@ -124,16 +121,17 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   
   React.useEffect(() => {
       form.reset(defaultValues);
-      setPhotoPreview(defaultValues.photoUrl);
   }, [defaultValues, form]);
+
+  const photoUrlValue = form.watch('photoUrl');
   
    React.useEffect(() => {
     return () => {
-      if (photoPreview && photoPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(photoPreview);
+      if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
+        URL.revokeObjectURL(photoUrlValue);
       }
     };
-  }, [photoPreview]);
+  }, [photoUrlValue]);
 
  async function onSubmit(data: CoachFormValues) {
     const isEditing = !!coach?.id;
@@ -168,21 +166,25 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (photoPreview && photoPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(photoPreview);
+    const currentPhotoUrl = form.getValues('photoUrl');
+    if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(currentPhotoUrl);
     }
-    const previewUrl = URL.createObjectURL(file);
-    setPhotoPreview(previewUrl);
+    
+    const tempPreviewUrl = URL.createObjectURL(file);
+    form.setValue('photoUrl', tempPreviewUrl, { shouldDirty: true, shouldValidate: false });
 
     setIsUploading(true);
     try {
       const storageRef = ref(storage, `coach-photos/${coachId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
+
+      URL.revokeObjectURL(tempPreviewUrl);
       form.setValue('photoUrl', downloadURL, { shouldValidate: true });
        toast({
         title: "Photo téléversée",
-        description: "La photo de profil a été mise à jour avec succès.",
+        description: "La photo de profil a été mise à jour.",
       });
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -191,7 +193,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
         title: "Échec du téléversement",
         description: "Une erreur est survenue lors du téléversement de la photo.",
       });
-      setPhotoPreview(coach?.photoUrl || null); // Revert on failure
+      form.setValue('photoUrl', coach?.photoUrl || '', { shouldValidate: true });
     } finally {
       setIsUploading(false);
     }
@@ -204,7 +206,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoPreview || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={photoUrlValue || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
