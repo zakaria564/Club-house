@@ -276,46 +276,86 @@ export default function PlayerDetailPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Mois du Paiement</TableHead>
-                                <TableHead>Statut</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead className="text-right hidden sm:table-cell">Avance</TableHead>
-                                <TableHead className="text-right">Reste</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {payments.length > 0 ? (
-                                payments.map(payment => (
-                                    <TableRow key={payment.id}>
-                                        <TableCell className="capitalize">{format(payment.date, "MMMM yyyy", { locale: fr })}</TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                className={cn({
-                                                    'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
-                                                    'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
-                                                    'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
-                                                })}
-                                            >
-                                                {statusTranslations[payment.status]}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
-                                        <TableCell className="text-right hidden sm:table-cell">{payment.advance.toFixed(2)} DH</TableCell>
-                                        <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
+                     {/* Mobile view: list of cards */}
+                    <div className="sm:hidden space-y-3">
+                        {payments.length > 0 ? (
+                            payments.map(payment => (
+                                <div key={payment.id} className="border rounded-lg p-3 text-sm">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="font-semibold capitalize">{format(payment.date, "MMMM yyyy", { locale: fr })}</span>
+                                        <Badge
+                                            className={cn({
+                                                'bg-green-100 text-green-800 border-green-200': payment.status === 'Paid',
+                                                'bg-yellow-100 text-yellow-800 border-yellow-200': payment.status === 'Pending',
+                                                'bg-red-100 text-red-800 border-red-200': payment.status === 'Overdue'
+                                            })}
+                                        >
+                                            {statusTranslations[payment.status]}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex justify-between border-t pt-2">
+                                        <span className="text-muted-foreground">Reste à payer</span>
+                                        <span className="font-medium">{payment.remaining.toFixed(2)} DH</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Avance</span>
+                                        <span>{payment.advance.toFixed(2)} DH</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total</span>
+                                        <span className="font-semibold">{payment.totalAmount.toFixed(2)} DH</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center text-muted-foreground py-4">
+                                Aucun paiement trouvé pour ce joueur.
+                            </div>
+                        )}
+                    </div>
+                    {/* Desktop view: table */}
+                    <div className="hidden sm:block">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center">
-                                        Aucun paiement trouvé pour ce joueur.
-                                    </TableCell>
+                                    <TableHead>Mois du Paiement</TableHead>
+                                    <TableHead>Statut</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                    <TableHead className="text-right">Avance</TableHead>
+                                    <TableHead className="text-right">Reste</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {payments.length > 0 ? (
+                                    payments.map(payment => (
+                                        <TableRow key={payment.id}>
+                                            <TableCell className="capitalize">{format(payment.date, "MMMM yyyy", { locale: fr })}</TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    className={cn({
+                                                        'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80': payment.status === 'Paid',
+                                                        'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80': payment.status === 'Pending',
+                                                        'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80': payment.status === 'Overdue'
+                                                    })}
+                                                >
+                                                    {statusTranslations[payment.status]}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
+                                            <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
+                                            <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center">
+                                            Aucun paiement trouvé pour ce joueur.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -332,3 +372,5 @@ export default function PlayerDetailPage() {
     </>
   );
 }
+
+    
