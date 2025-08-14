@@ -10,7 +10,6 @@ import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDo
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { players as initialPlayers, payments as initialPayments, clubEvents as initialClubEvents } from '@/lib/mock-data'
 import type { Player, Payment, ClubEvent } from '@/types'
 import AddPlayerDialog from "@/components/add-player-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -18,11 +17,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from "@/lib/utils"
 import { differenceInDays, isAfter, isSameMonth, isToday, startOfMonth, format } from 'date-fns';
 import { fr } from "date-fns/locale"
-
-
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
-const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
-const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
+import { collection, onSnapshot, query, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 
 const chartConfig = {
@@ -32,23 +28,34 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-const parsePlayerDates = (player: any): Player => ({
-    ...player,
-    dateOfBirth: new Date(player.dateOfBirth),
-    clubEntryDate: new Date(player.clubEntryDate),
-    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
 
-const parsePaymentDates = (payment: any): Payment => ({
-    ...payment,
-    date: new Date(payment.date),
-});
+const parsePaymentDoc = (doc: any): Payment => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    date: (data.date as Timestamp)?.toDate(),
+  } as Payment;
+}
 
-const parseEventDates = (event: any): ClubEvent => ({
-    ...event,
-    date: new Date(event.date),
-});
-
+const parseEventDoc = (doc: any): ClubEvent => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    date: (data.date as Timestamp)?.toDate(),
+  } as ClubEvent;
+}
 
 // Helper function to normalize strings for searching (remove accents, lowercase)
 const normalizeString = (str: string) => {
@@ -70,74 +77,27 @@ export default function Dashboard() {
   const [openCombobox, setOpenCombobox] = React.useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = React.useState<string | null>(null)
 
-  const loadData = React.useCallback(() => {
-    if (typeof window === 'undefined') return;
-    try {
-        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        let loadedPlayers: Player[];
-        if (storedPlayersRaw) {
-            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-        } else {
-            loadedPlayers = initialPlayers.map(parsePlayerDates);
-            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
-        }
-        setPlayers(loadedPlayers);
-
-        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        let loadedPayments: Payment[];
-        if (storedPaymentsRaw) {
-            loadedPayments = JSON.parse(storedPaymentsRaw).map(parsePaymentDates);
-        } else {
-            loadedPayments = initialPayments.map(parsePaymentDates);
-            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
-        }
-        setPayments(loadedPayments);
-
-        const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
-        let loadedEvents: ClubEvent[];
-        if (storedEventsRaw) {
-            loadedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
-        } else {
-            loadedEvents = initialClubEvents.map(parseEventDates);
-            localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(loadedEvents));
-        }
-        setEvents(loadedEvents);
-
-    } catch (error) {
-        console.error("Failed to load or merge data:", error);
-        setPlayers(initialPlayers.map(parsePlayerDates));
-        setPayments(initialPayments.map(parsePaymentDates));
-        setEvents(initialClubEvents.map(parseEventDates));
-    }
-  }, []);
-
   React.useEffect(() => {
     setIsClient(true);
-    loadData();
+    
+    const unsubscribePlayers = onSnapshot(query(collection(db, "players")), (snapshot) => {
+        setPlayers(snapshot.docs.map(parsePlayerDoc));
+    });
 
-    const handleFocus = () => {
-        loadData();
-    };
+    const unsubscribePayments = onSnapshot(query(collection(db, "payments")), (snapshot) => {
+        setPayments(snapshot.docs.map(parsePaymentDoc));
+    });
 
-    window.addEventListener('focus', handleFocus);
+    const unsubscribeEvents = onSnapshot(query(collection(db, "events")), (snapshot) => {
+        setEvents(snapshot.docs.map(parseEventDoc));
+    });
+
     return () => {
-        window.removeEventListener('focus', handleFocus);
-    }
-  }, [loadData]);
-  
-  const handlePlayerUpdate = (updatedPlayer: Player) => {
-    const playerWithDates = parsePlayerDates(updatedPlayer);
-    let newPlayers: Player[];
-    const existingPlayerIndex = players.findIndex(p => p.id === updatedPlayer.id);
-    if (existingPlayerIndex > -1) {
-        newPlayers = [...players];
-        newPlayers[existingPlayerIndex] = playerWithDates;
-    } else {
-        newPlayers = [...players, playerWithDates];
-    }
-    setPlayers(newPlayers);
-    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(newPlayers));
-  };
+        unsubscribePlayers();
+        unsubscribePayments();
+        unsubscribeEvents();
+    };
+  }, []);
 
   const handlePlayerSelect = (playerId: string) => {
     setSelectedPlayerId(playerId);
@@ -329,7 +289,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} onPlayerUpdate={handlePlayerUpdate} players={players} />
+      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} />
     </>
   );
 }
+
+    

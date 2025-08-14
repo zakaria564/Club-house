@@ -3,13 +3,15 @@
 import * as React from "react"
 import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search, DollarSign } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { collection, onSnapshot, deleteDoc, doc, query, where, getDocs, writeBatch } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { coaches as initialCoaches, payments as initialPayments } from "@/lib/mock-data"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach, Payment } from "@/types"
 import AddCoachDialog from "@/components/add-coach-dialog"
@@ -27,10 +29,6 @@ import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { CoachMobileCard } from "@/components/coach-mobile-card"
-
-
-const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
-const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
@@ -77,33 +75,17 @@ export default function CoachesPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
 
   React.useEffect(() => {
-    try {
-        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        let loadedCoaches: Coach[];
-        if (storedCoachesRaw) {
-            loadedCoaches = JSON.parse(storedCoachesRaw);
-        } else {
-            loadedCoaches = initialCoaches;
-            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
-        }
-        setCoaches(loadedCoaches);
-    } catch (error) {
-        console.error("Failed to load coaches:", error);
-        setCoaches(initialCoaches);
-    }
-  }, []);
+    const q = query(collection(db, "coaches"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const coachesData: Coach[] = [];
+        querySnapshot.forEach((doc) => {
+            coachesData.push({ id: doc.id, ...doc.data() } as Coach);
+        });
+        setCoaches(coachesData);
+    });
 
-  const handleCoachUpdate = (updatedCoach: Coach) => {
-    let newCoaches: Coach[];
-    const isNew = !coaches.some(c => c.id === updatedCoach.id);
-    if (isNew) {
-      newCoaches = [...coaches, updatedCoach]
-    } else {
-      newCoaches = coaches.map(c => (c.id === updatedCoach.id ? updatedCoach : c));
-    }
-    setCoaches(newCoaches);
-    localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(newCoaches));
-  };
+    return () => unsubscribe();
+  }, []);
 
   const handleEditCoach = (coach: Coach) => {
     setSelectedCoach(coach);
@@ -119,30 +101,41 @@ export default function CoachesPage() {
     setCoachToDelete(coachId);
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!coachToDelete) return;
 
-    const updatedCoaches = coaches.filter(c => c.id !== coachToDelete);
-    setCoaches(updatedCoaches);
-    localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(updatedCoaches));
-
     try {
-      const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-      if (storedPaymentsRaw) {
-        let payments: Payment[] = JSON.parse(storedPaymentsRaw);
-        const updatedPayments = payments.filter(p => p.paymentType !== 'salary' || p.memberId !== coachToDelete);
-        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
-      }
-    } catch (error) {
-      console.error("Failed to update payments in localStorage", error);
-    }
+        const batch = writeBatch(db);
 
-    setCoachToDelete(null);
-    toast({
-      title: "Entraîneur supprimé",
-      description: "L'entraîneur et ses paiements ont été supprimés.",
-    });
-  }
+        // Delete the coach document
+        const coachDocRef = doc(db, 'coaches', coachToDelete);
+        batch.delete(coachDocRef);
+
+        // Find and delete associated payments
+        const paymentsQuery = query(collection(db, 'payments'), where('memberId', '==', coachToDelete), where('paymentType', '==', 'salary'));
+        const paymentsSnapshot = await getDocs(paymentsQuery);
+        paymentsSnapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+
+        setCoachToDelete(null);
+        toast({
+            title: "Entraîneur supprimé",
+            description: "L'entraîneur et ses paiements associés ont été supprimés.",
+        });
+
+    } catch (error) {
+        console.error("Error deleting coach and payments: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description: 'Une erreur est survenue lors de la suppression.',
+        });
+    }
+}
+
 
   const handleExport = () => {
     if (filteredCoaches.length > 0) {
@@ -239,7 +232,7 @@ export default function CoachesPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={coach.photoUrl} alt={coach.firstName} data-ai-hint="coach profile" />
+                          <AvatarImage src={coach.photoUrl || undefined} alt={coach.firstName} data-ai-hint="coach profile" />
                           <AvatarFallback>{coach.firstName?.[0]}{coach.lastName?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
@@ -301,8 +294,6 @@ export default function CoachesPage() {
         open={isCoachDialogOpen} 
         onOpenChange={setCoachDialogOpen} 
         coach={selectedCoach} 
-        onCoachUpdate={handleCoachUpdate} 
-        coaches={coaches} 
        />
 
       <AlertDialog open={!!coachToDelete} onOpenChange={(open) => !open && setCoachToDelete(null)}>
@@ -322,3 +313,5 @@ export default function CoachesPage() {
     </>
   )
 }
+
+    

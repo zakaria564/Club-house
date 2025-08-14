@@ -4,18 +4,22 @@
 import * as React from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-
+import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import type { Player } from '@/types';
-import { players as initialPlayers } from '@/lib/mock-data';
 
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 
-const parsePlayerDates = (player: any): Player => ({
-  ...player,
-  dateOfBirth: new Date(player.dateOfBirth),
-  clubEntryDate: new Date(player.clubEntryDate),
-  clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
+
 
 const CertificatePage = () => {
   const params = useParams();
@@ -24,17 +28,21 @@ const CertificatePage = () => {
   const [player, setPlayer] = React.useState<Player | null>(null);
 
   React.useEffect(() => {
-    try {
-      const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-      const players: Player[] = storedPlayersRaw 
-        ? JSON.parse(storedPlayersRaw).map(parsePlayerDates)
-        : initialPlayers.map(parsePlayerDates);
-      
-      const currentPlayer = players.find(p => p.id === playerId) || null;
-      setPlayer(currentPlayer);
-    } catch (error) {
+    if (!playerId) return;
+    const fetchPlayer = async () => {
+      try {
+        const playerDocRef = doc(db, "players", playerId);
+        const playerDoc = await getDoc(playerDocRef);
+        if (playerDoc.exists()) {
+          setPlayer(parsePlayerDoc(playerDoc));
+        } else {
+          console.error("No such player document!");
+        }
+      } catch (error) {
         console.error("Failed to load player for certificate:", error);
-    }
+      }
+    };
+    fetchPlayer();
   }, [playerId]);
   
   React.useEffect(() => {
@@ -90,3 +98,5 @@ export default function CertificatePageWrapper() {
     </React.Suspense>
   )
 }
+
+    

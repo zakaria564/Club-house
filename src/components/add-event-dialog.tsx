@@ -1,6 +1,8 @@
 
 "use client"
 import * as React from "react"
+import { addDoc, collection, doc, setDoc, Timestamp, onSnapshot, query } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 import {
   Dialog,
@@ -20,13 +22,11 @@ import { Button } from "./ui/button"
 import { handleEnterKeyDown } from "@/lib/utils"
 import { Textarea } from "./ui/textarea"
 import { Separator } from "./ui/separator"
-import { players as initialPlayers } from "@/lib/mock-data"
 import { MatchStatsForm } from "./match-stats-form"
 
 interface AddEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEventSubmit: (event: ClubEvent) => void;
   event?: ClubEvent | null;
   selectedDate?: Date;
 }
@@ -41,12 +41,17 @@ const eventTitleTemplates: Record<ClubEvent['type'], string[]> = {
 
 const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran", "Éducateurs", "Tous les membres"];
 
-const parsePlayerDates = (player: any): Player => ({
-    ...player,
-    dateOfBirth: new Date(player.dateOfBirth),
-    clubEntryDate: new Date(player.clubEntryDate),
-    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
+
 
 const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
@@ -57,17 +62,18 @@ const dateToInputFormat = (date?: Date | null): string => {
     }
 };
 
-export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selectedDate }: AddEventDialogProps) {
+export function AddEventDialog({ open, onOpenChange, event, selectedDate }: AddEventDialogProps) {
     const { toast } = useToast();
     const isEditing = !!event;
 
     const [players, setPlayers] = React.useState<Player[]>([]);
 
     React.useEffect(() => {
-        // In a real app, you might fetch this from an API
-        const storedPlayersRaw = localStorage.getItem('clubhouse-players');
-        const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : initialPlayers.map(parsePlayerDates);
-        setPlayers(storedPlayers);
+        const playersQuery = query(collection(db, "players"));
+        const unsubscribe = onSnapshot(playersQuery, (snapshot) => {
+            setPlayers(snapshot.docs.map(parsePlayerDoc));
+        });
+        return () => unsubscribe();
     }, []);
 
     const [title, setTitle] = React.useState(event?.title && !event.opponent ? event.title : "");
@@ -136,7 +142,7 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         setAssists([]);
     }
 
-    const handleSubmit = (e?: React.FormEvent) => {
+    const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
         const finalTitle = title === "Autre..." ? customTitle : title;
 
@@ -149,31 +155,44 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
             return;
         }
 
-        const eventData: ClubEvent = {
-            id: isEditing ? event.id : `e${Date.now()}`,
+        const eventData = {
             title: finalTitle,
-            date: new Date(date),
+            date: Timestamp.fromDate(new Date(date)),
             type,
             time,
             location,
-            category: category || undefined,
-            description: description || undefined,
+            category: category || null,
+            description: description || null,
+            opponent: opponent || null,
+            result: result || null,
+            scorers: scorers.filter(s => s.playerId && s.count > 0) || [],
+            assists: assists.filter(a => a.playerId && a.count > 0) || [],
         };
-
+        
         if (type === 'Match') {
-            eventData.opponent = opponent;
             eventData.title = `CAOS vs ${opponent}`;
-            eventData.result = result || undefined;
-            eventData.scorers = scorers.filter(s => s.playerId && s.count > 0);
-            eventData.assists = assists.filter(a => a.playerId && a.count > 0);
         }
-
-        onEventSubmit(eventData);
-        toast({
-            title: isEditing ? "Événement mis à jour" : "Événement créé",
-            description: `L'événement a été ${isEditing ? 'mis à jour' : 'ajouté au calendrier'} avec succès.`,
-        });
-        onOpenChange(false);
+        
+        try {
+            if (isEditing) {
+                const eventRef = doc(db, 'events', event.id);
+                await setDoc(eventRef, eventData, { merge: true });
+            } else {
+                await addDoc(collection(db, 'events'), eventData);
+            }
+            toast({
+                title: isEditing ? "Événement mis à jour" : "Événement créé",
+                description: `L'événement a été ${isEditing ? 'mis à jour' : 'ajouté au calendrier'} avec succès.`,
+            });
+            onOpenChange(false);
+        } catch (error) {
+            console.error("Error saving event:", error);
+            toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: "Une erreur est survenue lors de la sauvegarde de l'événement."
+            });
+        }
     }
 
     return (
@@ -287,3 +306,5 @@ export function AddEventDialog({ open, onOpenChange, onEventSubmit, event, selec
         </Dialog>
     )
 }
+
+    

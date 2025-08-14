@@ -8,7 +8,6 @@ import { ArrowLeft, Medal, Calendar as CalendarIcon, Goal, Footprints, Printer }
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ClubEvent, Player, StatEvent } from "@/types"
-import { clubEvents as initialClubEvents, players as initialPlayers } from "@/lib/mock-data"
 import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -17,6 +16,8 @@ import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import Image from 'next/image';
+import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 
 const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
@@ -35,17 +36,25 @@ const PrintHeader = ({ date }: { date?: Date }) => (
 );
 
 
-const parseEventDates = (event: any): ClubEvent => ({
-  ...event,
-  date: new Date(event.date),
-});
+const parseEventDoc = (doc: any): ClubEvent => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    date: (data.date as Timestamp)?.toDate(),
+  } as ClubEvent;
+}
 
-const parsePlayerDates = (player: any): Player => ({
-  ...player,
-  dateOfBirth: new Date(player.dateOfBirth),
-  clubEntryDate: new Date(player.clubEntryDate),
-  clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
 
 
 type CombinedStat = {
@@ -96,32 +105,20 @@ export default function ResultsPage() {
     const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
 
     React.useEffect(() => {
-        try {
-            const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
-            let loadedEvents: ClubEvent[];
-            if (storedEventsRaw) {
-                loadedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
-            } else {
-                loadedEvents = initialClubEvents.map(parseEventDates);
-                localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(loadedEvents));
-            }
-            setEvents(loadedEvents);
+        const eventsQuery = query(collection(db, "events"));
+        const unsubscribeEvents = onSnapshot(eventsQuery, (snapshot) => {
+            setEvents(snapshot.docs.map(parseEventDoc));
+        });
 
-            const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-            let loadedPlayers: Player[];
-            if (storedPlayersRaw) {
-                loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-            } else {
-                loadedPlayers = initialPlayers.map(parsePlayerDates);
-                localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
-            }
-            setPlayers(loadedPlayers);
+        const playersQuery = query(collection(db, "players"));
+        const unsubscribePlayers = onSnapshot(playersQuery, (snapshot) => {
+            setPlayers(snapshot.docs.map(parsePlayerDoc));
+        });
 
-        } catch (error) {
-            console.error("Failed to load data:", error);
-            setEvents(initialClubEvents.map(parseEventDates));
-            setPlayers(initialPlayers.map(parsePlayerDates));
-        }
+        return () => {
+            unsubscribeEvents();
+            unsubscribePlayers();
+        };
     }, []);
 
     const allPlayedMatches = events
@@ -422,3 +419,5 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
+
+    

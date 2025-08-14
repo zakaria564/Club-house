@@ -8,25 +8,38 @@ import { fr } from 'date-fns/locale';
 import Image from 'next/image';
 
 import type { Payment, Player, Coach } from '@/types';
-import { payments as initialPayments, players as initialPlayers, coaches as initialCoaches } from '@/lib/mock-data';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 
-const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
-const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
 
-const parsePlayerDates = (player: any): Player => ({
-  ...player,
-  dateOfBirth: new Date(player.dateOfBirth),
-  clubEntryDate: new Date(player.clubEntryDate),
-  clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parseCoachDoc = (doc: any): Coach => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Coach;
+};
 
-const parseCoachDates = (coach: any): Coach => ({
-  ...coach,
-  clubEntryDate: coach.clubEntryDate ? new Date(coach.clubEntryDate) : new Date(),
-  clubExitDate: coach.clubExitDate ? new Date(coach.clubExitDate) : undefined,
-  age: coach.age || undefined
-});
+const parsePaymentDoc = (doc: any): Payment => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    date: (data.date as Timestamp)?.toDate(),
+  } as Payment;
+}
 
 
 type Member = {
@@ -45,51 +58,55 @@ const ReceiptPage = () => {
   const [member, setMember] = React.useState<Member | null>(null);
 
   React.useEffect(() => {
-    try {
-      const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-      const payments: Payment[] = storedPaymentsRaw 
-        ? JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}))
-        : initialPayments.map(p => ({...p, date: new Date(p.date)}));
-      
-      const currentPayment = payments.find(p => p.id === paymentId) || null;
-      setPayment(currentPayment);
+    if (!paymentId) return;
 
-      if (currentPayment) {
-        if (currentPayment.paymentType === 'membership') {
-            const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-            const players: Player[] = storedPlayersRaw
-            ? JSON.parse(storedPlayersRaw).map(parsePlayerDates)
-            : initialPlayers.map(parsePlayerDates);
-            const currentPlayer = players.find(p => p.id === currentPayment.memberId);
-            if (currentPlayer) {
-                setMember({
-                    name: `${currentPlayer.firstName} ${currentPlayer.lastName}`,
-                    address: currentPlayer.address,
-                    city: `${currentPlayer.city}, ${currentPlayer.country}`,
-                    phone: currentPlayer.phone,
-                    email: currentPlayer.email,
-                })
+    const fetchReceiptData = async () => {
+        try {
+            const paymentDocRef = doc(db, 'payments', paymentId);
+            const paymentDoc = await getDoc(paymentDocRef);
+
+            if (!paymentDoc.exists()) {
+                console.error("Payment not found");
+                return;
             }
-        } else { // salary
-            const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-            const coaches: Coach[] = storedCoachesRaw
-              ? JSON.parse(storedCoachesRaw).map(parseCoachDates)
-              : initialCoaches.map(parseCoachDates);
-            const currentCoach = coaches.find(c => c.id === currentPayment.memberId);
-             if (currentCoach) {
-                setMember({
-                    name: `${currentCoach.firstName} ${currentCoach.lastName}`,
-                    address: `${currentCoach.city}, ${currentCoach.country}`,
-                    city: `${currentCoach.city}, ${currentCoach.country}`,
-                    phone: currentCoach.phone,
-                    email: currentCoach.email,
-                })
+
+            const currentPayment = parsePaymentDoc(paymentDoc);
+            setPayment(currentPayment);
+            
+            let memberDoc;
+            if (currentPayment.paymentType === 'membership') {
+                const playerDocRef = doc(db, 'players', currentPayment.memberId);
+                memberDoc = await getDoc(playerDocRef);
+                if (memberDoc.exists()) {
+                    const currentPlayer = parsePlayerDoc(memberDoc);
+                    setMember({
+                        name: `${currentPlayer.firstName} ${currentPlayer.lastName}`,
+                        address: currentPlayer.address,
+                        city: `${currentPlayer.city}, ${currentPlayer.country}`,
+                        phone: currentPlayer.phone,
+                        email: currentPlayer.email,
+                    })
+                }
+            } else { // salary
+                const coachDocRef = doc(db, 'coaches', currentPayment.memberId);
+                memberDoc = await getDoc(coachDocRef);
+                 if (memberDoc.exists()) {
+                    const currentCoach = parseCoachDoc(memberDoc);
+                    setMember({
+                        name: `${currentCoach.firstName} ${currentCoach.lastName}`,
+                        address: `${currentCoach.city}, ${currentCoach.country}`,
+                        city: `${currentCoach.city}, ${currentCoach.country}`,
+                        phone: currentCoach.phone,
+                        email: currentCoach.email,
+                    })
+                }
             }
+        } catch (error) {
+            console.error("Failed to load data for receipt:", error);
         }
-      }
-    } catch (error) {
-        console.error("Failed to load data for receipt:", error);
     }
+    
+    fetchReceiptData();
   }, [paymentId]);
   
   React.useEffect(() => {
@@ -222,3 +239,5 @@ export default function ReceiptPageWrapper() {
     </React.Suspense>
   )
 }
+
+    

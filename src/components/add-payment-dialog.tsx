@@ -21,13 +21,13 @@ import { cn, handleEnterKeyDown } from "@/lib/utils"
 import type { Player, Payment, Coach } from "@/types"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { collection, addDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+
 
 interface AddPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddPayment: (payment: Omit<Payment, 'id'>) => void;
-  players: Player[];
-  coaches: Coach[];
 }
 
 const dateToInputFormat = (date?: Date | null): string => {
@@ -44,8 +44,10 @@ const dateToInputFormat = (date?: Date | null): string => {
     }
 };
 
-export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, players, coaches }: AddPaymentDialogProps) {
+export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialogProps) {
   const { toast } = useToast();
+  const [players, setPlayers] = React.useState<Player[]>([]);
+  const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [memberType, setMemberType] = React.useState<'player' | 'coach'>('player');
   const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(null);
   const [totalAmount, setTotalAmount] = React.useState<string>("300.00");
@@ -56,6 +58,19 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   
   React.useEffect(() => {
     setIsClient(true);
+
+    const unsubscribePlayers = onSnapshot(query(collection(db, "players")), (snapshot) => {
+        setPlayers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player)));
+    });
+
+    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches")), (snapshot) => {
+        setCoaches(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coach)));
+    });
+
+    return () => {
+        unsubscribePlayers();
+        unsubscribeCoaches();
+    };
   }, []);
 
   const members = React.useMemo(() => {
@@ -94,7 +109,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   };
 
 
-  const handleSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     const totalAmountNum = parseFloat(totalAmount);
     const advanceNum = parseFloat(advance);
@@ -127,24 +142,32 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
     const remaining = totalAmountNum - advanceNum;
     const status: Payment['status'] = remaining === 0 ? 'Paid' : (new Date() > paymentDate ? 'Overdue' : 'Pending');
 
-
-    onAddPayment({
+    const newPayment = {
       memberId: selectedMemberId,
       memberName: selectedMember.name,
-      paymentType: memberType === 'player' ? 'membership' : 'salary',
+      paymentType: memberType === 'player' ? 'membership' as const : 'salary' as const,
       totalAmount: totalAmountNum,
       advance: advanceNum,
       remaining: remaining,
-      date: paymentDate,
+      date: Timestamp.fromDate(paymentDate),
       status,
-    });
+    };
 
-    toast({
-      title: "Paiement ajouté",
-      description: `Le paiement pour ${selectedMember.name} a été ajouté.`,
-    });
-
-    onOpenChange(false);
+    try {
+        await addDoc(collection(db, "payments"), newPayment);
+        toast({
+          title: "Paiement ajouté",
+          description: `Le paiement pour ${selectedMember.name} a été ajouté.`,
+        });
+        onOpenChange(false);
+    } catch (error) {
+        console.error("Error adding payment: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Une erreur est survenue lors de l'ajout du paiement.",
+        });
+    }
   }
 
   return (
@@ -295,3 +318,5 @@ function MemberCombobox({ members, value, onValueChange, memberType }: MemberCom
     </Popover>
   )
 }
+
+    

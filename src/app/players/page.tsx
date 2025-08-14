@@ -3,6 +3,9 @@
 import * as React from "react"
 import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { collection, onSnapshot, doc, deleteDoc, query, where, getDocs, writeBatch } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,7 +13,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { players as initialPlayers, payments as initialPayments, coaches as initialCoaches } from "@/lib/mock-data"
 import type { Player, Payment, Coach } from "@/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
@@ -29,18 +31,6 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { PlayerMobileCard } from "@/components/player-mobile-card"
 
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
-const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
-const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
-
-
-const parsePlayerDates = (player: any): Player => ({
-    ...player,
-    dateOfBirth: new Date(player.dateOfBirth),
-    clubEntryDate: new Date(player.clubEntryDate),
-    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
-
 
 export default function PlayersPage() {
   const router = useRouter();
@@ -54,62 +44,61 @@ export default function PlayersPage() {
   const [playerToDelete, setPlayerToDelete] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    try {
-        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        let loadedPlayers: Player[];
-        if (storedPlayersRaw) {
-            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-        } else {
-            loadedPlayers = initialPlayers.map(parsePlayerDates);
-            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
-        }
-        setPlayers(loadedPlayers);
+    const unsubscribePlayers = onSnapshot(collection(db, "players"), (snapshot) => {
+        const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
+        setPlayers(playersData);
+    });
 
-        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        let loadedCoaches: Coach[];
-        if (storedCoachesRaw) {
-            loadedCoaches = JSON.parse(storedCoachesRaw);
-        } else {
-            loadedCoaches = initialCoaches;
-            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
-        }
-        setCoaches(loadedCoaches);
-
-    } catch (error) {
-        console.error("Failed to load or merge data:", error);
-        setPlayers(initialPlayers.map(parsePlayerDates));
-        setCoaches(initialCoaches);
-    }
+    const unsubscribeCoaches = onSnapshot(collection(db, "coaches"), (snapshot) => {
+        const coachesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coach));
+        setCoaches(coachesData);
+    });
+    
+    return () => {
+        unsubscribePlayers();
+        unsubscribeCoaches();
+    };
   }, []);
 
   const handleDeleteInitiate = (playerId: string) => {
     setPlayerToDelete(playerId);
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!playerToDelete) return;
-    
-    const updatedPlayers = players.filter(p => p.id !== playerToDelete);
-    setPlayers(updatedPlayers);
-    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
 
     try {
-      const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-      if (storedPaymentsRaw) {
-        const payments: Payment[] = JSON.parse(storedPaymentsRaw);
-        const updatedPayments = payments.filter(p => p.paymentType !== 'membership' || p.memberId !== playerToDelete);
-        localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
-      }
+        const batch = writeBatch(db);
+
+        // Delete player document
+        const playerDocRef = doc(db, 'players', playerToDelete);
+        batch.delete(playerDocRef);
+
+        // Find and delete associated payments
+        const paymentsQuery = query(collection(db, 'payments'), where('memberId', '==', playerToDelete), where('paymentType', '==', 'membership'));
+        const paymentsSnapshot = await getDocs(paymentsQuery);
+        paymentsSnapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+
+        setPlayerToDelete(null);
+        toast({
+            title: "Joueur supprimé",
+            description: "Le joueur et ses paiements associés ont été supprimés.",
+        });
+
     } catch (error) {
-       console.error("Failed to update payments in localStorage", error);
+        console.error("Error deleting player and payments: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description: 'Une erreur est survenue lors de la suppression.',
+        });
     }
-    
-    setPlayerToDelete(null);
-    toast({
-      title: "Joueur supprimé",
-      description: "Le joueur et ses paiements ont été supprimés.",
-    })
-  }
+  };
+
 
   const handleEditPlayer = (player: Player) => {
     setSelectedPlayer(player);
@@ -128,21 +117,6 @@ export default function PlayersPage() {
   const handleViewPayments = (playerId: string) => {
     router.push(`/payments?memberId=${playerId}`);
   }
-  
-  const handlePlayerUpdate = (updatedPlayer: Player) => {
-    const playerWithDates = parsePlayerDates(updatedPlayer);
-    let newPlayers: Player[];
-    const isNew = !players.some(p => p.id === updatedPlayer.id);
-
-    if (isNew) {
-        newPlayers = [...players, playerWithDates];
-    } else {
-        newPlayers = players.map(p => (p.id === updatedPlayer.id ? playerWithDates : p));
-    }
-
-    setPlayers(newPlayers);
-    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(newPlayers));
-  };
 
   const filteredPlayers = players.filter(player =>
     `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -232,7 +206,7 @@ export default function PlayersPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
+                          <AvatarImage src={player.photoUrl || undefined} alt={player.firstName} data-ai-hint="player profile" />
                           <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
@@ -301,7 +275,7 @@ export default function PlayersPage() {
         </CardFooter>
       </Card>
       
-      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} onPlayerUpdate={handlePlayerUpdate} players={players} />
+      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} player={selectedPlayer} />
       
       <AlertDialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
             <AlertDialogContent>
@@ -320,3 +294,5 @@ export default function PlayersPage() {
     </>
   )
 }
+
+    

@@ -3,24 +3,37 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 import { PageHeader } from "@/components/page-header"
 import { ArrowLeft, User, Shield, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { players as initialPlayers, coaches as initialCoaches } from "@/lib/mock-data"
 import type { Player, Coach } from "@/types"
 
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
-const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 
-const parsePlayerDates = (player: any): Player => ({
-    ...player,
-    dateOfBirth: new Date(player.dateOfBirth),
-    clubEntryDate: new Date(player.clubEntryDate),
-    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
+
+const parseCoachDoc = (doc: any): Coach => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Coach;
+};
 
 export default function GalleryPage() {
     const router = useRouter();
@@ -28,32 +41,22 @@ export default function GalleryPage() {
     const [coaches, setCoaches] = React.useState<Coach[]>([]);
 
     React.useEffect(() => {
-        try {
-            const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-            let loadedPlayers: Player[];
-            if (storedPlayersRaw) {
-                loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-            } else {
-                loadedPlayers = initialPlayers.map(parsePlayerDates);
-                localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
-            }
-            setPlayers(loadedPlayers);
+        const playersQuery = query(collection(db, "players"));
+        const unsubscribePlayers = onSnapshot(playersQuery, (querySnapshot) => {
+            const playersData = querySnapshot.docs.map(parsePlayerDoc);
+            setPlayers(playersData);
+        });
 
-            const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-            let loadedCoaches: Coach[];
-            if (storedCoachesRaw) {
-                loadedCoaches = JSON.parse(storedCoachesRaw);
-            } else {
-                loadedCoaches = initialCoaches;
-                localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
-            }
-            setCoaches(loadedCoaches);
+        const coachesQuery = query(collection(db, "coaches"));
+        const unsubscribeCoaches = onSnapshot(coachesQuery, (querySnapshot) => {
+            const coachesData = querySnapshot.docs.map(parseCoachDoc);
+            setCoaches(coachesData);
+        });
 
-        } catch (error) {
-            console.error("Failed to load data:", error);
-            setPlayers(initialPlayers.map(parsePlayerDates));
-            setCoaches(initialCoaches);
-        }
+        return () => {
+            unsubscribePlayers();
+            unsubscribeCoaches();
+        };
     }, []);
 
     const certificates = players.filter(p => p.medicalCertificateUrl);
@@ -146,3 +149,5 @@ function ImageGrid({ items, type, onImageClick }: ImageGridProps) {
         </div>
     )
 }
+
+    

@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { payments as initialPayments, players as initialPlayers, coaches as initialCoaches } from "@/lib/mock-data"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -32,23 +31,39 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
-const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
-const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
+import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 
-const parsePlayerDates = (player: any): Player => ({
-    ...player,
-    dateOfBirth: new Date(player.dateOfBirth),
-    clubEntryDate: new Date(player.clubEntryDate),
-    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
 
-const parsePaymentDates = (payment: any): Payment => ({
-    ...payment,
-    date: new Date(payment.date),
-});
+const parseCoachDoc = (doc: any): Coach => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Coach;
+};
+
+const parsePaymentDoc = (doc: any): Payment => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    date: (data.date as Timestamp)?.toDate(),
+  } as Payment;
+}
 
 // Helper to normalize strings for searching (remove accents, lowercase)
 const normalizeString = (str: string) => {
@@ -113,42 +128,23 @@ function PaymentsPageContent() {
   
 
   React.useEffect(() => {
-    try {
-        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        let loadedPlayers: Player[];
-        if (storedPlayersRaw) {
-            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-        } else {
-            loadedPlayers = initialPlayers.map(parsePlayerDates);
-            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
-        }
-        setPlayers(loadedPlayers);
+    const unsubscribePlayers = onSnapshot(query(collection(db, "players")), (snapshot) => {
+        setPlayers(snapshot.docs.map(parsePlayerDoc));
+    });
 
-        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        let loadedCoaches: Coach[];
-        if (storedCoachesRaw) {
-            loadedCoaches = JSON.parse(storedCoachesRaw);
-        } else {
-            loadedCoaches = initialCoaches;
-            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
-        }
-        setCoaches(loadedCoaches);
-        
-        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        let loadedPayments: Payment[];
-        if (storedPaymentsRaw) {
-            loadedPayments = JSON.parse(storedPaymentsRaw).map(parsePaymentDates);
-        } else {
-            loadedPayments = initialPayments.map(parsePaymentDates);
-            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
-        }
-        setPayments(loadedPayments);
-    } catch (error) {
-        console.error("Failed to load data:", error);
-        setPayments(initialPayments.map(parsePaymentDates));
-        setPlayers(initialPlayers.map(parsePlayerDates));
-        setCoaches(initialCoaches);
-    }
+    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches")), (snapshot) => {
+        setCoaches(snapshot.docs.map(parseCoachDoc));
+    });
+
+    const unsubscribePayments = onSnapshot(query(collection(db, "payments")), (snapshot) => {
+        setPayments(snapshot.docs.map(parsePaymentDoc));
+    });
+
+    return () => {
+        unsubscribePlayers();
+        unsubscribeCoaches();
+        unsubscribePayments();
+    };
   }, []);
 
   const allMembers = React.useMemo(() => [
@@ -207,49 +203,52 @@ function PaymentsPageContent() {
     }
   }
 
-  const handleAddPayment = (newPayment: Omit<Payment, 'id'>) => {
-    const getNextId = () => {
-        if (!payments || payments.length === 0) {
-            return "p1";
-        }
-        const maxId = Math.max(...payments.map(p => parseInt(p.id.replace('p', ''), 10)));
-        return `p${maxId + 1}`;
-    }
-
-    const paymentWithId = { ...newPayment, id: getNextId() };
-    const newPayments = [...payments, paymentWithId];
-    setPayments(newPayments);
-    localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(newPayments));
-  }
-  
-  const handleMarkAsPaid = (paymentId: string) => {
-    const newPayments = payments.map(p =>
-      p.id === paymentId ? { ...p, advance: p.totalAmount, remaining: 0, status: 'Paid' as const } : p
-    );
-    setPayments(newPayments);
-    localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(newPayments));
-    
+  const handleMarkAsPaid = async (paymentId: string) => {
     const payment = payments.find(p => p.id === paymentId);
-    toast({
-        title: "Paiement mis à jour",
-        description: `Le paiement de ${payment?.memberName} a été marqué comme payé.`,
-    })
+    if (!payment) return;
+
+    const paymentRef = doc(db, "payments", paymentId);
+    try {
+        await updateDoc(paymentRef, {
+            advance: payment.totalAmount,
+            remaining: 0,
+            status: 'Paid'
+        });
+        toast({
+            title: "Paiement mis à jour",
+            description: `Le paiement de ${payment?.memberName} a été marqué comme payé.`,
+        });
+    } catch (error) {
+        console.error("Error marking as paid: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible de marquer le paiement comme payé.",
+        });
+    }
   }
 
   const handleDeleteInitiate = (paymentId: string) => {
     setPaymentToDelete(paymentId);
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!paymentToDelete) return;
-    const newPayments = payments.filter(p => p.id !== paymentToDelete);
-    setPayments(newPayments);
-    localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(newPayments));
-    toast({
-      title: "Paiement supprimé",
-      description: "La transaction a été supprimée avec succès.",
-    });
-    setPaymentToDelete(null);
+    try {
+      await deleteDoc(doc(db, "payments", paymentToDelete));
+      toast({
+        title: "Paiement supprimé",
+        description: "La transaction a été supprimée avec succès.",
+      });
+      setPaymentToDelete(null);
+    } catch (error) {
+       console.error("Error deleting payment: ", error);
+       toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de supprimer le paiement.",
+       });
+    }
   };
 
   const handleViewMember = (memberId: string, paymentType: 'membership' | 'salary') => {
@@ -423,9 +422,6 @@ function PaymentsPageContent() {
       <AddPaymentDialog
         open={isAddPaymentOpen}
         onOpenChange={setAddPaymentOpen}
-        onAddPayment={handleAddPayment}
-        players={players}
-        coaches={coaches}
        />
        <AlertDialog open={!!paymentToDelete} onOpenChange={(open) => !open && setPaymentToDelete(null)}>
             <AlertDialogContent>
@@ -565,5 +561,7 @@ export default function PaymentsPage() {
     </React.Suspense>
   )
 }
+
+    
 
     

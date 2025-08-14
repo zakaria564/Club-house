@@ -15,11 +15,9 @@ interface AddCoachDialogProps {
   open: boolean;
   onOpenChange: Dispatch<SetStateAction<boolean>>;
   coach?: Coach | null;
-  onCoachUpdate: (coach: Coach) => void;
-  coaches: Coach[];
 }
 
-export default function AddCoachDialog({ open, onOpenChange, coach, onCoachUpdate, coaches }: AddCoachDialogProps) {
+export default function AddCoachDialog({ open, onOpenChange, coach }: AddCoachDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-7xl max-h-[90vh] flex flex-col no-print">
@@ -34,11 +32,11 @@ export default function AddCoachDialog({ open, onOpenChange, coach, onCoachUpdat
               key={coach?.id || 'new'}
               onFinished={() => onOpenChange(false)} 
               coach={coach}
-              onSave={onCoachUpdate}
-              coaches={coaches}
             />
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
+    

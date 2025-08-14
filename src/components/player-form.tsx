@@ -6,6 +6,9 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { collection, doc, setDoc, getDocs, onSnapshot, query, Timestamp } from "firebase/firestore"
+import { db, storage } from "@/lib/firebase"
+
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,13 +25,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
-import { coaches as initialCoaches } from "@/lib/mock-data"
-import { storage } from "@/lib/firebase"
 import { Loader2, Upload } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 const playerFormSchema = z.object({
-  id: z.string().min(1, "L'ID joueur est requis."),
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
   gender: z.enum(["Homme", "Femme"], { required_error: "Veuillez sélectionner un genre." }),
@@ -55,23 +55,13 @@ type PlayerFormValues = z.infer<typeof playerFormSchema>
 
 interface PlayerFormProps {
   onFinished: () => void;
-  onSave: (player: Player) => void;
   player?: Player | null;
-  players: Player[];
 }
-
-const getNextId = (players: Player[]) => {
-    if (!players || players.length === 0) {
-      return "1";
-    }
-    const maxId = Math.max(...players.map(p => parseInt(p.id, 10)).filter(id => !isNaN(id)));
-    return (maxId >= 0 ? maxId + 1 : 1).toString();
-};
 
 const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
-        const d = new Date(date);
+        const d = date instanceof Timestamp ? date.toDate() : new Date(date);
         if (isNaN(d.getTime())) return '';
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -100,21 +90,25 @@ const positions = [
 const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"]
 const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisponible"];
 
-export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
+export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [playerId, setPlayerId] = React.useState(player?.id || "");
   
    React.useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (!player?.id) {
+        // Create a new ID for a new player.
+        setPlayerId(doc(collection(db, "players")).id);
+    }
+  }, [player?.id]);
 
   
   const defaultValues = React.useMemo(() => ({
-      id: player?.id || getNextId(players),
       firstName: player?.firstName || '',
       lastName: player?.lastName || '',
       gender: player?.gender || "Homme" as const,
@@ -135,7 +129,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       clubExitDate: dateToInputFormat(player?.clubExitDate),
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
-  }), [player, players]);
+  }), [player]);
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
@@ -143,42 +137,59 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     mode: "onChange",
   });
   
+  React.useEffect(() => {
+      form.reset(defaultValues);
+  }, [defaultValues, form]);
+
+  
   const photoUrlValue = form.watch('photoUrl');
   const photoPreview = photoUrlValue || null;
 
   React.useEffect(() => {
-    const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
-    const storedCoaches = storedCoachesRaw ? JSON.parse(storedCoachesRaw) : initialCoaches;
-    setCoaches(storedCoaches);
+    const q = query(collection(db, "coaches"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const coachesData: Coach[] = [];
+        querySnapshot.forEach((doc) => {
+            coachesData.push({ id: doc.id, ...doc.data() } as Coach);
+        });
+        setCoaches(coachesData);
+    });
+
+    return () => unsubscribe();
   }, []);
 
 
-  function onSubmit(data: PlayerFormValues) {
-    const isEditing = !!player;
+  async function onSubmit(data: PlayerFormValues) {
+    const isEditing = !!player?.id;
 
-    const newPlayerData: Player = {
+    const newPlayerData = {
         ...data,
-        id: data.id,
-        gender: data.gender,
-        dateOfBirth: new Date(data.dateOfBirth),
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
-        category: data.category as Player['category'],
-        status: data.status as Player['status'],
-        playerNumber: Number(data.playerNumber),
-        clubEntryDate: new Date(data.clubEntryDate),
-        clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
-        coachId: data.coachId || undefined,
-        medicalCertificateUrl: data.medicalCertificateUrl || undefined,
+        dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
+        clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+        clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
+        coachId: data.coachId || null,
+        medicalCertificateUrl: data.medicalCertificateUrl || null,
     };
+    
+    try {
+        const docRef = doc(db, "players", playerId);
+        await setDoc(docRef, newPlayerData);
 
-    onSave(newPlayerData);
-
-    toast({
-      title: isEditing ? "Profil du joueur mis à jour" : "Profil du joueur créé",
-      description: `Le joueur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
-    })
-    onFinished()
-  }
+        toast({
+            title: isEditing ? "Profil du joueur mis à jour" : "Profil du joueur créé",
+            description: `Le joueur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
+        });
+        onFinished();
+    } catch (error) {
+        console.error("Error saving player: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Une erreur est survenue lors de la sauvegarde.",
+        });
+    }
+}
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -186,7 +197,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     
     setIsUploading(true);
     try {
-      const storageRef = ref(storage, `player-photos/${form.getValues('id')}-${file.name}`);
+      const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
       form.setValue('photoUrl', downloadURL, { shouldValidate: true });
@@ -458,19 +469,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Données du Club</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>ID joueur</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <FormItem>
+                        <FormLabel>ID joueur</FormLabel>
+                        <FormControl>
+                            <Input value={playerId} disabled />
+                        </FormControl>
+                    </FormItem>
                       <FormField
                         control={form.control}
                         name="playerNumber"
@@ -621,3 +625,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    

@@ -6,6 +6,9 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { collection, doc, setDoc, addDoc, getDocs, query, where, Timestamp } from "firebase/firestore"
+import { db, storage } from "@/lib/firebase"
+
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,13 +25,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { handleEnterKeyDown } from "@/lib/utils"
-import { storage } from "@/lib/firebase"
 import { Loader2, Upload } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 
 const coachFormSchema = z.object({
-  id: z.string().min(1, "L'ID est requis."),
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
   email: z.string().email({ message: "Adresse e-mail invalide." }),
@@ -47,23 +48,13 @@ type CoachFormValues = z.infer<typeof coachFormSchema>
 
 interface CoachFormProps {
   onFinished: () => void;
-  onSave: (coach: Coach) => void;
   coach?: Coach | null;
-  coaches: Coach[];
 }
-
-const getNextId = (coaches: Coach[]) => {
-    if (!coaches || coaches.length === 0) {
-      return "c1";
-    }
-    const maxId = Math.max(...coaches.map(c => parseInt(c.id.replace('c', ''), 10)).filter(id => !isNaN(id)));
-    return `c${maxId >= 0 ? maxId + 1 : 1}`;
-};
 
 const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
-        const d = new Date(date);
+        const d = date instanceof Timestamp ? date.toDate() : new Date(date);
         if (isNaN(d.getTime())) return '';
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -92,19 +83,24 @@ const specialties = [
     "Entraîneur (U7)",
 ]
 
-export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
+export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const { toast } = useToast()
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [coachId, setCoachId] = React.useState(coach?.id || "");
   
   React.useEffect(() => {
     setIsClient(true);
-  }, []);
+    if(!coach?.id) {
+        // Generate a new ID for a new coach
+        const newId = doc(collection(db, "coaches")).id;
+        setCoachId(newId);
+    }
+  }, [coach?.id]);
   
   const defaultValues = React.useMemo(() => ({
-      id: coach?.id || getNextId(coaches),
       firstName: coach?.firstName || '',
       lastName: coach?.lastName || '',
       email: coach?.email || '',
@@ -117,7 +113,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       city: coach?.city || '',
       clubEntryDate: dateToInputFormat(coach?.clubEntryDate),
       clubExitDate: dateToInputFormat(coach?.clubExitDate),
-    }), [coach, coaches]);
+    }), [coach]);
 
   const form = useForm<CoachFormValues>({
     resolver: zodResolver(coachFormSchema),
@@ -125,26 +121,41 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     mode: "onChange",
   });
   
+  React.useEffect(() => {
+      form.reset(defaultValues);
+  }, [defaultValues, form]);
+  
   const photoUrlValue = form.watch('photoUrl');
   const photoPreview = photoUrlValue || null;
   
-  function onSubmit(data: CoachFormValues) {
-    const isEditing = !!coach;
-    const newCoachData: Coach = {
+ async function onSubmit(data: CoachFormValues) {
+    const isEditing = !!coach?.id;
+
+    const newCoachData = {
         ...data,
         photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
-        clubEntryDate: new Date(data.clubEntryDate),
-        clubExitDate: data.clubExitDate ? new Date(data.clubExitDate) : undefined,
+        clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+        clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
     };
 
-    onSave(newCoachData);
+    try {
+        const docRef = doc(db, "coaches", coachId);
+        await setDoc(docRef, newCoachData);
 
-    toast({
-      title: isEditing ? "Profil de l'entraîneur mis à jour" : "Entraîneur créé",
-      description: `L'entraîneur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
-    })
-    onFinished()
-  }
+        toast({
+            title: isEditing ? "Profil de l'entraîneur mis à jour" : "Entraîneur créé",
+            description: `L'entraîneur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
+        });
+        onFinished();
+    } catch (error) {
+        console.error("Error saving coach: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Une erreur est survenue lors de la sauvegarde.",
+        });
+    }
+}
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -152,7 +163,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     
     setIsUploading(true);
     try {
-      const storageRef = ref(storage, `coach-photos/${form.getValues('id')}-${file.name}`);
+      const storageRef = ref(storage, `coach-photos/${coachId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
       form.setValue('photoUrl', downloadURL, { shouldValidate: true });
@@ -221,19 +232,12 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                     </div>
                 </div>
                  <div className="w-full space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="id"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>ID Entraîneur</FormLabel>
-                            <FormControl>
-                            <Input {...field} disabled />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
+                    <FormItem>
+                        <FormLabel>ID Entraîneur</FormLabel>
+                        <FormControl>
+                            <Input value={coachId} disabled />
+                        </FormControl>
+                    </FormItem>
                      <FormField
                     control={form.control}
                     name="specialty"
@@ -427,3 +431,5 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
+
+    

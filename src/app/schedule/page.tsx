@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
 import { ClubEvent } from "@/types"
-import { clubEvents as initialClubEvents } from "@/lib/mock-data"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { ClubCalendar } from "@/components/club-calendar"
 import { AddEventDialog } from "@/components/add-event-dialog"
@@ -21,13 +20,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { DayEventsSheet } from "@/components/day-events-sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { collection, onSnapshot, query, doc, deleteDoc, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
-const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
 
-const parseEventDates = (event: any): ClubEvent => ({
-  ...event,
-  date: new Date(event.date),
-});
+const parseEventDoc = (doc: any): ClubEvent => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    date: (data.date as Timestamp)?.toDate(),
+  } as ClubEvent;
+}
 
 export default function SchedulePage() {
   const router = useRouter();
@@ -45,45 +49,30 @@ export default function SchedulePage() {
   const [selectedDateForSheet, setSelectedDateForSheet] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
-      try {
-        const storedEventsRaw = localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY);
-        let loadedEvents: ClubEvent[];
-        if (storedEventsRaw) {
-            loadedEvents = JSON.parse(storedEventsRaw).map(parseEventDates);
-        } else {
-            loadedEvents = initialClubEvents.map(parseEventDates);
-            localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(loadedEvents));
-        }
-        setEvents(loadedEvents);
-    } catch (error) {
-        console.error("Failed to load or merge events:", error);
-        setEvents(initialClubEvents.map(parseEventDates));
-    }
+    const q = query(collection(db, "events"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        setEvents(querySnapshot.docs.map(parseEventDoc));
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleEventSubmit = (submittedEvent: ClubEvent) => {
-    let newEvents: ClubEvent[];
-    const isNew = !events.some(e => e.id === submittedEvent.id);
-    if (isNew) {
-      newEvents = [...events, submittedEvent];
-    } else {
-      newEvents = events.map(e => (e.id === submittedEvent.id ? submittedEvent : e));
-    }
-    setEvents(newEvents);
-    localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(newEvents));
-    setDialogDate(undefined);
-  };
-
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (eventToDelete) {
-      const newEvents = events.filter(e => e.id !== eventToDelete);
-      setEvents(newEvents);
-      localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(newEvents));
-      toast({
-        title: "Événement supprimé",
-        description: "L'événement a été supprimé du calendrier.",
-      });
-      setEventToDelete(null);
+      try {
+        await deleteDoc(doc(db, "events", eventToDelete));
+        toast({
+          title: "Événement supprimé",
+          description: "L'événement a été supprimé du calendrier.",
+        });
+        setEventToDelete(null);
+      } catch (error) {
+         console.error("Error deleting event: ", error);
+         toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible de supprimer l'événement.",
+         });
+      }
     }
   };
 
@@ -184,7 +173,6 @@ export default function SchedulePage() {
         key={selectedEvent ? selectedEvent.id : dialogDate?.toString()}
         open={isEventDialogOpen} 
         onOpenChange={handleDialogClose} 
-        onEventSubmit={handleEventSubmit}
         event={selectedEvent}
         selectedDate={dialogDate}
       />
@@ -216,3 +204,5 @@ export default function SchedulePage() {
     </>
   )
 }
+
+    

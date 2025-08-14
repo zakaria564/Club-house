@@ -15,11 +15,9 @@ interface AddPlayerDialogProps {
   open: boolean;
   onOpenChange: Dispatch<SetStateAction<boolean>>;
   player?: Player | null;
-  onPlayerUpdate: (player: Player) => void;
-  players: Player[];
 }
 
-export default function AddPlayerDialog({ open, onOpenChange, player, onPlayerUpdate, players }: AddPlayerDialogProps) {
+export default function AddPlayerDialog({ open, onOpenChange, player }: AddPlayerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-7xl max-h-[90vh] flex flex-col no-print">
@@ -34,11 +32,11 @@ export default function AddPlayerDialog({ open, onOpenChange, player, onPlayerUp
               key={player?.id || 'new'}
               onFinished={() => onOpenChange(false)} 
               player={player}
-              onSave={onPlayerUpdate}
-              players={players}
             />
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
+    

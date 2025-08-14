@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail } from 'lucide-react';
 import type { Player, Payment, Coach } from '@/types';
-import { players as initialPlayers, payments as initialPayments, coaches as initialCoaches } from '@/lib/mock-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,13 +14,10 @@ import AddPlayerDialog from '@/components/add-player-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { ClubLogo } from '@/components/club-logo';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
-
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
-const LOCAL_STORAGE_PAYMENTS_KEY = 'clubhouse-payments';
-const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, collection, query, where, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
 
 
 const PrintHeader = () => (
@@ -35,12 +31,25 @@ const PrintHeader = () => (
     </div>
 );
 
-const parsePlayerDates = (player: any): Player => ({
-  ...player,
-  dateOfBirth: new Date(player.dateOfBirth),
-  clubEntryDate: new Date(player.clubEntryDate),
-  clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
+
+const parsePaymentDoc = (doc: any): Payment => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    date: (data.date as Timestamp)?.toDate(),
+  } as Payment;
+}
 
 const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 
@@ -55,69 +64,54 @@ export default function PlayerDetailPage() {
   const params = useParams();
   const playerId = params.id as string;
 
-  const [players, setPlayers] = React.useState<Player[]>([]);
+  const [player, setPlayer] = React.useState<Player | null>(null);
   const [payments, setPayments] = React.useState<Payment[]>([]);
-  const [coaches, setCoaches] = React.useState<Coach[]>([]);
-
-  React.useEffect(() => {
-    try {
-        const storedPlayersRaw = localStorage.getItem(LOCAL_STORAGE_PLAYERS_KEY);
-        let loadedPlayers: Player[];
-        if (storedPlayersRaw) {
-            loadedPlayers = JSON.parse(storedPlayersRaw).map(parsePlayerDates);
-        } else {
-            loadedPlayers = initialPlayers.map(parsePlayerDates);
-            localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(loadedPlayers));
-        }
-        setPlayers(loadedPlayers);
-
-        const storedPaymentsRaw = localStorage.getItem(LOCAL_STORAGE_PAYMENTS_KEY);
-        let loadedPayments: Payment[];
-        if (storedPaymentsRaw) {
-            loadedPayments = JSON.parse(storedPaymentsRaw).map((p: any) => ({...p, date: new Date(p.date)}));
-        } else {
-            loadedPayments = initialPayments.map(p => ({...p, date: new Date(p.date)}));
-            localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(loadedPayments));
-        }
-        setPayments(loadedPayments.filter(p => p.paymentType === 'membership' && p.memberId === playerId));
-        
-        const storedCoachesRaw = localStorage.getItem(LOCAL_STORAGE_COACHES_KEY);
-        let loadedCoaches: Coach[];
-        if (storedCoachesRaw) {
-            loadedCoaches = JSON.parse(storedCoachesRaw);
-        } else {
-            loadedCoaches = initialCoaches;
-            localStorage.setItem(LOCAL_STORAGE_COACHES_KEY, JSON.stringify(loadedCoaches));
-        }
-        setCoaches(loadedCoaches);
-
-    } catch (error) {
-        console.error("Failed to load or merge data:", error);
-        setPlayers(initialPlayers.map(parsePlayerDates));
-        setCoaches(initialCoaches);
-        setPayments(initialPayments.map(p => ({...p, date: new Date(p.date)})));
-    }
-  }, [playerId]);
-
+  const [coach, setCoach] = React.useState<Coach | null>(null);
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
 
-  const player = players.find((p) => p.id === playerId);
-  
-  const getCoachForPlayer = React.useCallback((player?: Player) => {
-    if (!player || !player.coachId) return 'Non assigné';
-    const coach = coaches.find(c => c.id === player.coachId);
-    return coach ? `${coach.firstName} ${coach.lastName}` : 'Non assigné';
-  }, [coaches]);
-  
-  const coachName = getCoachForPlayer(player);
 
+  React.useEffect(() => {
+    if (!playerId) return;
 
-  const handlePlayerUpdate = (updatedPlayer: Player) => {
-    const playerWithDates = parsePlayerDates(updatedPlayer);
-    const updatedPlayers = players.map((p) => (p.id === playerWithDates.id ? playerWithDates : p));
-    setPlayers(updatedPlayers);
-    localStorage.setItem(LOCAL_STORAGE_PLAYERS_KEY, JSON.stringify(updatedPlayers));
-  };
+    const playerDocRef = doc(db, "players", playerId);
+    const unsubscribePlayer = onSnapshot(playerDocRef, async (docSnapshot) => {
+        if(docSnapshot.exists()) {
+            const playerData = parsePlayerDoc(docSnapshot);
+            setPlayer(playerData);
+
+            if (playerData.coachId) {
+                const coachDocRef = doc(db, "coaches", playerData.coachId);
+                const coachDoc = await getDoc(coachDocRef);
+                if(coachDoc.exists()){
+                    setCoach({ id: coachDoc.id, ...coachDoc.data() } as Coach);
+                }
+            } else {
+                setCoach(null);
+            }
+        } else {
+            console.error("No such player!");
+        }
+    });
+
+    const paymentsQuery = query(
+        collection(db, "payments"),
+        where("memberId", "==", playerId),
+        where("paymentType", "==", "membership")
+    );
+
+    const unsubscribePayments = onSnapshot(paymentsQuery, (querySnapshot) => {
+        const paymentsData = querySnapshot.docs.map(parsePaymentDoc);
+        setPayments(paymentsData);
+    });
+
+    return () => {
+        unsubscribePlayer();
+        unsubscribePayments();
+    };
+  }, [playerId]);
+
+  const coachName = coach ? `${coach.firstName} ${coach.lastName}` : 'Non assigné';
+
 
   const handlePrint = () => {
     const originalTitle = document.title;
@@ -132,7 +126,6 @@ export default function PlayerDetailPage() {
       window.open(url, '_blank');
     }
   };
-
 
   if (!player) {
     return <div>Chargement du profil du joueur...</div>;
@@ -168,7 +161,7 @@ export default function PlayerDetailPage() {
           <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
             <CardHeader className="flex flex-col items-center text-center">
               <Avatar className="w-32 h-32 mb-4">
-                <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
+                <AvatarImage src={player.photoUrl || undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
                 <AvatarFallback className="text-4xl">
                   {player.firstName?.[0]}
                   {player.lastName?.[0]}
@@ -288,7 +281,7 @@ export default function PlayerDetailPage() {
                             payments.map(payment => (
                                 <div key={payment.id} className="border rounded-lg p-3 text-sm">
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="font-semibold capitalize">{format(payment.date, "PPP", { locale: fr })}</span>
+                                        <span className="font-semibold capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</span>
                                         <Badge
                                             className={cn({
                                                 'bg-green-100 text-green-800 border-green-200': payment.status === 'Paid',
@@ -335,7 +328,7 @@ export default function PlayerDetailPage() {
                                 {payments.length > 0 ? (
                                     payments.map(payment => (
                                         <TableRow key={payment.id}>
-                                            <TableCell className="capitalize">{format(payment.date, "PPP", { locale: fr })}</TableCell>
+                                            <TableCell className="capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</TableCell>
                                             <TableCell>
                                                 <Badge
                                                     className={cn({
@@ -373,9 +366,9 @@ export default function PlayerDetailPage() {
         open={isPlayerDialogOpen}
         onOpenChange={setPlayerDialogOpen}
         player={player}
-        onPlayerUpdate={handlePlayerUpdate}
-        players={players}
       />
     </>
   );
 }
+
+    
