@@ -340,7 +340,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         control={form.control}
                         name="medicalCertificateUrl"
                         render={({ field }) => (
-                            <FormItem className="sm:col-span-2">
+                            <FormItem>
                             <FormLabel>URL du Certificat Médical</FormLabel>
                             <FormControl>
                                 <Input
