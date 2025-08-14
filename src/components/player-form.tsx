@@ -261,7 +261,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             ) : (
                                 <Upload className="mr-2 h-4 w-4" />
                             )}
-                            {isUploading ? 'Téléversement...' : 'Téléverser une photo'}
+                            {isUploading ? 'Téléversement...' : 'Choisir une photo...'}
                         </Button>
                     </div>
                  </div>
@@ -625,5 +625,3 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
-
-    
