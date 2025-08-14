@@ -108,9 +108,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
   
-  const [photoPreview, setPhotoPreview] = React.useState(player?.photoUrl || '');
-  const [certPreview, setCertPreview] = React.useState(player?.medicalCertificateUrl || '');
-
   const defaultValues = React.useMemo(() => {
     const p = player;
     return {
@@ -137,6 +134,9 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       medicalCertificateUrl: p?.medicalCertificateUrl || '',
     };
   }, [player, players]);
+  
+  const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
+  const [certPreview, setCertPreview] = React.useState(defaultValues.medicalCertificateUrl);
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
@@ -232,88 +232,94 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-8">
           <div className="space-y-8">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                  <AvatarFallback>
-                    {form.watch('firstName')?.[0]}
-                    {form.watch('lastName')?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="w-full space-y-2">
-                  <FormLabel>Photo du joueur</FormLabel>
-                  <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto} className="w-full justify-center">
-                    {isUploadingPhoto ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                    {photoPreview ? 'Changer la photo' : 'Télécharger une photo'}
-                  </Button>
-                  <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
-                </div>
+              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                 <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-32 w-32">
+                      <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarFallback className="text-3xl">
+                        {form.watch('firstName')?.[0]}
+                        {form.watch('lastName')?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                     <Button type="button" variant="outline" size="sm" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
+                        {isUploadingPhoto ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
+                        {photoPreview ? 'Changer' : 'Télécharger'}
+                      </Button>
+                      <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
+                 </div>
+
+                <div className="w-full space-y-4">
+                    <h3 className="text-lg font-medium">Informations Personnelles</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Prénom</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Jean" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nom de famille</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Dupont" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="gender"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Genre</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionnez un genre" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Homme">Homme</SelectItem>
+                                  <SelectItem value="Femme">Femme</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                         <FormField
+                          control={form.control}
+                          name="dateOfBirth"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date de naissance</FormLabel>
+                              <FormControl>
+                                <Input type="date" placeholder="JJ/MM/AAAA" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                    </div>
+                 </div>
               </div>
 
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Informations Personnelles</h3>
+                <h3 className="text-lg font-medium">Coordonnées</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prénom</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Jean" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nom de famille</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Dupont" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="gender"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Genre</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionnez un genre" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Homme">Homme</SelectItem>
-                              <SelectItem value="Femme">Femme</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                     <FormField
-                      control={form.control}
-                      name="dateOfBirth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date de naissance</FormLabel>
-                          <FormControl>
-                            <Input type="date" placeholder="JJ/MM/AAAA" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    
                     <FormField
                       control={form.control}
                       name="email"
@@ -589,5 +595,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    
