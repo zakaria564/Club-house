@@ -11,10 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
 import type { Player, Payment, Coach } from "@/types"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import AddPlayerDialog from "@/components/add-player-dialog"
 import {
@@ -29,7 +27,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
-import { PlayerMobileCard } from "@/components/player-mobile-card"
 
 
 export default function PlayersPage() {
@@ -166,75 +163,29 @@ export default function PlayersPage() {
             />
           </div>
         </CardHeader>
-        <CardContent className="p-0 sm:p-6 sm:pt-0">
-          {/* Mobile view: list of cards */}
-          <div className="sm:hidden space-y-2 p-2">
-             {filteredPlayers.map(player => (
-               <PlayerMobileCard 
-                 key={player.id}
-                 player={player}
-                 coachName={player.coachId ? coachMap.get(player.coachId) : null}
-                 statusBadgeVariant={statusBadgeVariant}
-                 onViewPlayer={handleViewPlayer}
-                 onEditPlayer={handleEditPlayer}
-                 onViewPayments={handleViewPayments}
-                 onDeleteInitiate={handleDeleteInitiate}
-               />
-             ))}
-          </div>
-
-          {/* Desktop view: table */}
-          <div className="hidden sm:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="hidden lg:table-cell">N° Joueur</TableHead>
-                  <TableHead>Nom</TableHead>
-                  <TableHead className="hidden md:table-cell">Catégorie</TableHead>
-                  <TableHead className="hidden md:table-cell">Poste</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPlayers.map(player => {
-                  const coachName = player.coachId ? coachMap.get(player.coachId) : null;
-                  return (
-                  <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
-                    <TableCell className="hidden lg:table-cell">
-                      #{player.playerNumber}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="min-w-0">
-                            <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
-                            {coachName && (
-                              <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                                  <UserCheck className="h-3 w-3 shrink-0" />
-                                  {coachName}
-                              </div>
-                            )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge variant="secondary">{player.category}</Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {player.position}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredPlayers.map(player => {
+              const coachName = player.coachId ? coachMap.get(player.coachId) : null;
+              return (
+                <Card 
+                  key={player.id} 
+                  className="flex flex-col cursor-pointer transition-all hover:shadow-md"
+                  onClick={() => handleViewPlayer(player.id)}
+                >
+                  <CardHeader className="flex-row items-center justify-between p-4">
+                    <div className="flex flex-col min-w-0">
+                        <div className="font-semibold text-base leading-tight truncate">{player.firstName} {player.lastName}</div>
+                        <div className="text-sm text-muted-foreground">#{player.playerNumber}</div>
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               aria-haspopup="true"
                               size="icon"
                               variant="ghost"
+                              className="h-8 w-8"
                             >
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Ouvrir le menu</span>
@@ -257,11 +208,24 @@ export default function PlayersPage() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                )})}
-              </TableBody>
-            </Table>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0 flex-grow space-y-2">
+                    <div className="text-xs text-muted-foreground">{player.position}</div>
+                    <div className="flex items-center justify-between">
+                       <Badge variant="secondary">{player.category}</Badge>
+                       <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
+                    </div>
+                    {coachName && (
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 truncate pt-1">
+                          <UserCheck className="h-3 w-3 shrink-0" />
+                          <span>Entraîneur: {coachName}</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </CardContent>
         <CardFooter>
@@ -290,3 +254,5 @@ export default function PlayersPage() {
     </>
   )
 }
+
+    

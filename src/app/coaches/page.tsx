@@ -10,7 +10,6 @@ import { db } from "@/lib/firebase"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach, Payment } from "@/types"
@@ -28,7 +27,6 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { CoachMobileCard } from "@/components/coach-mobile-card"
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
@@ -198,56 +196,24 @@ export default function CoachesPage() {
             />
           </div>
         </CardHeader>
-        <CardContent className="p-0 sm:p-6 sm:pt-0">
-          {/* Mobile View */}
-          <div className="sm:hidden space-y-2 p-2">
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredCoaches.map(coach => (
-              <CoachMobileCard
-                key={coach.id}
-                coach={coach}
-                onViewCoach={handleViewCoach}
-                onEditCoach={handleEditCoach}
-                onViewPayments={handleViewPayments}
-                onDeleteInitiate={handleDeleteInitiate}
-              />
-            ))}
-          </div>
-
-          {/* Desktop View */}
-          <div className="hidden sm:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nom</TableHead>
-                  <TableHead className="hidden sm:table-cell">Spécialité</TableHead>
-                  <TableHead className="hidden md:table-cell">Contact</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCoaches.map(coach => (
-                  <TableRow key={coach.id} onClick={() => handleViewCoach(coach.id)} className="cursor-pointer">
-                    <TableCell>
-                      <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <Badge variant="secondary">{coach.specialty}</Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex flex-col">
-                        <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="font-medium truncate hover:underline">{coach.email}</a>
-                        <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-sm text-muted-foreground hover:underline">{coach.phone}</a>
-                      </div>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+              <Card 
+                key={coach.id} 
+                className="flex flex-col cursor-pointer transition-all hover:shadow-md"
+                onClick={() => handleViewCoach(coach.id)}
+              >
+                <CardHeader className="flex-row items-center justify-between p-4">
+                    <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
+                     <div onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               aria-haspopup="true"
                               size="icon"
                               variant="ghost"
+                              className="h-8 w-8"
                             >
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Ouvrir le menu</span>
@@ -255,9 +221,9 @@ export default function CoachesPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEditCoach(coach)}>
+                             <DropdownMenuItem onClick={() => handleViewCoach(coach.id)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Modifier
+                              Voir/Modifier
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}>
                               <DollarSign className="mr-2 h-4 w-4" />
@@ -270,11 +236,17 @@ export default function CoachesPage() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 flex-grow space-y-2">
+                    <div className="flex flex-col">
+                        <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium truncate hover:underline">{coach.email}</a>
+                        <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:underline">{coach.phone}</a>
+                    </div>
+                     <Badge variant="secondary">{coach.specialty}</Badge>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </CardContent>
         <CardFooter>
@@ -307,3 +279,5 @@ export default function CoachesPage() {
     </>
   )
 }
+
+    
