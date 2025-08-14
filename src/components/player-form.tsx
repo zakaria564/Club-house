@@ -102,9 +102,6 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
-  const [isUploadingCert, setIsUploadingCert] = React.useState(false);
-  
-  const certInputRef = React.useRef<HTMLInputElement>(null);
   
   const defaultValues = React.useMemo(() => ({
       id: player?.id || getNextId(players),
@@ -137,12 +134,22 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   });
   
   const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
-  const [certPreview, setCertPreview] = React.useState(defaultValues.medicalCertificateUrl);
   
   React.useEffect(() => {
-    setPhotoPreview(defaultValues.photoUrl);
-    setCertPreview(defaultValues.medicalCertificateUrl);
-  }, [defaultValues]);
+      form.reset(defaultValues);
+      setPhotoPreview(defaultValues.photoUrl);
+  }, [player, form, defaultValues]);
+
+
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'photoUrl') {
+        setPhotoPreview(value.photoUrl || '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
 
   React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
@@ -150,38 +157,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     setCoaches(storedCoaches);
   }, []);
 
-  const handleFileUpload = async (
-    file: File, 
-    path: string, 
-    setUploading: (isUploading: boolean) => void,
-    onSuccess: (url: string) => void
-  ) => {
-    setUploading(true);
-    try {
-        const storageRef = ref(storage, path);
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        toast({ title: "Fichier téléchargé", description: "Le fichier a été téléchargé avec succès." });
-        onSuccess(downloadURL);
-    } catch (error) {
-        console.error("Upload error:", error);
-        toast({ variant: "destructive", title: "Erreur de téléchargement", description: "Le fichier n'a pas pu être téléchargé." });
-    } finally {
-        setUploading(false);
-    }
-  };
-
-  const onCertChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-          const playerId = form.getValues('id');
-          const filePath = `players/${playerId}/certificates/${file.name}`;
-          handleFileUpload(file, filePath, setIsUploadingCert, (url) => {
-              form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
-              setCertPreview(url);
-          });
-      }
-  }
 
   function onSubmit(data: PlayerFormValues) {
     const isEditing = !!player;
@@ -223,7 +198,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         {form.watch('lastName')?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <FormField
+                     <FormField
                       control={form.control}
                       name="photoUrl"
                       render={({ field }) => (
@@ -233,10 +208,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                   <Input
                                       placeholder="Coller l'URL de l'image ici..."
                                       {...field}
-                                      onChange={(e) => {
-                                          field.onChange(e);
-                                          setPhotoPreview(e.target.value);
-                                      }}
                                   />
                               </FormControl>
                               <FormMessage />
@@ -381,21 +352,30 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           </FormItem>
                         )}
                       />
-                     <div className="sm:col-span-2 space-y-2">
-                        <FormLabel>Certificat médical</FormLabel>
-                         <div className="flex gap-2">
-                            <Button type="button" variant="outline" onClick={() => certInputRef.current?.click()} disabled={isUploadingCert} className="w-full justify-center">
-                                {isUploadingCert ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2 h-4 w-4" />}
-                                Télécharger le certificat
-                            </Button>
-                        </div>
-                        {certPreview && (
-                          <div className="text-sm text-center text-green-600 mt-2">
-                            Certificat téléchargé. <a href={certPreview} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
-                          </div>
+                     <FormField
+                        control={form.control}
+                        name="medicalCertificateUrl"
+                        render={({ field }) => (
+                            <FormItem className="sm:col-span-2">
+                            <FormLabel>URL du Certificat Médical</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Coller l'URL du certificat ici..."
+                                    {...field}
+                                    value={field.value ?? ''}
+                                />
+                            </FormControl>
+                            {field.value && (
+                                <p className="text-xs text-muted-foreground pt-1">
+                                    <a href={field.value} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                                        Voir le certificat
+                                    </a>
+                                </p>
+                            )}
+                            <FormMessage />
+                            </FormItem>
                         )}
-                        <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
-                 </div>
+                        />
                 </div>
               </div>
 
@@ -587,3 +567,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
