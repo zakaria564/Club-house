@@ -98,28 +98,21 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const [photoPreview, setPhotoPreview] = React.useState<string | undefined>(coach?.photoUrl);
   
   const defaultValues = React.useMemo(() => {
-    if (coach) {
-      return {
-        ...coach,
-        clubEntryDate: dateToInputFormat(coach.clubEntryDate),
-        clubExitDate: dateToInputFormat(coach.clubExitDate),
-        photoUrl: coach.photoUrl || '',
-      };
-    }
+    const c = coach;
     return {
-      id: getNextId(coaches),
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      specialty: '',
-      photoUrl: '',
-      gender: "Homme" as const,
-      age: '' as any,
-      country: '',
-      city: '',
-      clubEntryDate: '',
-      clubExitDate: null,
+      id: c?.id || getNextId(coaches),
+      firstName: c?.firstName || '',
+      lastName: c?.lastName || '',
+      email: c?.email || '',
+      phone: c?.phone || '',
+      specialty: c?.specialty || '',
+      photoUrl: c?.photoUrl || '',
+      gender: c?.gender || "Homme" as const,
+      age: c?.age || '' as any,
+      country: c?.country || '',
+      city: c?.city || '',
+      clubEntryDate: dateToInputFormat(c?.clubEntryDate),
+      clubExitDate: dateToInputFormat(c?.clubExitDate),
     };
   }, [coach, coaches]);
 
@@ -132,7 +125,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   React.useEffect(() => {
     form.reset(defaultValues);
     setPhotoPreview(defaultValues.photoUrl);
-  }, [coach, form, defaultValues]);
+  }, [defaultValues, form]);
   
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

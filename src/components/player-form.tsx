@@ -104,47 +104,37 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
   const [isUploadingCert, setIsUploadingCert] = React.useState(false);
-
+  
   const [photoPreview, setPhotoPreview] = React.useState<string | undefined>(player?.photoUrl);
   const [certPreview, setCertPreview] = React.useState<string | undefined>(player?.medicalCertificateUrl);
 
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
-  
+
   const defaultValues = React.useMemo(() => {
-    if (player) {
-      return {
-        ...player,
-        dateOfBirth: dateToInputFormat(player.dateOfBirth),
-        clubEntryDate: dateToInputFormat(player.clubEntryDate),
-        clubExitDate: dateToInputFormat(player.clubExitDate),
-        coachId: player.coachId || undefined,
-        photoUrl: player.photoUrl || '',
-        medicalCertificateUrl: player.medicalCertificateUrl || '',
-      };
-    }
+    const p = player;
     return {
-      id: getNextId(players),
-      firstName: '',
-      lastName: '',
-      gender: "Homme" as const,
-      email: '',
-      dateOfBirth: '',
-      category: '',
-      status: 'En forme' as const,
-      photoUrl: '',
-      address: '',
-      city: '',
-      country: '',
-      phone: '',
-      guardianName: '',
-      guardianPhone: '',
-      position: '',
-      playerNumber: '' as any,
-      clubEntryDate: '',
-      clubExitDate: null,
-      coachId: undefined,
-      medicalCertificateUrl: '',
+      id: p?.id || getNextId(players),
+      firstName: p?.firstName || '',
+      lastName: p?.lastName || '',
+      gender: p?.gender || "Homme",
+      email: p?.email || '',
+      dateOfBirth: dateToInputFormat(p?.dateOfBirth),
+      category: p?.category || '',
+      status: p?.status || 'En forme',
+      photoUrl: p?.photoUrl || '',
+      address: p?.address || '',
+      city: p?.city || '',
+      country: p?.country || '',
+      phone: p?.phone || '',
+      guardianName: p?.guardianName || '',
+      guardianPhone: p?.guardianPhone || '',
+      position: p?.position || '',
+      playerNumber: p?.playerNumber || '',
+      clubEntryDate: dateToInputFormat(p?.clubEntryDate),
+      clubExitDate: dateToInputFormat(p?.clubExitDate),
+      coachId: p?.coachId || undefined,
+      medicalCertificateUrl: p?.medicalCertificateUrl || '',
     };
   }, [player, players]);
 
@@ -153,12 +143,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     defaultValues,
     mode: "onChange",
   });
-
-   React.useEffect(() => {
+  
+  React.useEffect(() => {
     form.reset(defaultValues);
     setPhotoPreview(defaultValues.photoUrl);
     setCertPreview(defaultValues.medicalCertificateUrl);
-  }, [player, form, defaultValues]);
+  }, [defaultValues, form]);
   
    React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
