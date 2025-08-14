@@ -241,10 +241,12 @@ export default function PlayerDetailPage() {
                         <span className="font-medium">Date d'entrée:</span>
                         <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium">Date de sortie:</span>
-                       <span>{player.clubExitDate && isValidDate(player.clubExitDate) ? format(player.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
-                      </div>
+                      {player.clubExitDate && isValidDate(player.clubExitDate) && (
+                        <div className="flex items-center gap-3">
+                            <span className="font-medium">Date de sortie:</span>
+                            <span>{format(player.clubExitDate, 'PPP', { locale: fr })}</span>
+                        </div>
+                       )}
                    </div>
                 </div>
 
