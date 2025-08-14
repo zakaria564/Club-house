@@ -208,10 +208,6 @@ export default function PlayersPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={player.photoUrl || undefined} alt={player.firstName} data-ai-hint="player profile" />
-                          <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
-                        </Avatar>
                         <div className="min-w-0">
                             <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
                             {coachName && (

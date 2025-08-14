@@ -230,13 +230,7 @@ export default function CoachesPage() {
                 {filteredCoaches.map(coach => (
                   <TableRow key={coach.id} onClick={() => handleViewCoach(coach.id)} className="cursor-pointer">
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={coach.photoUrl || undefined} alt={coach.firstName} data-ai-hint="coach profile" />
-                          <AvatarFallback>{coach.firstName?.[0]}{coach.lastName?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
-                      </div>
+                      <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <Badge variant="secondary">{coach.specialty}</Badge>
@@ -313,5 +307,3 @@ export default function CoachesPage() {
     </>
   )
 }
-
-    
