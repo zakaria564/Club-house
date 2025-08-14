@@ -232,21 +232,16 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                     </Avatar>
                      <div className="w-full space-y-2">
                         <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="sr-only">URL de la photo</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Coller l'URL de l'image ici..."
-                                        {...field}
-                                        value={field.value ?? ''}
-                                    />
-                                </FormControl>
-                                <FormMessage />
+                          control={form.control}
+                          name="photoUrl"
+                          render={({ field }) => (
+                            <FormItem className="hidden">
+                              <FormControl>
+                                <Input {...field} value={field.value ?? ''} readOnly />
+                              </FormControl>
+                              <FormMessage />
                             </FormItem>
-                        )}
+                          )}
                         />
                          <input
                             type="file"
@@ -625,3 +620,5 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
+
+    
