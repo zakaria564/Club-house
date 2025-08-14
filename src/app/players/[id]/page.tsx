@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers } from 'lucide-react';
 import type { Player, Payment, Coach } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -168,11 +168,11 @@ export default function PlayerDetailPage() {
                 </AvatarFallback>
               </Avatar>
               <CardTitle className="text-3xl font-headline">
-                {player.firstName} {player.lastName} (#{player.playerNumber})
+                {player.firstName} {player.lastName}
               </CardTitle>
-              <p className="text-xl text-muted-foreground">
-                {player.position} - Catégorie : {player.category}
-              </p>
+              <CardDescription className="text-xl text-muted-foreground mt-1">
+                Joueur du Club CAOS 2011
+              </CardDescription>
             </CardHeader>
             <CardContent className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -211,22 +211,43 @@ export default function PlayerDetailPage() {
 
               <div className="space-y-4">
                   <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                      <div className="grid grid-cols-[auto,1fr] gap-x-4">
-                       <span className="font-medium">Date d'entrée:</span>
-                       <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                      <div className="flex items-center gap-3">
+                        <Layers className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                            <span className="font-medium">Catégorie:</span>
+                            <p>{player.category}</p>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                       <div className="flex items-center gap-3">
+                        <Shirt className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                            <span className="font-medium">N° Joueur:</span>
+                            <p>#{player.playerNumber}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Footprints className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                            <span className="font-medium">Poste:</span>
+                            <p>{player.position}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                         <UserCheck className="h-4 w-4 text-muted-foreground" />
+                         <div>
+                            <span className="font-medium">Entraîneur:</span>
+                            <p>{coachName}</p>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium">Date d'entrée:</span>
+                        <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
                         <span className="font-medium">Date de sortie:</span>
                        <span>{player.clubExitDate && isValidDate(player.clubExitDate) ? format(player.clubExitDate, 'PPP', { locale: fr }) : 'N/A'}</span>
                       </div>
-                      <div className="grid grid-cols-[auto,1fr] gap-x-4 col-span-full">
-                        <span className="font-medium">Entraîneur:</span>
-                        <span className="flex items-center gap-2">
-                         <UserCheck className="h-4 w-4 text-muted-foreground" />
-                         {coachName}
-                       </span>
-                     </div>
                    </div>
                 </div>
 
@@ -370,5 +391,3 @@ export default function PlayerDetailPage() {
     </>
   );
 }
-
-    
