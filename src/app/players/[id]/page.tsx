@@ -170,9 +170,6 @@ export default function PlayerDetailPage() {
               <CardTitle className="text-3xl font-headline">
                 {player.firstName} {player.lastName}
               </CardTitle>
-              <CardDescription className="text-xl text-muted-foreground mt-1">
-                Joueur du Club CAOS 2011
-              </CardDescription>
             </CardHeader>
             <CardContent className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
