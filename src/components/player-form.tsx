@@ -105,6 +105,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
    React.useEffect(() => {
     setIsClient(true);
@@ -178,6 +180,32 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     onFinished()
   }
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    try {
+      const storageRef = ref(storage, `player-photos/${form.getValues('id')}-${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      form.setValue('photoUrl', downloadURL, { shouldValidate: true });
+       toast({
+        title: "Photo téléversée",
+        description: "La photo de profil a été mise à jour avec succès.",
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        variant: "destructive",
+        title: "Échec du téléversement",
+        description: "Une erreur est survenue lors du téléversement de la photo.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-8">
@@ -191,23 +219,40 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         {form.watch('lastName')?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                     <FormField
-                      control={form.control}
-                      name="photoUrl"
-                      render={({ field }) => (
-                          <FormItem className="w-full">
-                              <FormLabel className="sr-only">URL de la photo</FormLabel>
-                              <FormControl>
-                                  <Input
-                                      placeholder="Coller l'URL de l'image ici..."
-                                      {...field}
-                                      value={field.value ?? ''}
-                                  />
-                              </FormControl>
-                              <FormMessage />
-                          </FormItem>
-                      )}
-                    />
+                     <div className="w-full space-y-2">
+                        <FormField
+                        control={form.control}
+                        name="photoUrl"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="sr-only">URL de la photo</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Coller l'URL de l'image ici..."
+                                        {...field}
+                                        value={field.value ?? ''}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/gif"
+                        />
+                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                            {isUploading ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Upload className="mr-2 h-4 w-4" />
+                            )}
+                            {isUploading ? 'Téléversement...' : 'Téléverser une photo'}
+                        </Button>
+                    </div>
                  </div>
 
                 <div className="w-full space-y-4">
