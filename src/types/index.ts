@@ -6,7 +6,7 @@ export type Player = {
   gender: 'Homme' | 'Femme';
   dateOfBirth: Date;
   category: 'U7' | 'U9' | 'U11' | 'U13' | 'U14' | 'U15' | 'U16' | 'U17' | 'U18' | 'U19' | 'U20' | 'U23' | 'Senior' | 'Vétéran';
-  photoUrl: string;
+  photoUrl: string | null;
   address: string;
   city: string;
   country: string;
@@ -62,7 +62,7 @@ export type Coach = {
   email: string;
   phone: string;
   specialty: string;
-  photoUrl: string;
+  photoUrl: string | null;
   gender: 'Homme' | 'Femme';
   country: string;
   city: string;

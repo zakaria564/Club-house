@@ -141,15 +141,21 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   }, [defaultValues, form]);
 
   const photoUrlValue = form.watch('photoUrl');
+  const [photoPreview, setPhotoPreview] = React.useState(photoUrlValue);
+
+  React.useEffect(() => {
+    setPhotoPreview(photoUrlValue);
+  }, [photoUrlValue]);
+
 
   React.useEffect(() => {
     // This effect is to clean up blob URLs to prevent memory leaks
     return () => {
-      if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
-        URL.revokeObjectURL(photoUrlValue);
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview);
       }
     };
-  }, [photoUrlValue]);
+  }, [photoPreview]);
 
 
   React.useEffect(() => {
@@ -171,7 +177,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
     const newPlayerData = {
         ...data,
-        photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
+        photoUrl: data.photoUrl || null,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
@@ -202,34 +208,32 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Clean up previous blob URL if it exists
-    const currentPhotoUrl = form.getValues('photoUrl');
-    if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(currentPhotoUrl);
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview);
     }
     
-    // Create a temporary URL for instant preview
     const tempPreviewUrl = URL.createObjectURL(file);
-    form.setValue('photoUrl', tempPreviewUrl, { shouldDirty: true, shouldValidate: false });
-
+    setPhotoPreview(tempPreviewUrl);
+    
     setIsUploading(true);
     try {
       const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
       
-      // The upload is complete, now replace the blob URL with the permanent Firebase URL.
-      // We only need to revoke the new blob URL if the upload was successful and we are replacing it.
-      URL.revokeObjectURL(tempPreviewUrl);
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
+      setPhotoPreview(downloadURL);
+      if (tempPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(tempPreviewUrl);
+      }
        toast({
         title: "Photo téléversée",
         description: "La photo de profil a été mise à jour.",
       });
     } catch (error) {
       console.error("Error uploading file:", error);
-      // If upload fails, revert to the original photo or clear it.
       form.setValue('photoUrl', player?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
+       setPhotoPreview(player?.photoUrl || '');
       toast({
         variant: "destructive",
         title: "Échec du téléversement",
@@ -247,7 +251,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
               <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
                  <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                      <AvatarImage src={photoUrlValue || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}

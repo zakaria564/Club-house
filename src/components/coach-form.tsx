@@ -124,21 +124,26 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   }, [defaultValues, form]);
 
   const photoUrlValue = form.watch('photoUrl');
+  const [photoPreview, setPhotoPreview] = React.useState(photoUrlValue);
+
+  React.useEffect(() => {
+    setPhotoPreview(photoUrlValue);
+  }, [photoUrlValue]);
   
    React.useEffect(() => {
     return () => {
-      if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
-        URL.revokeObjectURL(photoUrlValue);
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview);
       }
     };
-  }, [photoUrlValue]);
+  }, [photoPreview]);
 
  async function onSubmit(data: CoachFormValues) {
     const isEditing = !!coach?.id;
 
     const newCoachData = {
         ...data,
-        photoUrl: data.photoUrl || 'https://placehold.co/100x100.png',
+        photoUrl: data.photoUrl || null,
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
     };
@@ -166,13 +171,12 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const currentPhotoUrl = form.getValues('photoUrl');
-    if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(currentPhotoUrl);
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview);
     }
     
     const tempPreviewUrl = URL.createObjectURL(file);
-    form.setValue('photoUrl', tempPreviewUrl, { shouldDirty: true, shouldValidate: false });
+    setPhotoPreview(tempPreviewUrl);
 
     setIsUploading(true);
     try {
@@ -180,8 +184,12 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
-      URL.revokeObjectURL(tempPreviewUrl);
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
+      setPhotoPreview(downloadURL);
+       if (tempPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(tempPreviewUrl);
+      }
+
        toast({
         title: "Photo téléversée",
         description: "La photo de profil a été mise à jour.",
@@ -189,6 +197,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     } catch (error) {
       console.error("Error uploading file:", error);
       form.setValue('photoUrl', coach?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
+       setPhotoPreview(coach?.photoUrl || '');
       toast({
         variant: "destructive",
         title: "Échec du téléversement",
@@ -206,7 +215,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoUrlValue || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
