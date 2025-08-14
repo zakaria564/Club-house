@@ -318,7 +318,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormItem>
                           <FormLabel>Date de naissance</FormLabel>
                           <FormControl>
-                            <Input type="text" placeholder="JJ/MM/AAAA" {...field} />
+                            <Input type="date" placeholder="JJ/MM/AAAA" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -569,7 +569,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormItem>
                           <FormLabel>Date d'entrée</FormLabel>
                           <FormControl>
-                            <Input type="text" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
+                            <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -582,7 +582,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           <FormItem>
                             <FormLabel>Date de sortie (optionnel)</FormLabel>
                             <FormControl>
-                              <Input type="text" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
+                              <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

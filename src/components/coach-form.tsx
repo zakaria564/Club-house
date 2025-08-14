@@ -360,7 +360,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         <FormItem>
                             <FormLabel>Date d'entrée</FormLabel>
                             <FormControl>
-                                <Input type="text" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''}/>
+                                <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -373,7 +373,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                                 <FormLabel>Date de sortie (optionnel)</FormLabel>
                                 <FormControl>
-                                    <Input type="text" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
+                                    <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

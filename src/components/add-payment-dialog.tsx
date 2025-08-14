@@ -32,7 +32,12 @@ interface AddPaymentDialogProps {
 const dateToInputFormat = (date?: Date | null): string => {
     if (!date) return '';
     try {
-        return new Date(date).toISOString().split('T')[0];
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return '';
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     } catch {
         return '';
     }
@@ -50,7 +55,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
     if (memberType === 'player') {
       return players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`}));
     }
-    return coaches.map(c => ({ id: c.id, name: `${p.firstName} ${p.lastName}`}));
+    return coaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}`}));
   }, [memberType, players, coaches]);
 
   React.useEffect(() => {
@@ -207,7 +212,7 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             <Label className="text-right">
               Date
             </Label>
-            <Input type="text" placeholder="JJ/MM/AAAA" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input type="date" placeholder="JJ/MM/AAAA" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
         
             <DialogFooter>
@@ -277,7 +282,3 @@ function MemberCombobox({ members, value, onValueChange, memberType }: MemberCom
     </Popover>
   )
 }
-
-    
-
-    
