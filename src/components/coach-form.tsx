@@ -177,27 +177,25 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         {form.watch('lastName')?.[0]}
                     </AvatarFallback>
                 </Avatar>
-                <div className="w-full space-y-2">
-                    <FormLabel>Photo de l'entraîneur</FormLabel>
-                    <div className="flex gap-2">
-                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full justify-center">
-                            {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2" />}
-                            Télécharger
-                         </Button>
-                    </div>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                     <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <Input {...field} placeholder="URL de la photo..." />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                 <div className="w-full space-y-2">
+                  <FormLabel>Photo de l'entraîneur</FormLabel>
+                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full justify-center">
+                    {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
+                    {photoUrlValue ? "Changer la photo" : 'Télécharger une photo'}
+                  </Button>
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                   <FormField
+                      control={form.control}
+                      name="photoUrl"
+                      render={({ field }) => (
+                          <FormItem className="hidden">
+                              <FormControl>
+                                  <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                  />
                 </div>
             </div>
 
@@ -394,5 +392,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    

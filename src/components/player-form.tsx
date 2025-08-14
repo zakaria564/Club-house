@@ -130,7 +130,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       playerNumber: p?.playerNumber || '' as any,
       clubEntryDate: dateToInputFormat(p?.clubEntryDate),
       clubExitDate: dateToInputFormat(p?.clubExitDate),
-      coachId: p?.coachId || undefined,
+      coachId: p?.coachId || null,
       medicalCertificateUrl: p?.medicalCertificateUrl || '',
     };
   }, [player, players]);
@@ -151,13 +151,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     setCoaches(storedCoaches);
   }, []);
 
-  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState(defaultValues.photoUrl);
-  const [certPreviewUrl, setCertPreviewUrl] = React.useState(defaultValues.medicalCertificateUrl);
-
-  React.useEffect(() => {
-    setPhotoPreviewUrl(defaultValues.photoUrl);
-    setCertPreviewUrl(defaultValues.medicalCertificateUrl);
-  }, [defaultValues.photoUrl, defaultValues.medicalCertificateUrl]);
+  const photoUrlValue = form.watch("photoUrl");
 
   const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
     onUploadProgress(true);
@@ -184,7 +178,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
           if (url) {
               form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
-              setPhotoPreviewUrl(url);
           }
       }
   }
@@ -197,7 +190,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
           const url = await handleFileUpload(file, filePath, setIsUploadingCert);
           if (url) {
               form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
-              setCertPreviewUrl(url);
           }
       }
   }
@@ -234,49 +226,35 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-8">
           <div className="space-y-8">
               <div className="flex flex-col md:flex-row items-center gap-6">
-                  <Avatar className="h-24 w-24">
-                      <AvatarImage src={photoPreviewUrl} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                      <AvatarFallback>
-                      {form.watch('firstName')?.[0]}
-                      {form.watch('lastName')?.[0]}
-                      </AvatarFallback>
-                  </Avatar>
-                  <div className="w-full space-y-2">
-                        <FormLabel>Photo du joueur</FormLabel>
-                        <div 
-                            className="w-full flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={() => photoInputRef.current?.click()}
-                        >
-                            {isUploadingPhoto ? (
-                                <>
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                    <p className="mt-2 text-sm text-muted-foreground">Téléversement...</p>
-                                </>
-                            ) : (
-                                <>
-                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                    <p className="mt-2 text-sm text-center text-muted-foreground">
-                                        <span className="font-semibold text-primary">Cliquez pour choisir une photo</span> ou glissez-déposez
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF jusqu'à 10MB</p>
-                                </>
-                            )}
-                        </div>
-                        <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
-                        <FormField
-                          control={form.control}
-                          name="photoUrl"
-                          render={({ field }) => (
-                            <FormItem className="hidden">
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                  </div>
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={photoUrlValue} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                  <AvatarFallback>
+                    {form.watch('firstName')?.[0]}
+                    {form.watch('lastName')?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="w-full space-y-2">
+                  <FormLabel>Photo du joueur</FormLabel>
+                  <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto} className="w-full justify-center">
+                    {isUploadingPhoto ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
+                    {photoUrlValue ? 'Changer la photo' : 'Télécharger une photo'}
+                  </Button>
+                  <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
+                  <FormField
+                    control={form.control}
+                    name="photoUrl"
+                    render={({ field }) => (
+                      <FormItem className="hidden">
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
+
 
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Informations Personnelles</h3>
@@ -447,13 +425,13 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormLabel>Certificat médical</FormLabel>
                          <div className="flex gap-2">
                             <Button type="button" variant="outline" onClick={() => certInputRef.current?.click()} disabled={isUploadingCert} className="w-full justify-center">
-                                {isUploadingCert ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2" />}
+                                {isUploadingCert ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2 h-4 w-4" />}
                                 Télécharger le certificat
                             </Button>
                         </div>
-                        {certPreviewUrl && (
+                        {form.watch('medicalCertificateUrl') && (
                           <div className="text-sm text-center text-green-600 mt-2">
-                            Certificat téléchargé. <a href={certPreviewUrl} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
+                            Certificat téléchargé. <a href={form.watch('medicalCertificateUrl')} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
                           </div>
                         )}
                         <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
