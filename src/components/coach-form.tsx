@@ -116,12 +116,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     mode: "onChange",
   });
   
-  const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
+  const photoPreview = form.watch('photoUrl');
   
-  React.useEffect(() => {
-      setPhotoPreview(defaultValues.photoUrl);
-  }, [defaultValues]);
-
   function onSubmit(data: CoachFormValues) {
     const isEditing = !!coach;
     const newCoachData: Coach = {
@@ -146,7 +142,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={photoPreview || null} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
@@ -162,10 +158,6 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                                   <Input
                                       placeholder="Coller l'URL de l'image ici..."
                                       {...field}
-                                      onChange={(e) => {
-                                          field.onChange(e);
-                                          setPhotoPreview(e.target.value);
-                                      }}
                                   />
                               </FormControl>
                               <FormMessage />
@@ -370,3 +362,5 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
+
+    
