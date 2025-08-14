@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
 import { payments as initialPayments, players as initialPlayers, coaches as initialCoaches } from "@/lib/mock-data"
-import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import type { Payment, Player, Coach } from "@/types"
@@ -48,6 +49,14 @@ const parsePaymentDates = (payment: any): Payment => ({
     ...payment,
     date: new Date(payment.date),
 });
+
+// Helper to normalize strings for searching (remove accents, lowercase)
+const normalizeString = (str: string) => {
+    return str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
@@ -87,7 +96,9 @@ function PaymentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams()
   const { toast } = useToast();
-  const memberId = searchParams.get('memberId')
+  
+  const [initialMemberId, setInitialMemberId] = React.useState(searchParams.get('memberId'));
+  
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
   const [paymentToDelete, setPaymentToDelete] = React.useState<string | null>(null);
@@ -96,6 +107,10 @@ function PaymentsPageContent() {
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [payments, setPayments] = React.useState<Payment[]>([]);
+
+  const [openCombobox, setOpenCombobox] = React.useState(false);
+  const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(initialMemberId);
+  
 
   React.useEffect(() => {
     try {
@@ -136,19 +151,48 @@ function PaymentsPageContent() {
     }
   }, []);
 
+  const allMembers = React.useMemo(() => [
+    ...players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })),
+    ...coaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })),
+  ], [players, coaches]);
+  
+  const handleMemberSelect = (memberId: string) => {
+    setSelectedMemberId(memberId);
+    setOpenCombobox(false);
+    // remove memberId from URL to avoid confusion
+    if (initialMemberId) {
+        router.replace('/payments', undefined);
+        setInitialMemberId(null);
+    }
+  }
+
+  const handleResetFilter = () => {
+    setSelectedMemberId(null);
+    if (initialMemberId) {
+        router.replace('/payments', undefined);
+        setInitialMemberId(null);
+    }
+  }
+  
+  const commandFilter = (value: string, search: string) => {
+      const normalizedValue = normalizeString(value);
+      const normalizedSearch = normalizeString(search);
+      return normalizedValue.includes(normalizedSearch) ? 1 : 0;
+  }
+
   const statusTranslations: { [key in Payment['status']]: string } = {
     'Paid': 'Payé',
     'Pending': 'En attente',
     'Overdue': 'En retard'
   }
 
-  const basePayments = memberId ? payments.filter(p => p.memberId === memberId) : payments;
+  const basePayments = selectedMemberId ? payments.filter(p => p.memberId === selectedMemberId) : payments;
   
   const filteredByType = basePayments.filter(p => paymentTypeFilter === 'all' || p.paymentType === paymentTypeFilter);
 
-  const filteredPayments = filteredByType.filter(payment =>
+  const filteredPayments = searchQuery ? filteredByType.filter(payment =>
     payment.memberName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : filteredByType;
 
   const handleExport = () => {
     if (filteredPayments.length > 0) {
@@ -256,15 +300,51 @@ function PaymentsPageContent() {
                         <SelectItem value="salary">Salaires (Entraîneurs)</SelectItem>
                     </SelectContent>
                 </Select>
-               <div className="relative w-full sm:w-auto">
-                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                 <Input 
-                   placeholder="Rechercher par nom..." 
-                   className="pl-8 w-full sm:w-48" 
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                 />
-               </div>
+                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openCombobox}
+                            className="w-full sm:w-[200px] justify-between"
+                            >
+                            {selectedMemberId
+                                ? allMembers.find((member) => member.id === selectedMemberId)?.name
+                                : "Filtrer par nom..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <Command filter={commandFilter}>
+                            <CommandInput placeholder="Rechercher un membre..." />
+                            <CommandList>
+                                <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
+                                <CommandGroup>
+                                {allMembers.map((member) => (
+                                    <CommandItem
+                                    key={member.id}
+                                    value={member.name}
+                                    onSelect={() => handleMemberSelect(member.id)}
+                                    >
+                                    <Check
+                                        className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedMemberId === member.id ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                    {member.name}
+                                    </CommandItem>
+                                ))}
+                                </CommandGroup>
+                            </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+                    {selectedMemberId && (
+                        <Button variant="ghost" size="sm" onClick={handleResetFilter}>Réinitialiser</Button>
+                    )}
+                </div>
             </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-6 sm:pt-0">
@@ -468,3 +548,5 @@ export default function PaymentsPage() {
     </React.Suspense>
   )
 }
+
+    
