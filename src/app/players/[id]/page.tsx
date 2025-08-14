@@ -26,7 +26,7 @@ const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
 
 const PrintHeader = () => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-        <ClubLogo className="h-24 w-auto" />
+        <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club Logo" width={96} height={96} className="h-24 w-auto" data-ai-hint="club logo" />
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
             <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
@@ -241,7 +241,7 @@ export default function PlayerDetailPage() {
               <CardContent className="pt-6">
                 {player.medicalCertificateUrl ? (
                     <div className="flex flex-col sm:flex-row items-center gap-4">
-                      <a href={`/players/${player.id}/certificate`} target="_blank" rel="noopener noreferrer" className="block w-full max-w-xs sm:w-48 flex-shrink-0">
+                      <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="block w-full max-w-xs sm:w-48 flex-shrink-0">
                         <Image 
                           src={player.medicalCertificateUrl}
                           alt="Certificat Médical"

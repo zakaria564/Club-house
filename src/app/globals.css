@@ -113,7 +113,7 @@ body {
     margin: 0 !important;
   }
 
-  .no-print, .no-print * {
+  .no-print, .no-print *, [data-sidebar], [data-sidebar] * {
       display: none !important;
   }
   
