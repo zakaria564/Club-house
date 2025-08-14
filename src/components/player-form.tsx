@@ -133,23 +133,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     mode: "onChange",
   });
   
-  const [photoPreview, setPhotoPreview] = React.useState(defaultValues.photoUrl);
-  
-  React.useEffect(() => {
-      form.reset(defaultValues);
-      setPhotoPreview(defaultValues.photoUrl);
-  }, [player, form, defaultValues]);
-
-
-  React.useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'photoUrl') {
-        setPhotoPreview(value.photoUrl || '');
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
+  const photoPreview = form.watch('photoUrl');
 
   React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
