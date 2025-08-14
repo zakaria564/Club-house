@@ -192,7 +192,7 @@ export default function PlayersPage() {
                   <TableHead>Statut</TableHead>
                   <TableHead className="hidden md:table-cell">Catégorie</TableHead>
                   <TableHead className="hidden md:table-cell">Poste</TableHead>
-                  <TableHead className="hidden lg:table-cell">ID joueur</TableHead>
+                  <TableHead className="hidden lg:table-cell">N° Joueur</TableHead>
                   <TableHead>
                     <span className="sr-only">Actions</span>
                   </TableHead>
@@ -230,7 +230,7 @@ export default function PlayersPage() {
                       {player.position}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {player.id}
+                      #{player.playerNumber}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
