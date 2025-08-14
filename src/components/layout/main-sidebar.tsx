@@ -10,7 +10,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -20,14 +20,28 @@ import {
   MoreHorizontal,
   Trophy,
   GalleryHorizontal,
+  LogOut,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { ClubLogo } from "../club-logo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "../ui/button";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+
 
 export function MainSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
+  const router = useRouter();
 
   const isActive = (path: string) => {
     return pathname === path || (path !== "/" && pathname.startsWith(path));
@@ -36,6 +50,16 @@ export function MainSidebar() {
   const handleLinkClick = () => {
     setOpenMobile(false);
   }
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error("Error signing out: ", error);
+      // You could add a toast notification here for the user
+    }
+  };
 
   return (
     <>
@@ -139,19 +163,31 @@ export function MainSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sidebar-accent">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src="https://placehold.co/100x100.png" alt="@shadcn" data-ai-hint="manager profile" />
-                <AvatarFallback>AD</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Alex Durand</span>
-                <span className="text-sm text-muted-foreground">Gérant</span>
-              </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sidebar-accent cursor-pointer w-full">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src="https://placehold.co/100x100.png" alt="@shadcn" data-ai-hint="manager profile" />
+                    <AvatarFallback>AD</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-sm font-medium truncate">Alex Durand</span>
+                    <span className="text-sm text-muted-foreground truncate">Gérant</span>
+                  </div>
+                </div>
+                <MoreHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             </div>
-            <MoreHorizontal className="w-5 h-5 text-muted-foreground cursor-pointer" />
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 mb-2 ml-2">
+             <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
+             <DropdownMenuSeparator />
+             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Déconnexion</span>
+             </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </>
   );
