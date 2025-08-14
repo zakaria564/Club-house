@@ -243,7 +243,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                     </Avatar>
                      <Button type="button" variant="outline" size="sm" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
                         {isUploadingPhoto ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                        {photoPreview ? 'Changer' : 'Télécharger'}
+                        {photoPreview ? 'Changer la photo' : 'Télécharger'}
                       </Button>
                       <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
                  </div>
@@ -595,3 +595,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
