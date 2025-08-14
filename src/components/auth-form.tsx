@@ -61,6 +61,10 @@ export function AuthForm({ mode }: AuthFormProps) {
     let description = "Une erreur inconnue est survenue. Veuillez réessayer.";
 
     switch (error.code) {
+      case 'auth/configuration-not-found':
+        title = "Configuration requise";
+        description = "Le fournisseur de connexion (E-mail/Mot de passe, Google) doit être activé dans la console Firebase.";
+        break;
       case 'auth/email-already-in-use':
         title = "Erreur d'inscription";
         description = 'Cette adresse e-mail est déjà utilisée par un autre compte.';
