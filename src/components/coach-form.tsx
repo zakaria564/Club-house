@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { handleEnterKeyDown } from "@/lib/utils"
 import { storage } from "@/lib/firebase"
 import { Loader2, Upload } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 
 const coachFormSchema = z.object({
@@ -93,6 +94,12 @@ const specialties = [
 
 export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps) {
   const { toast } = useToast()
+  const isMobile = useIsMobile();
+  const [isClient, setIsClient] = React.useState(false);
+  
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const defaultValues = React.useMemo(() => ({
       id: coach?.id || getNextId(coaches),
@@ -116,7 +123,8 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
     mode: "onChange",
   });
   
-  const photoPreview = form.watch('photoUrl');
+  const photoUrlValue = form.watch('photoUrl');
+  const photoPreview = photoUrlValue || null;
   
   function onSubmit(data: CoachFormValues) {
     const isEditing = !!coach;
@@ -142,7 +150,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoPreview || null} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
@@ -158,6 +166,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                                   <Input
                                       placeholder="Coller l'URL de l'image ici..."
                                       {...field}
+                                      value={field.value ?? ''}
                                   />
                               </FormControl>
                               <FormMessage />
@@ -332,7 +341,12 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         <FormItem>
                             <FormLabel>Date d'entrée</FormLabel>
                             <FormControl>
-                                <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''}/>
+                                <Input 
+                                  type={isClient && isMobile ? 'text' : 'date'}
+                                  placeholder="AAAA-MM-JJ" 
+                                  {...field} 
+                                  value={field.value ?? ''}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -345,7 +359,12 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                             <FormItem>
                                 <FormLabel>Date de sortie (optionnel)</FormLabel>
                                 <FormControl>
-                                    <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
+                                    <Input 
+                                      type={isClient && isMobile ? 'text' : 'date'}
+                                      placeholder="AAAA-MM-JJ" 
+                                      {...field} 
+                                      value={field.value ?? ''} 
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

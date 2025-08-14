@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast"
 import { cn, handleEnterKeyDown } from "@/lib/utils"
 import type { Player, Payment, Coach } from "@/types"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface AddPaymentDialogProps {
   open: boolean;
@@ -50,6 +51,12 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
   const [totalAmount, setTotalAmount] = React.useState<string>("300.00");
   const [advance, setAdvance] = React.useState<string>("");
   const [date, setDate] = React.useState<string>(dateToInputFormat(new Date()));
+  const isMobile = useIsMobile();
+  const [isClient, setIsClient] = React.useState(false);
+  
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const members = React.useMemo(() => {
     if (memberType === 'player') {
@@ -212,7 +219,13 @@ export default function AddPaymentDialog({ open, onOpenChange, onAddPayment, pla
             <Label className="text-right">
               Date
             </Label>
-            <Input type="date" placeholder="JJ/MM/AAAA" className="col-span-3" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input 
+              type={isClient && isMobile ? 'text' : 'date'}
+              placeholder="AAAA-MM-JJ" 
+              className="col-span-3" 
+              value={date} 
+              onChange={(e) => setDate(e.target.value)} 
+            />
           </div>
         
             <DialogFooter>

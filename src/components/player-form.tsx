@@ -25,6 +25,7 @@ import type { Player, Coach } from "@/types"
 import { coaches as initialCoaches } from "@/lib/mock-data"
 import { storage } from "@/lib/firebase"
 import { Loader2, Upload } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const playerFormSchema = z.object({
   id: z.string().min(1, "L'ID joueur est requis."),
@@ -102,6 +103,13 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
+  const isMobile = useIsMobile();
+  const [isClient, setIsClient] = React.useState(false);
+  
+   React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   
   const defaultValues = React.useMemo(() => ({
       id: player?.id || getNextId(players),
@@ -133,7 +141,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     mode: "onChange",
   });
   
-  const photoPreview = form.watch('photoUrl');
+  const photoUrlValue = form.watch('photoUrl');
+  const photoPreview = photoUrlValue || null;
 
   React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
@@ -176,7 +185,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
               <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
                  <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                      <AvatarImage src={photoPreview || null} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
@@ -192,6 +201,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                                   <Input
                                       placeholder="Coller l'URL de l'image ici..."
                                       {...field}
+                                      value={field.value ?? ''}
                                   />
                               </FormControl>
                               <FormMessage />
@@ -257,7 +267,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             <FormItem>
                               <FormLabel>Date de naissance</FormLabel>
                               <FormControl>
-                                <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
+                                <Input 
+                                  type={isClient && isMobile ? 'text' : 'date'} 
+                                  placeholder="AAAA-MM-JJ" 
+                                  {...field} 
+                                  value={field.value ?? ''} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -521,7 +536,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                         <FormItem>
                           <FormLabel>Date d'entrée</FormLabel>
                           <FormControl>
-                            <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
+                            <Input 
+                              type={isClient && isMobile ? 'text' : 'date'}
+                              placeholder="AAAA-MM-JJ" 
+                              {...field} 
+                              value={field.value ?? ''} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -534,7 +554,12 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           <FormItem>
                             <FormLabel>Date de sortie (optionnel)</FormLabel>
                             <FormControl>
-                              <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
+                              <Input 
+                                type={isClient && isMobile ? 'text' : 'date'}
+                                placeholder="AAAA-MM-JJ" 
+                                {...field} 
+                                value={field.value ?? ''} 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
