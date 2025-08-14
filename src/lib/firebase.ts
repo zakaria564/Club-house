@@ -1,33 +1,22 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
-// Your web app's Firebase configuration is read from environment variables
+// Your web app's Firebase configuration is now hardcoded
 const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyCifokPPqenjxnZstWn3cy9xiK6U_mywPE",
+  authDomain: "club-house-t50v6.firebaseapp.com",
+  projectId: "club-house-t50v6",
+  storageBucket: "club-house-t50v6.appspot.com",
+  messagingSenderId: "230928221464",
+  appId: "1:230928221464:web:af1bdad39ef776273d8a6d"
 };
 
-// Simple check to see if all required env vars are present
-const validateConfig = (config: FirebaseOptions) => {
-    const requiredKeys: (keyof FirebaseOptions)[] = ['apiKey', 'authDomain', 'projectId', 'storageBucket'];
-    for (const key of requiredKeys) {
-        if (!config[key]) {
-            throw new Error(`Firebase configuration is missing '${key}'. Please check your environment variables.`);
-        }
-    }
-    return config;
-}
-
 // Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(validateConfig(firebaseConfig)) : getApp();
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
