@@ -192,7 +192,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    <Input {...field} placeholder="URL de la photo..." disabled />
+                                    <Input {...field} placeholder="URL de la photo..." />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

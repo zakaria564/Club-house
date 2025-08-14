@@ -249,7 +249,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             render={({ field }) => (
                                 <FormItem>
                                     <FormControl>
-                                        <Input {...field} placeholder="URL de la photo..." disabled />
+                                        <Input {...field} placeholder="URL de la photo..." />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -443,7 +443,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             render={({ field }) => (
                                 <FormItem>
                                     <FormControl>
-                                        <Input {...field} placeholder="URL du certificat..." disabled />
+                                        <Input {...field} placeholder="URL du certificat..." />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
