@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import {
   SidebarHeader,
   SidebarContent,
@@ -35,13 +36,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged, type User } from "firebase/auth";
 
 
 export function MainSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
+  const [user, setUser] = React.useState<User | null>(null);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        // User is signed out
+        setUser(null);
+        // Optional: redirect to login if not on an auth page
+        if (pathname !== '/login' && pathname !== '/signup') {
+            router.push('/login');
+        }
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [router, pathname]);
+
 
   const isActive = (path: string) => {
     return pathname === path || (path !== "/" && pathname.startsWith(path));
@@ -60,6 +81,11 @@ export function MainSidebar() {
       // You could add a toast notification here for the user
     }
   };
+
+  const getInitials = (email: string | null | undefined) => {
+    if (!email) return '..';
+    return email.substring(0, 2).toUpperCase();
+  }
 
   return (
     <>
@@ -168,12 +194,12 @@ export function MainSidebar() {
             <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sidebar-accent cursor-pointer w-full">
                 <div className="flex items-center gap-3 overflow-hidden">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://placehold.co/100x100.png" alt="@shadcn" data-ai-hint="manager profile" />
-                    <AvatarFallback>AD</AvatarFallback>
+                    <AvatarImage src={user?.photoURL || undefined} alt="User avatar" />
+                    <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-sm font-medium truncate">Alex Durand</span>
-                    <span className="text-sm text-muted-foreground truncate">Gérant</span>
+                    <span className="text-sm font-medium truncate">{user?.email || "Chargement..."}</span>
+                    <span className="text-sm text-muted-foreground truncate">Utilisateur</span>
                   </div>
                 </div>
                 <MoreHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
