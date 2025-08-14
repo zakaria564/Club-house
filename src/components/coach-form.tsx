@@ -96,37 +96,27 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
-  const [photoPreview, setPhotoPreview] = React.useState(coach?.photoUrl || '');
-  
-  const defaultValues = React.useMemo(() => {
-    const c = coach;
-    return {
-      id: c?.id || getNextId(coaches),
-      firstName: c?.firstName || '',
-      lastName: c?.lastName || '',
-      email: c?.email || '',
-      phone: c?.phone || '',
-      specialty: c?.specialty || '',
-      photoUrl: c?.photoUrl || '',
-      gender: c?.gender || "Homme" as const,
-      age: c?.age || '' as any,
-      country: c?.country || '',
-      city: c?.city || '',
-      clubEntryDate: dateToInputFormat(c?.clubEntryDate),
-      clubExitDate: dateToInputFormat(c?.clubExitDate),
-    };
-  }, [coach, coaches]);
-
   const form = useForm<CoachFormValues>({
     resolver: zodResolver(coachFormSchema),
-    defaultValues,
+    defaultValues: {
+      id: coach?.id || getNextId(coaches),
+      firstName: coach?.firstName || '',
+      lastName: coach?.lastName || '',
+      email: coach?.email || '',
+      phone: coach?.phone || '',
+      specialty: coach?.specialty || '',
+      photoUrl: coach?.photoUrl || '',
+      gender: coach?.gender || "Homme" as const,
+      age: coach?.age || '' as any,
+      country: coach?.country || '',
+      city: coach?.city || '',
+      clubEntryDate: dateToInputFormat(coach?.clubEntryDate),
+      clubExitDate: dateToInputFormat(coach?.clubExitDate),
+    },
     mode: "onChange",
   });
   
-  React.useEffect(() => {
-    form.reset(defaultValues);
-    setPhotoPreview(defaultValues.photoUrl);
-  }, [defaultValues, form]);
+  const [photoPreview, setPhotoPreview] = React.useState(form.getValues('photoUrl'));
 
  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -403,5 +393,3 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       </Form>
   )
 }
-
-    

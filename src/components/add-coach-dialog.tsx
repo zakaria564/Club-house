@@ -31,6 +31,7 @@ export default function AddCoachDialog({ open, onOpenChange, coach, onCoachUpdat
         </DialogHeader>
         <div className="flex-grow overflow-y-auto pr-6 -mr-6">
             <CoachForm 
+              key={coach?.id || 'new'}
               onFinished={() => onOpenChange(false)} 
               coach={coach}
               onSave={onCoachUpdate}

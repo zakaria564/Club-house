@@ -31,6 +31,7 @@ export default function AddPlayerDialog({ open, onOpenChange, player, onPlayerUp
         </DialogHeader>
         <div className="flex-grow overflow-y-auto pr-6 -mr-6">
             <PlayerForm 
+              key={player?.id || 'new'}
               onFinished={() => onOpenChange(false)} 
               player={player}
               onSave={onPlayerUpdate}

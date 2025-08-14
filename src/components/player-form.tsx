@@ -108,47 +108,36 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
   
-  const [photoPreview, setPhotoPreview] = React.useState(player?.photoUrl || '');
-  const [certPreview, setCertPreview] = React.useState(player?.medicalCertificateUrl || '');
-  
-  const defaultValues = React.useMemo(() => {
-    const p = player;
-    return {
-      id: p?.id || getNextId(players),
-      firstName: p?.firstName || '',
-      lastName: p?.lastName || '',
-      gender: p?.gender || "Homme" as const,
-      email: p?.email || '',
-      dateOfBirth: dateToInputFormat(p?.dateOfBirth),
-      category: p?.category || '',
-      status: p?.status || 'En forme' as const,
-      photoUrl: p?.photoUrl || '',
-      address: p?.address || '',
-      city: p?.city || '',
-      country: p?.country || '',
-      phone: p?.phone || '',
-      guardianName: p?.guardianName || '',
-      guardianPhone: p?.guardianPhone || '',
-      position: p?.position || '',
-      playerNumber: p?.playerNumber || '' as any,
-      clubEntryDate: dateToInputFormat(p?.clubEntryDate),
-      clubExitDate: dateToInputFormat(p?.clubExitDate),
-      coachId: p?.coachId || null,
-      medicalCertificateUrl: p?.medicalCertificateUrl || '',
-    };
-  }, [player, players]);
-
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
-    defaultValues,
+    defaultValues: {
+      id: player?.id || getNextId(players),
+      firstName: player?.firstName || '',
+      lastName: player?.lastName || '',
+      gender: player?.gender || "Homme" as const,
+      email: player?.email || '',
+      dateOfBirth: dateToInputFormat(player?.dateOfBirth),
+      category: player?.category || '',
+      status: player?.status || 'En forme' as const,
+      photoUrl: player?.photoUrl || '',
+      address: player?.address || '',
+      city: player?.city || '',
+      country: player?.country || '',
+      phone: player?.phone || '',
+      guardianName: player?.guardianName || '',
+      guardianPhone: player?.guardianPhone || '',
+      position: player?.position || '',
+      playerNumber: player?.playerNumber || '' as any,
+      clubEntryDate: dateToInputFormat(player?.clubEntryDate),
+      clubExitDate: dateToInputFormat(player?.clubExitDate),
+      coachId: player?.coachId || null,
+      medicalCertificateUrl: player?.medicalCertificateUrl || '',
+    },
     mode: "onChange",
   });
-
-  React.useEffect(() => {
-    form.reset(defaultValues);
-    setPhotoPreview(defaultValues.photoUrl);
-    setCertPreview(defaultValues.medicalCertificateUrl);
-  }, [defaultValues, form]);
+  
+  const [photoPreview, setPhotoPreview] = React.useState(form.getValues('photoUrl'));
+  const [certPreview, setCertPreview] = React.useState(form.getValues('medicalCertificateUrl'));
   
   React.useEffect(() => {
     const storedCoachesRaw = localStorage.getItem('clubhouse-coaches');
@@ -610,5 +599,3 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
-
-    
