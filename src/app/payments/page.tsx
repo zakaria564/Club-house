@@ -152,8 +152,8 @@ function PaymentsPageContent() {
   }, []);
 
   const allMembers = React.useMemo(() => [
-    ...players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })),
-    ...coaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })),
+    ...players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, type: 'player' })),
+    ...coaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}`, type: 'coach' })),
   ], [players, coaches]);
   
   const handleMemberSelect = (memberId: string) => {
@@ -317,27 +317,44 @@ function PaymentsPageContent() {
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                             <Command filter={commandFilter}>
-                            <CommandInput placeholder="Rechercher un membre..." />
-                            <CommandList>
-                                <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
-                                <CommandGroup>
-                                {allMembers.map((member) => (
-                                    <CommandItem
-                                    key={member.id}
-                                    value={member.name}
-                                    onSelect={() => handleMemberSelect(member.id)}
-                                    >
-                                    <Check
-                                        className={cn(
-                                        "mr-2 h-4 w-4",
-                                        selectedMemberId === member.id ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    {member.name}
-                                    </CommandItem>
-                                ))}
-                                </CommandGroup>
-                            </CommandList>
+                                <CommandInput placeholder="Rechercher un membre..." />
+                                <CommandList>
+                                    <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
+                                    <CommandGroup heading="Joueurs">
+                                    {players.map((player) => (
+                                        <CommandItem
+                                        key={`player-${player.id}`}
+                                        value={player.firstName + " " + player.lastName}
+                                        onSelect={() => handleMemberSelect(player.id)}
+                                        >
+                                        <Check
+                                            className={cn(
+                                            "mr-2 h-4 w-4",
+                                            selectedMemberId === player.id ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {player.firstName} {player.lastName}
+                                        </CommandItem>
+                                    ))}
+                                    </CommandGroup>
+                                    <CommandGroup heading="Entraîneurs">
+                                    {coaches.map((coach) => (
+                                        <CommandItem
+                                        key={`coach-${coach.id}`}
+                                        value={coach.firstName + " " + coach.lastName}
+                                        onSelect={() => handleMemberSelect(coach.id)}
+                                        >
+                                        <Check
+                                            className={cn(
+                                            "mr-2 h-4 w-4",
+                                            selectedMemberId === coach.id ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {coach.firstName} {coach.lastName}
+                                        </CommandItem>
+                                    ))}
+                                    </CommandGroup>
+                                </CommandList>
                             </Command>
                         </PopoverContent>
                     </Popover>
