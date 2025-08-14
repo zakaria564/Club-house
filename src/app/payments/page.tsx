@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { PaymentMobileCard } from "@/components/payment-mobile-card"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
@@ -239,51 +240,51 @@ function PaymentsPageContent() {
                </div>
             </div>
         </CardHeader>
-         <CardContent>
-            <Tabs defaultValue="all-status">
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-sm sm:w-auto mb-4">
-                <TabsTrigger value="all-status">Tous</TabsTrigger>
-                <TabsTrigger value="paid">Payé</TabsTrigger>
-                <TabsTrigger value="pending">En attente</TabsTrigger>
-                <TabsTrigger value="overdue">En retard</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all-status">
-                <PaymentTable 
-                    payments={filteredPayments} 
-                    statusTranslations={statusTranslations} 
-                    onMarkAsPaid={handleMarkAsPaid} 
-                    onViewMember={handleViewMember}
-                    onPrintReceipt={handlePrintReceipt}
-                />
-                </TabsContent>
-                <TabsContent value="paid">
-                <PaymentTable 
-                    payments={filteredPayments.filter(p => p.status === 'Paid')} 
-                    statusTranslations={statusTranslations}
-                    onMarkAsPaid={handleMarkAsPaid} 
-                    onViewMember={handleViewMember}
-                    onPrintReceipt={handlePrintReceipt}
-                />
-                </TabsContent>
-                <TabsContent value="pending">
-                <PaymentTable 
-                    payments={filteredPayments.filter(p => p.status === 'Pending')} 
-                    statusTranslations={statusTranslations}
-                    onMarkAsPaid={handleMarkAsPaid} 
-                    onViewMember={handleViewMember}
-                    onPrintReceipt={handlePrintReceipt}
-                />
-                </TabsContent>
-                <TabsContent value="overdue">
-                <PaymentTable 
-                    payments={filteredPayments.filter(p => p.status === 'Overdue')} 
-                    statusTranslations={statusTranslations} 
-                    onMarkAsPaid={handleMarkAsPaid} 
-                    onViewMember={handleViewMember}
-                    onPrintReceipt={handlePrintReceipt}
-                />
-                </TabsContent>
-            </Tabs>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
+          <Tabs defaultValue="all-status">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-sm sm:w-auto mb-4 px-2 sm:px-0">
+              <TabsTrigger value="all-status">Tous</TabsTrigger>
+              <TabsTrigger value="paid">Payé</TabsTrigger>
+              <TabsTrigger value="pending">En attente</TabsTrigger>
+              <TabsTrigger value="overdue">En retard</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all-status">
+              <PaymentTable 
+                  payments={filteredPayments} 
+                  statusTranslations={statusTranslations} 
+                  onMarkAsPaid={handleMarkAsPaid} 
+                  onViewMember={handleViewMember}
+                  onPrintReceipt={handlePrintReceipt}
+              />
+              </TabsContent>
+              <TabsContent value="paid">
+              <PaymentTable 
+                  payments={filteredPayments.filter(p => p.status === 'Paid')} 
+                  statusTranslations={statusTranslations}
+                  onMarkAsPaid={handleMarkAsPaid} 
+                  onViewMember={handleViewMember}
+                  onPrintReceipt={handlePrintReceipt}
+              />
+              </TabsContent>
+              <TabsContent value="pending">
+              <PaymentTable 
+                  payments={filteredPayments.filter(p => p.status === 'Pending')} 
+                  statusTranslations={statusTranslations}
+                  onMarkAsPaid={handleMarkAsPaid} 
+                  onViewMember={handleViewMember}
+                  onPrintReceipt={handlePrintReceipt}
+              />
+              </TabsContent>
+              <TabsContent value="overdue">
+              <PaymentTable 
+                  payments={filteredPayments.filter(p => p.status === 'Overdue')} 
+                  statusTranslations={statusTranslations} 
+                  onMarkAsPaid={handleMarkAsPaid} 
+                  onViewMember={handleViewMember}
+                  onPrintReceipt={handlePrintReceipt}
+              />
+              </TabsContent>
+          </Tabs>
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
@@ -313,79 +314,97 @@ interface PaymentTableProps {
 
 function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember, onPrintReceipt }: PaymentTableProps) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Membre</TableHead>
-          <TableHead className="hidden sm:table-cell">Statut</TableHead>
-          <TableHead className="hidden lg:table-cell">Mois du paiement</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-          <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
-          <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
-          <TableHead>
-            <span className="sr-only">Actions</span>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Mobile View */}
+      <div className="sm:hidden space-y-2 p-2">
         {payments.map(payment => (
-          <TableRow key={payment.id} onClick={() => onViewMember(payment.memberId, payment.paymentType)} className="cursor-pointer">
-            <TableCell>
-              <div className="font-medium">{payment.memberName}</div>
-              <div className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</div>
-            </TableCell>
-            <TableCell className="hidden sm:table-cell">
-              <Badge 
-                className={cn({
-                  'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
-                  'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
-                  'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
-                })}
-              >
-                {statusTranslations[payment.status]}
-              </Badge>
-            </TableCell>
-            <TableCell className="hidden lg:table-cell capitalize">
-              {format(payment.date, 'MMMM yyyy', { locale: fr })}
-            </TableCell>
-            <TableCell className="text-right">
-              {payment.totalAmount.toFixed(2)} DH
-            </TableCell>
-            <TableCell className="hidden md:table-cell text-right">
-              {payment.advance.toFixed(2)} DH
-            </TableCell>
-            <TableCell className="hidden md:table-cell text-right">
-              {payment.remaining.toFixed(2)} DH
-            </TableCell>
-            <TableCell onClick={(e) => e.stopPropagation()}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    aria-haspopup="true"
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Ouvrir le menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.paymentType)}>Voir le profil</DropdownMenuItem>
-                  {payment.status !== 'Paid' && (
-                    <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Imprimer le reçu
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
+          <PaymentMobileCard
+            key={payment.id}
+            payment={payment}
+            statusTranslations={statusTranslations}
+            onMarkAsPaid={onMarkAsPaid}
+            onViewMember={onViewMember}
+            onPrintReceipt={onPrintReceipt}
+          />
         ))}
-      </TableBody>
-    </Table>
+      </div>
+      {/* Desktop View */}
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Membre</TableHead>
+              <TableHead className="hidden sm:table-cell">Statut</TableHead>
+              <TableHead className="hidden lg:table-cell">Mois du paiement</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+              <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
+              <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
+              <TableHead>
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {payments.map(payment => (
+              <TableRow key={payment.id} onClick={() => onViewMember(payment.memberId, payment.paymentType)} className="cursor-pointer">
+                <TableCell>
+                  <div className="font-medium">{payment.memberName}</div>
+                  <div className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</div>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <Badge 
+                    className={cn({
+                      'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
+                      'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
+                      'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
+                    })}
+                  >
+                    {statusTranslations[payment.status]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="hidden lg:table-cell capitalize">
+                  {format(payment.date, 'MMMM yyyy', { locale: fr })}
+                </TableCell>
+                <TableCell className="text-right">
+                  {payment.totalAmount.toFixed(2)} DH
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right">
+                  {payment.advance.toFixed(2)} DH
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right">
+                  {payment.remaining.toFixed(2)} DH
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        aria-haspopup="true"
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Ouvrir le menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.paymentType)}>Voir le profil</DropdownMenuItem>
+                      {payment.status !== 'Paid' && (
+                        <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Imprimer le reçu
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   )
 }
 

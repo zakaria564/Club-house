@@ -26,6 +26,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { CoachMobileCard } from "@/components/coach-mobile-card"
 
 
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
@@ -204,71 +205,90 @@ export default function CoachesPage() {
             />
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead className="hidden sm:table-cell">Spécialité</TableHead>
-                <TableHead className="hidden md:table-cell">Contact</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCoaches.map(coach => (
-                <TableRow key={coach.id} onClick={() => handleViewCoach(coach.id)} className="cursor-pointer">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                         <AvatarImage src={coach.photoUrl} alt={coach.firstName} data-ai-hint="coach profile" />
-                         <AvatarFallback>{coach.firstName?.[0]}{coach.lastName?.[0]}</AvatarFallback>
-                      </Avatar>
-                       <div className="font-medium">{coach.firstName} {coach.lastName}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <Badge variant="secondary">{coach.specialty}</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="font-medium truncate hover:underline">{coach.email}</a>
-                    <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-sm text-muted-foreground hover:underline">{coach.phone}</a>
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Ouvrir le menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEditCoach(coach)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}>
-                            <DollarSign className="mr-2 h-4 w-4" />
-                            Voir les paiements
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                  </TableCell>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
+          {/* Mobile View */}
+          <div className="sm:hidden space-y-2 p-2">
+            {filteredCoaches.map(coach => (
+              <CoachMobileCard
+                key={coach.id}
+                coach={coach}
+                onViewCoach={handleViewCoach}
+                onEditCoach={handleEditCoach}
+                onViewPayments={handleViewPayments}
+                onDeleteInitiate={handleDeleteInitiate}
+              />
+            ))}
+          </div>
+
+          {/* Desktop View */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead className="hidden sm:table-cell">Spécialité</TableHead>
+                  <TableHead className="hidden md:table-cell">Contact</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredCoaches.map(coach => (
+                  <TableRow key={coach.id} onClick={() => handleViewCoach(coach.id)} className="cursor-pointer">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={coach.photoUrl} alt={coach.firstName} data-ai-hint="coach profile" />
+                          <AvatarFallback>{coach.firstName?.[0]}{coach.lastName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge variant="secondary">{coach.specialty}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex flex-col">
+                        <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="font-medium truncate hover:underline">{coach.email}</a>
+                        <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-sm text-muted-foreground hover:underline">{coach.phone}</a>
+                      </div>
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup="true"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Ouvrir le menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEditCoach(coach)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}>
+                              <DollarSign className="mr-2 h-4 w-4" />
+                              Voir les paiements
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
         <CardFooter>
             <div className="text-xs text-muted-foreground">
