@@ -1,9 +1,5 @@
-// These are development rules. Anyone can read, write, and delete any
-// data in your project. You should secure your database before
-// launching your app.
-//
-// For more information, see: https://firebase.google.com/docs/rules
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
