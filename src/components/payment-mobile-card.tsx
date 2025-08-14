@@ -43,7 +43,7 @@ export function PaymentMobileCard({
         <div className="flex flex-col">
           <h3 className="font-semibold text-base leading-tight truncate">{payment.memberName}</h3>
           <p className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</p>
-          <p className="text-xs text-muted-foreground capitalize">{format(payment.date, "MMMM yyyy", { locale: fr })}</p>
+          <p className="text-xs text-muted-foreground capitalize">{format(payment.date, "PPP", { locale: fr })}</p>
         </div>
         <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>

@@ -208,7 +208,7 @@ export default function CoachDetailPage() {
                             payments.map(payment => (
                                 <div key={payment.id} className="border rounded-lg p-3 text-sm">
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="font-semibold capitalize">{format(payment.date, "MMMM yyyy", { locale: fr })}</span>
+                                        <span className="font-semibold capitalize">{format(payment.date, "PPP", { locale: fr })}</span>
                                         <Badge
                                             className={cn({
                                                 'bg-green-100 text-green-800 border-green-200': payment.status === 'Paid',
@@ -245,7 +245,7 @@ export default function CoachDetailPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Mois du Paiement</TableHead>
+                                    <TableHead>Date du Paiement</TableHead>
                                     <TableHead>Statut</TableHead>
                                     <TableHead className="text-right">Montant Total</TableHead>
                                     <TableHead className="text-right">Avance</TableHead>
@@ -256,7 +256,7 @@ export default function CoachDetailPage() {
                                 {payments.length > 0 ? (
                                     payments.map(payment => (
                                         <TableRow key={payment.id}>
-                                            <TableCell className="capitalize">{format(payment.date, 'MMMM yyyy', { locale: fr })}</TableCell>
+                                            <TableCell className="capitalize">{format(payment.date, 'PPP', { locale: fr })}</TableCell>
                                             <TableCell>
                                                 <Badge
                                                     className={cn({

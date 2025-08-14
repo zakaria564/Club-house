@@ -382,7 +382,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
             <TableRow>
               <TableHead>Membre</TableHead>
               <TableHead className="hidden sm:table-cell">Statut</TableHead>
-              <TableHead className="hidden lg:table-cell">Mois du paiement</TableHead>
+              <TableHead className="hidden lg:table-cell">Date du paiement</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
               <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
@@ -410,7 +410,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
                   </Badge>
                 </TableCell>
                 <TableCell className="hidden lg:table-cell capitalize">
-                  {format(payment.date, 'MMMM yyyy', { locale: fr })}
+                  {format(payment.date, 'PPP', { locale: fr })}
                 </TableCell>
                 <TableCell className="text-right">
                   {payment.totalAmount.toFixed(2)} DH
