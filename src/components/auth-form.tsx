@@ -26,13 +26,14 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  type AuthError
 } from "firebase/auth";
 
 
 const formSchema = z.object({
   email: z.string().email({ message: "Adresse e-mail invalide." }),
-  password: z.string().min(6, "Le mot de passe doit comporter au moins 6 caractères."),
+  password: z.string().min(6, { message: "Le mot de passe doit comporter au moins 6 caractères." }),
 });
 
 type UserFormValues = z.infer<typeof formSchema>
@@ -55,6 +56,50 @@ export function AuthForm({ mode }: AuthFormProps) {
     mode: "onChange",
   });
   
+  const handleAuthError = (error: AuthError) => {
+    let title = "Erreur d'authentification";
+    let description = "Une erreur inconnue est survenue. Veuillez réessayer.";
+
+    switch (error.code) {
+      case 'auth/email-already-in-use':
+        title = "Erreur d'inscription";
+        description = 'Cette adresse e-mail est déjà utilisée par un autre compte.';
+        break;
+      case 'auth/invalid-email':
+        title = "Email invalide";
+        description = "L'adresse e-mail n'est pas au bon format.";
+        break;
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        title = "Erreur de connexion";
+        description = 'Email ou mot de passe incorrect.';
+        break;
+      case 'auth/weak-password':
+        title = "Mot de passe faible";
+        description = 'Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.';
+        break;
+       case 'auth/operation-not-allowed':
+        title = "Opération non autorisée";
+        description = "Le mode de connexion par e-mail/mot de passe n'est pas activé dans la console Firebase.";
+        break;
+      case 'auth/popup-closed-by-user':
+        title = "Connexion annulée";
+        description = "La fenêtre de connexion Google a été fermée avant la fin de l'opération.";
+        return; // Don't show a destructive toast for this
+      default:
+        console.error("Firebase Auth Error:", error);
+        description = error.message;
+        break;
+    }
+
+    toast({
+      variant: "destructive",
+      title: title,
+      description: description,
+    });
+  }
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
@@ -65,12 +110,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         description: "Vous êtes maintenant connecté avec Google.",
       });
       router.push("/");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur de connexion Google",
-        description: error.message,
-      });
+    } catch (error) {
+      handleAuthError(error as AuthError);
     } finally {
       setIsLoading(false);
     }
@@ -94,24 +135,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         });
       }
       router.push('/');
-    } catch (error: any) {
-      const errorCode = error.code;
-      let errorMessage = error.message;
-
-      // Customize messages for common errors
-      if (errorCode === 'auth/email-already-in-use') {
-        errorMessage = 'Cette adresse e-mail est déjà utilisée par un autre compte.';
-      } else if (errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password' || errorCode === 'auth/invalid-credential') {
-        errorMessage = 'Email ou mot de passe incorrect.';
-      } else if (errorCode === 'auth/weak-password') {
-        errorMessage = 'Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.';
-      }
-      
-      toast({
-        variant: "destructive",
-        title: mode === 'signup' ? "Erreur d'inscription" : "Erreur de connexion",
-        description: errorMessage,
-      });
+    } catch (error) {
+      handleAuthError(error as AuthError);
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +152,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="nom@exemple.com" {...field} />
+                <Input type="email" placeholder="nom@exemple.com" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -140,7 +165,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
