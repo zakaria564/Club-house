@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from 'react';
-import { MoreHorizontal, Printer, CircleDollarSign } from 'lucide-react';
+import { MoreHorizontal, Printer, CircleDollarSign, Trash2 } from 'lucide-react';
 import { Payment } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,7 @@ interface PaymentMobileCardProps {
   onMarkAsPaid: (paymentId: string) => void;
   onViewMember: (memberId: string, paymentType: 'membership' | 'salary') => void;
   onPrintReceipt: (paymentId: string) => void;
+  onDelete: (paymentId: string) => void;
 }
 
 export function PaymentMobileCard({
@@ -30,6 +32,7 @@ export function PaymentMobileCard({
   onMarkAsPaid,
   onViewMember,
   onPrintReceipt,
+  onDelete,
 }: PaymentMobileCardProps) {
   return (
     <div
@@ -59,6 +62,11 @@ export function PaymentMobileCard({
                     <Printer className="mr-2 h-4 w-4" />
                     Imprimer le reçu
                   </DropdownMenuItem>
+                   <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => onDelete(payment.id)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -81,4 +89,3 @@ export function PaymentMobileCard({
     </div>
   );
 }
-

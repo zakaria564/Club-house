@@ -2,12 +2,12 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
 import { payments as initialPayments, players as initialPlayers, coaches as initialCoaches } from "@/lib/mock-data"
@@ -21,6 +21,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { PaymentMobileCard } from "@/components/payment-mobile-card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
 const LOCAL_STORAGE_COACHES_KEY = 'clubhouse-coaches';
@@ -80,6 +90,7 @@ function PaymentsPageContent() {
   const memberId = searchParams.get('memberId')
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
+  const [paymentToDelete, setPaymentToDelete] = React.useState<string | null>(null);
   const [paymentTypeFilter, setPaymentTypeFilter] = React.useState<'all' | 'membership' | 'salary'>('all');
   
   const [players, setPlayers] = React.useState<Player[]>([]);
@@ -181,6 +192,22 @@ function PaymentsPageContent() {
     })
   }
 
+  const handleDeleteInitiate = (paymentId: string) => {
+    setPaymentToDelete(paymentId);
+  }
+
+  const handleDeleteConfirm = () => {
+    if (!paymentToDelete) return;
+    const newPayments = payments.filter(p => p.id !== paymentToDelete);
+    setPayments(newPayments);
+    localStorage.setItem(LOCAL_STORAGE_PAYMENTS_KEY, JSON.stringify(newPayments));
+    toast({
+      title: "Paiement supprimé",
+      description: "La transaction a été supprimée avec succès.",
+    });
+    setPaymentToDelete(null);
+  };
+
   const handleViewMember = (memberId: string, paymentType: 'membership' | 'salary') => {
     const path = paymentType === 'membership' ? 'players' : 'coaches';
     router.push(`/${path}/${memberId}`);
@@ -255,6 +282,7 @@ function PaymentsPageContent() {
                   onMarkAsPaid={handleMarkAsPaid} 
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
+                  onDelete={handleDeleteInitiate}
               />
               </TabsContent>
               <TabsContent value="paid">
@@ -264,6 +292,7 @@ function PaymentsPageContent() {
                   onMarkAsPaid={handleMarkAsPaid} 
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
+                  onDelete={handleDeleteInitiate}
               />
               </TabsContent>
               <TabsContent value="pending">
@@ -273,6 +302,7 @@ function PaymentsPageContent() {
                   onMarkAsPaid={handleMarkAsPaid} 
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
+                  onDelete={handleDeleteInitiate}
               />
               </TabsContent>
               <TabsContent value="overdue">
@@ -282,6 +312,7 @@ function PaymentsPageContent() {
                   onMarkAsPaid={handleMarkAsPaid} 
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
+                  onDelete={handleDeleteInitiate}
               />
               </TabsContent>
           </Tabs>
@@ -299,6 +330,20 @@ function PaymentsPageContent() {
         players={players}
         coaches={coaches}
        />
+       <AlertDialog open={!!paymentToDelete} onOpenChange={(open) => !open && setPaymentToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Elle supprimera définitivement cette transaction.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setPaymentToDelete(null)}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteConfirm}>Supprimer</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
@@ -309,10 +354,11 @@ interface PaymentTableProps {
   onMarkAsPaid: (paymentId: string) => void;
   onViewMember: (memberId: string, paymentType: 'membership' | 'salary') => void;
   onPrintReceipt: (paymentId: string) => void;
+  onDelete: (paymentId: string) => void;
 }
 
 
-function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember, onPrintReceipt }: PaymentTableProps) {
+function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember, onPrintReceipt, onDelete }: PaymentTableProps) {
   return (
     <>
       {/* Mobile View */}
@@ -325,6 +371,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
             onMarkAsPaid={onMarkAsPaid}
             onViewMember={onViewMember}
             onPrintReceipt={onPrintReceipt}
+            onDelete={onDelete}
           />
         ))}
       </div>
@@ -395,6 +442,11 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
                       <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
                         <Printer className="mr-2 h-4 w-4" />
                         Imprimer le reçu
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => onDelete(payment.id)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Supprimer
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
