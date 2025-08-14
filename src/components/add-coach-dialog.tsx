@@ -22,7 +22,7 @@ interface AddCoachDialogProps {
 export default function AddCoachDialog({ open, onOpenChange, coach, onCoachUpdate, coaches }: AddCoachDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col no-print">
+      <DialogContent className="sm:max-w-7xl max-h-[90vh] flex flex-col no-print">
         <DialogHeader>
           <DialogTitle className="font-headline">{coach ? "Modifier l'entraîneur" : 'Ajouter un nouvel entraîneur'}</DialogTitle>
           <DialogDescription>
