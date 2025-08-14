@@ -107,6 +107,9 @@ export default function CoachDetailPage() {
   if (!coach) {
     return <div>Chargement du profil de l'entraîneur...</div>;
   }
+
+  const fullAddress = `${coach.city}, ${coach.country}`;
+  const encodedAddress = encodeURIComponent(fullAddress);
   
   return (
     <>
@@ -159,10 +162,10 @@ export default function CoachDetailPage() {
                     <User className="w-4 h-4 text-muted-foreground" />
                     <span>{coach.age ? `${coach.age} ans` : 'N/A'} ({coach.gender})</span>
                   </div>
-                  <div className="flex items-center gap-3 col-span-full">
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 col-span-full hover:underline">
                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                     <span>{coach.city}, {coach.country}</span>
-                  </div>
+                  </a>
                 </div>
               </div>
             <div className="space-y-4">
@@ -299,5 +302,3 @@ export default function CoachDetailPage() {
     </>
   );
 }
-
-    

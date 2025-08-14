@@ -138,6 +138,9 @@ export default function PlayerDetailPage() {
     return <div>Chargement du profil du joueur...</div>;
   }
 
+  const fullAddress = `${player.address}, ${player.city}, ${player.country}`;
+  const encodedAddress = encodeURIComponent(fullAddress);
+
   return (
     <>
       <div className="no-print">
@@ -190,7 +193,10 @@ export default function PlayerDetailPage() {
                     <span className="font-medium">Nationalité:</span>
                     <span>{player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country}</span>
                     <span className="font-medium">Adresse:</span>
-                    <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {`${player.address}, ${player.city}`}</span>
+                     <a href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 hover:underline">
+                      <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+                      <span>{`${player.address}, ${player.city}`}</span>
+                    </a>
                     <span className="font-medium">Téléphone:</span>
                     <a href={`tel:${player.phone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.phone}</a>
                     <span className="font-medium">Email:</span>
@@ -373,5 +379,3 @@ export default function PlayerDetailPage() {
     </>
   );
 }
-
-    

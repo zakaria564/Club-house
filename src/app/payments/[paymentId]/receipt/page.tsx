@@ -65,7 +65,7 @@ const ReceiptPage = () => {
                 setMember({
                     name: `${currentPlayer.firstName} ${currentPlayer.lastName}`,
                     address: currentPlayer.address,
-                    city: currentPlayer.city,
+                    city: `${currentPlayer.city}, ${currentPlayer.country}`,
                     phone: currentPlayer.phone,
                     email: currentPlayer.email,
                 })
@@ -80,7 +80,7 @@ const ReceiptPage = () => {
                 setMember({
                     name: `${currentCoach.firstName} ${currentCoach.lastName}`,
                     address: `${currentCoach.city}, ${currentCoach.country}`,
-                    city: currentCoach.city,
+                    city: `${currentCoach.city}, ${currentCoach.country}`,
                     phone: currentCoach.phone,
                     email: currentCoach.email,
                 })
@@ -120,8 +120,11 @@ const ReceiptPage = () => {
 
   const isSalaryPayment = payment.paymentType === 'salary';
 
-  const payer = isSalaryPayment ? { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' } : member;
-  const payee = isSalaryPayment ? member : { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca', email: 'contact@clubcaos2011.ma', phone: '' };
+  const payer = isSalaryPayment ? { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca, Maroc', email: 'contact@clubcaos2011.ma', phone: '' } : member;
+  const payee = isSalaryPayment ? member : { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca, Maroc', email: 'contact@clubcaos2011.ma', phone: '' };
+
+  const payerEncodedAddress = encodeURIComponent(`${payer.address}, ${payer.city}`);
+  const payeeEncodedAddress = encodeURIComponent(`${payee.address}, ${payee.city}`);
 
   return (
     <div className="bg-white text-black font-sans printable-area flex items-center justify-center min-h-screen">
@@ -143,18 +146,22 @@ const ReceiptPage = () => {
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-2">Payé par :</h3>
             <p className="font-bold">{payer.name}</p>
-            <p>{payer.address}</p>
-            <p>{payer.city}</p>
-            {payer.phone && <p>{payer.phone}</p>}
-            <p>{payer.email}</p>
+            <a href={`https://www.google.com/maps/search/?api=1&query=${payerEncodedAddress}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                <p>{payer.address}</p>
+                <p>{payer.city}</p>
+            </a>
+            {payer.phone && <a href={`tel:${payer.phone}`} className="hover:underline"><p>{payer.phone}</p></a>}
+            <a href={`mailto:${payer.email}`} className="hover:underline"><p>{payer.email}</p></a>
           </div>
           <div className={isSalaryPayment ? "" : "text-right"}>
              <h3 className="text-lg font-semibold text-gray-700 mb-2">Payé à :</h3>
              <p className="font-bold">{payee.name}</p>
-             <p>{payee.address}</p>
-             <p>{payee.city}</p>
-             {payee.phone && <p>{payee.phone}</p>}
-             <p>{payee.email}</p>
+             <a href={`https://www.google.com/maps/search/?api=1&query=${payeeEncodedAddress}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                <p>{payee.address}</p>
+                <p>{payee.city}</p>
+             </a>
+             {payee.phone && <a href={`tel:${payee.phone}`} className="hover:underline"><p>{payee.phone}</p></a>}
+             <a href={`mailto:${payee.email}`} className="hover:underline"><p>{payee.email}</p></a>
           </div>
         </section>
 
