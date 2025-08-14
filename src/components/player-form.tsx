@@ -114,11 +114,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       id: p?.id || getNextId(players),
       firstName: p?.firstName || '',
       lastName: p?.lastName || '',
-      gender: p?.gender || "Homme",
+      gender: p?.gender || "Homme" as const,
       email: p?.email || '',
       dateOfBirth: dateToInputFormat(p?.dateOfBirth),
       category: p?.category || '',
-      status: p?.status || 'En forme',
+      status: p?.status || 'En forme' as const,
       photoUrl: p?.photoUrl || '',
       address: p?.address || '',
       city: p?.city || '',
@@ -233,7 +233,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-8">
           <div className="space-y-8">
               <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                 <div className="flex flex-col items-center gap-4">
+                 <div className="flex flex-col items-center gap-4 flex-shrink-0">
                     <Avatar className="h-32 w-32">
                       <AvatarImage src={photoPreview} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback className="text-3xl">
@@ -243,7 +243,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                     </Avatar>
                      <Button type="button" variant="outline" size="sm" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
                         {isUploadingPhoto ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                        {photoPreview ? 'Changer la photo' : 'Télécharger'}
+                        Télécharger
                       </Button>
                       <input type="file" ref={photoInputRef} onChange={onPhotoChange} className="hidden" accept="image/*" />
                  </div>
@@ -305,7 +305,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                             <FormItem>
                               <FormLabel>Date de naissance</FormLabel>
                               <FormControl>
-                                <Input type="date" placeholder="JJ/MM/AAAA" {...field} />
+                                <Input type="date" placeholder="JJ/MM/AAAA" {...field} value={field.value ?? ''} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -317,9 +317,8 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
 
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Coordonnées</h3>
+                <h3 className="text-lg font-medium">Coordonnées & Documents</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    
                     <FormField
                       control={form.control}
                       name="email"
@@ -350,7 +349,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                       control={form.control}
                       name="address"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="sm:col-span-2">
                           <FormLabel>Adresse</FormLabel>
                           <FormControl>
                             <Input placeholder="123 Rue de la République" {...field} />
@@ -385,6 +384,41 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           </FormItem>
                         )}
                       />
+                    <FormField
+                        control={form.control}
+                        name="photoUrl"
+                        render={({ field }) => (
+                            <FormItem className="sm:col-span-2">
+                                <FormLabel>URL de la photo</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Coller l'URL de l'image ici..."
+                                        {...field}
+                                        onChange={(e) => {
+                                            field.onChange(e);
+                                            setPhotoPreview(e.target.value);
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <div className="sm:col-span-2 space-y-2">
+                        <FormLabel>Certificat médical</FormLabel>
+                         <div className="flex gap-2">
+                            <Button type="button" variant="outline" onClick={() => certInputRef.current?.click()} disabled={isUploadingCert} className="w-full justify-center">
+                                {isUploadingCert ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2 h-4 w-4" />}
+                                Télécharger le certificat
+                            </Button>
+                        </div>
+                        {certPreview && (
+                          <div className="text-sm text-center text-green-600 mt-2">
+                            Certificat téléchargé. <a href={certPreview} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
+                          </div>
+                        )}
+                        <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
+                 </div>
                 </div>
               </div>
 
@@ -421,25 +455,6 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Documents</h3>
-                 <div className="space-y-2">
-                        <FormLabel>Certificat médical</FormLabel>
-                         <div className="flex gap-2">
-                            <Button type="button" variant="outline" onClick={() => certInputRef.current?.click()} disabled={isUploadingCert} className="w-full justify-center">
-                                {isUploadingCert ? <Loader2 className="animate-spin mr-2" /> : <Upload className="mr-2 h-4 w-4" />}
-                                Télécharger le certificat
-                            </Button>
-                        </div>
-                        {certPreview && (
-                          <div className="text-sm text-center text-green-600 mt-2">
-                            Certificat téléchargé. <a href={certPreview} target="_blank" rel="noopener noreferrer" className="underline">Voir le fichier.</a>
-                          </div>
-                        )}
-                        <input type="file" ref={certInputRef} onChange={onCertChange} className="hidden" accept="image/*,application/pdf" />
-                 </div>
-              </div>
-
-              <div className="space-y-4">
                 <h3 className="text-lg font-medium">Données du Club</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
@@ -462,7 +477,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                           <FormItem>
                             <FormLabel>N° Joueur</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} />
+                              <Input type="number" placeholder="10" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -587,7 +602,7 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
                   </div>
               </div>
           </div>
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6">
+          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
             <Button type="submit">{player ? "Sauvegarder les modifications" : "Créer le joueur"}</Button>
           </div>

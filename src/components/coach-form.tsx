@@ -172,26 +172,41 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
-                <Avatar className="h-24 w-24">
-                    <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
-                    <AvatarFallback>
-                        {form.watch('firstName')?.[0]}
-                        {form.watch('lastName')?.[0]}
-                    </AvatarFallback>
-                </Avatar>
-                 <div className="w-full space-y-2">
-                  <FormLabel>Photo de l'entraîneur</FormLabel>
-                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full justify-center">
-                    {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
-                    {photoPreview ? "Changer la photo" : 'Télécharger une photo'}
-                  </Button>
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                <div className="flex flex-col items-center gap-4 flex-shrink-0">
+                    <Avatar className="h-32 w-32">
+                        <AvatarImage src={photoPreview} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarFallback className="text-3xl">
+                            {form.watch('firstName')?.[0]}
+                            {form.watch('lastName')?.[0]}
+                        </AvatarFallback>
+                    </Avatar>
+                     <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                        {isUploading ? <Loader2 className="animate-spin mr-2"/> : <Upload className="mr-2 h-4 w-4" />}
+                        Télécharger
+                      </Button>
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                 </div>
-            </div>
-
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium">Informations de l'entraîneur</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div className="w-full space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="photoUrl"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>URL de la photo</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Coller l'URL de l'image ici..."
+                                        {...field}
+                                        onChange={(e) => {
+                                            field.onChange(e);
+                                            setPhotoPreview(e.target.value);
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <FormField
                         control={form.control}
                         name="id"
@@ -205,6 +220,12 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                         </FormItem>
                         )}
                     />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium">Informations de l'entraîneur</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                     control={form.control}
                     name="specialty"
@@ -374,7 +395,7 @@ export function CoachForm({ onFinished, onSave, coach, coaches }: CoachFormProps
                 </div>
             </div>
 
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6">
+          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
             <Button type="submit">{coach ? "Sauvegarder les modifications" : "Créer l'entraîneur"}</Button>
           </div>
