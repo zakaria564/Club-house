@@ -25,8 +25,6 @@ import { auth } from "@/lib/firebase";
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
   type AuthError
 } from "firebase/auth";
 
@@ -63,7 +61,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     switch (error.code) {
       case 'auth/configuration-not-found':
         title = "Configuration requise";
-        description = "Le fournisseur de connexion (E-mail/Mot de passe, Google) doit être activé dans la console Firebase.";
+        description = "Le fournisseur de connexion (E-mail/Mot de passe) doit être activé dans la console Firebase.";
         break;
       case 'auth/email-already-in-use':
         title = "Erreur d'inscription";
@@ -103,24 +101,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       description: description,
     });
   }
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté avec Google.",
-      });
-      router.push("/");
-    } catch (error) {
-      handleAuthError(error as AuthError);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
 
   async function onSubmit(data: UserFormValues) {
     setIsLoading(true);
@@ -178,24 +158,6 @@ export function AuthForm({ mode }: AuthFormProps) {
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {mode === 'signup' ? "S'inscrire" : "Se connecter"}
-        </Button>
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Ou continuer avec
-            </span>
-          </div>
-        </div>
-         <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 177.2 55.4l-62.1 62.1C335.9 99.8 294.9 84 248 84c-80.9 0-146.5 65.6-146.5 146.5s65.6 146.5 146.5 146.5c89.1 0 126.6-63.4 133.4-94.8H248v-69.8h239.1c1.2 6.4 1.9 12.8 1.9 19.8z"></path></svg>
-          )}
-          Google
         </Button>
       </form>
     </Form>
