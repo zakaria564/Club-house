@@ -188,11 +188,11 @@ export default function PlayersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="hidden lg:table-cell">N° Joueur</TableHead>
                   <TableHead>Nom</TableHead>
-                  <TableHead>Statut</TableHead>
                   <TableHead className="hidden md:table-cell">Catégorie</TableHead>
                   <TableHead className="hidden md:table-cell">Poste</TableHead>
-                  <TableHead className="hidden lg:table-cell">N° Joueur</TableHead>
+                  <TableHead>Statut</TableHead>
                   <TableHead>
                     <span className="sr-only">Actions</span>
                   </TableHead>
@@ -203,6 +203,9 @@ export default function PlayersPage() {
                   const coachName = player.coachId ? coachMap.get(player.coachId) : null;
                   return (
                   <TableRow key={player.id} onClick={() => handleViewPlayer(player.id)} className="cursor-pointer">
+                    <TableCell className="hidden lg:table-cell">
+                      #{player.playerNumber}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
@@ -220,17 +223,14 @@ export default function PlayersPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
-                    </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <Badge variant="secondary">{player.category}</Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {player.position}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      #{player.playerNumber}
+                    <TableCell>
+                      <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
@@ -294,5 +294,3 @@ export default function PlayersPage() {
     </>
   )
 }
-
-    
