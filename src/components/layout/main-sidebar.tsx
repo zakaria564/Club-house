@@ -198,8 +198,7 @@ export function MainSidebar() {
                     <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-sm font-medium truncate">{user?.email || "Chargement..."}</span>
-                    <span className="text-sm text-muted-foreground truncate">Utilisateur</span>
+                    <span className="text-sm font-medium truncate">Mon Compte</span>
                   </div>
                 </div>
                 <MoreHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
