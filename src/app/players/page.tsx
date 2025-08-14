@@ -216,11 +216,11 @@ export default function PlayersPage() {
                          <AvatarImage src={player.photoUrl} alt={player.firstName} data-ai-hint="player profile" />
                          <AvatarFallback>{player.firstName?.[0]}{player.lastName?.[0]}</AvatarFallback>
                       </Avatar>
-                       <div>
-                          <div className="font-medium">{player.firstName} {player.lastName}</div>
+                       <div className="min-w-0">
+                          <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
                           {coachName && (
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                <UserCheck className="h-3 w-3" />
+                            <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                                <UserCheck className="h-3 w-3 shrink-0" />
                                 {coachName}
                             </div>
                           )}
@@ -228,7 +228,7 @@ export default function PlayersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={cn(statusBadgeVariant(player.status))}>{player.status}</Badge>
+                    <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Badge variant="secondary">{player.category}</Badge>
