@@ -1,11 +1,8 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Allow read and write access to all documents for development purposes
     match /{document=**} {
-      // Allow read/write access for development purposes.
-      // TODO: Secure your database before deploying to production.
       allow read, write: if true;
     }
   }
