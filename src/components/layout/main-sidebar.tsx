@@ -19,6 +19,7 @@ import {
   Shield,
   MoreHorizontal,
   Trophy,
+  GalleryHorizontal,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
@@ -120,6 +121,18 @@ export function MainSidebar() {
               <Link href="/results">
                 <Trophy />
                 <span>Résultats</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem onClick={handleLinkClick}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/gallery")}
+              tooltip="Médiathèque"
+            >
+              <Link href="/gallery">
+                <GalleryHorizontal />
+                <span>Médiathèque</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
