@@ -105,12 +105,11 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
   const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
   const [isUploadingCert, setIsUploadingCert] = React.useState(false);
   
-  const [photoPreview, setPhotoPreview] = React.useState(player?.photoUrl || '');
-  const [certPreview, setCertPreview] = React.useState(player?.medicalCertificateUrl || '');
-
-
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const certInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const [photoPreview, setPhotoPreview] = React.useState(player?.photoUrl || '');
+  const [certPreview, setCertPreview] = React.useState(player?.medicalCertificateUrl || '');
 
   const defaultValues = React.useMemo(() => {
     const p = player;
@@ -157,20 +156,24 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
     setCoaches(storedCoaches);
   }, []);
 
-  const handleFileUpload = async (file: File, path: string, onUploadProgress: (progress: boolean) => void) => {
-    onUploadProgress(true);
+  const handleFileUpload = async (
+    file: File, 
+    path: string, 
+    setUploading: (isUploading: boolean) => void,
+    onSuccess: (url: string) => void
+  ) => {
+    setUploading(true);
     try {
         const storageRef = ref(storage, path);
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         toast({ title: "Fichier téléchargé", description: "Le fichier a été téléchargé avec succès." });
-        return downloadURL;
+        onSuccess(downloadURL);
     } catch (error) {
         console.error("Upload error:", error);
         toast({ variant: "destructive", title: "Erreur de téléchargement", description: "Le fichier n'a pas pu être téléchargé." });
-        return null;
     } finally {
-        onUploadProgress(false);
+        setUploading(false);
     }
   };
 
@@ -179,11 +182,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       if (file) {
           const playerId = form.getValues('id');
           const filePath = `players/${playerId}/photo/${file.name}`;
-          const url = await handleFileUpload(file, filePath, setIsUploadingPhoto);
-          if (url) {
+          handleFileUpload(file, filePath, setIsUploadingPhoto, (url) => {
               form.setValue('photoUrl', url, { shouldValidate: true, shouldDirty: true });
               setPhotoPreview(url);
-          }
+          });
       }
   }
 
@@ -192,11 +194,10 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       if (file) {
           const playerId = form.getValues('id');
           const filePath = `players/${playerId}/certificates/${file.name}`;
-          const url = await handleFileUpload(file, filePath, setIsUploadingCert);
-          if (url) {
+          handleFileUpload(file, filePath, setIsUploadingCert, (url) => {
               form.setValue('medicalCertificateUrl', url, { shouldValidate: true, shouldDirty: true });
               setCertPreview(url);
-          }
+          });
       }
   }
 
@@ -588,3 +589,5 @@ export function PlayerForm({ onFinished, onSave, player, players }: PlayerFormPr
       </Form>
   )
 }
+
+    
