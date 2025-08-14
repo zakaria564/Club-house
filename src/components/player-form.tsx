@@ -98,6 +98,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [playerId, setPlayerId] = React.useState(player?.id || "");
+  const [photoPreview, setPhotoPreview] = React.useState<string | null>(player?.photoUrl || null);
   
    React.useEffect(() => {
     setIsClient(true);
@@ -139,11 +140,17 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   
   React.useEffect(() => {
       form.reset(defaultValues);
+      setPhotoPreview(defaultValues.photoUrl);
   }, [defaultValues, form]);
-
   
-  const photoUrlValue = form.watch('photoUrl');
-  const photoPreview = photoUrlValue || null;
+  React.useEffect(() => {
+    return () => {
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
+
 
   React.useEffect(() => {
     const q = query(collection(db, "coaches"));
@@ -194,6 +201,12 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview);
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoPreview(previewUrl);
     
     setIsUploading(true);
     try {
@@ -212,6 +225,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
         title: "Échec du téléversement",
         description: "Une erreur est survenue lors du téléversement de la photo.",
       });
+      setPhotoPreview(player?.photoUrl || null); // Revert on failure
     } finally {
       setIsUploading(false);
     }
@@ -231,18 +245,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                       </AvatarFallback>
                     </Avatar>
                      <div className="w-full space-y-2">
-                        <FormField
-                          control={form.control}
-                          name="photoUrl"
-                          render={({ field }) => (
-                            <FormItem className="hidden">
-                              <FormControl>
-                                <Input {...field} value={field.value ?? ''} readOnly />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                          <input
                             type="file"
                             ref={fileInputRef}
@@ -256,7 +258,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             ) : (
                                 <Upload className="mr-2 h-4 w-4" />
                             )}
-                            {isUploading ? 'Importation...' : 'Importer une photo'}
+                            {isUploading ? 'Téléversement...' : 'Mettre à jour la photo'}
                         </Button>
                     </div>
                  </div>
