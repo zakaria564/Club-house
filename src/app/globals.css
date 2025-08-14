@@ -130,15 +130,16 @@ body {
   }
 
   body.print-receipt .no-print,
-  body.print-receipt [data-sidebar="sidebar"], 
-  body.print-receipt [data-sidebar="trigger"],
-  body.print-receipt .no-print * {
+  body.print-receipt [data-sidebar],
+  body.print-receipt header,
+  body.print-receipt > div[data-provider] > div > div[class*="peer"] {
     display: none !important;
   }
-  
-  body.print-receipt main {
+
+  body.print-receipt main, body.print-receipt > div[data-provider] > main {
     padding: 0 !important;
     margin: 0 !important;
+    height: 100%;
   }
 
   body.print-receipt .printable-area {
