@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
-import { collection, doc, setDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
+import { collection, doc, setDoc, onSnapshot, query, Timestamp, writeBatch } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 
@@ -23,10 +23,11 @@ import { cn, handleEnterKeyDown } from "@/lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { Player, Coach } from "@/types"
+import type { Player, Coach, Payment } from "@/types"
 import { Loader2, Upload, Eye, EyeOff } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Label } from "./ui/label"
+import { Separator } from "./ui/separator"
 
 const playerFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
@@ -49,6 +50,9 @@ const playerFormSchema = z.object({
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
+  // New fields for initial payment, only for new players
+  initialTotalAmount: z.coerce.number().optional(),
+  initialAdvance: z.coerce.number().optional(),
 })
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -128,6 +132,8 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       clubExitDate: dateToInputFormat(player?.clubExitDate),
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
+      initialTotalAmount: 300.00,
+      initialAdvance: 0,
   }), [player]);
 
   const form = useForm<PlayerFormValues>({
@@ -184,8 +190,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
           return;
       }
 
+      const { initialTotalAmount, initialAdvance, ...playerData } = data;
+
       const newPlayerData = {
-        ...data,
+        ...playerData,
         photoUrl: data.photoUrl || null,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
@@ -193,9 +201,34 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
         coachId: data.coachId || null,
         medicalCertificateUrl: data.medicalCertificateUrl || null,
       };
+
+      const batch = writeBatch(db);
+      const playerDocRef = doc(db, "players", playerId);
+      batch.set(playerDocRef, newPlayerData, { merge: true });
       
-      const docRef = doc(db, "players", playerId);
-      await setDoc(docRef, newPlayerData, { merge: true });
+      // If it's a new player, create the initial payment
+      if (!player) {
+          const total = initialTotalAmount || 300;
+          const advance = initialAdvance || 0;
+          const remaining = total - advance;
+          const status: Payment['status'] = remaining <= 0 ? 'Paid' : 'Pending';
+
+          const newPayment: Omit<Payment, 'id'> = {
+              memberId: playerId,
+              memberName: `${data.firstName} ${data.lastName}`,
+              paymentType: 'membership',
+              totalAmount: total,
+              advance: advance,
+              remaining: remaining,
+              date: Timestamp.fromDate(new Date(data.clubEntryDate)),
+              status: status,
+          };
+          
+          const paymentDocRef = doc(collection(db, "payments"));
+          batch.set(paymentDocRef, newPayment);
+      }
+      
+      await batch.commit();
 
       toast({
         title: player ? "Profil du joueur mis à jour" : "Profil du joueur créé",
@@ -407,7 +440,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                                 </Button>
                             )}
                         </div>
-                        <div className={cn(!isCertUrlVisible && "hidden")}>
+                        <div className={cn(!isCertUrlVisible && "hidden", "w-full")}>
                              <FormField
                                 control={form.control}
                                 name="medicalCertificateUrl"
@@ -622,6 +655,41 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                       />
                   </div>
               </div>
+
+               {!player && (
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Cotisation Initiale</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <FormField
+                        control={form.control}
+                        name="initialTotalAmount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Montant total (DH)</FormLabel>
+                            <FormControl>
+                                <Input type="number" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <FormField
+                        control={form.control}
+                        name="initialAdvance"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Avance payée (DH)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="0" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+                </div>
+               )}
+
           </div>
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
             <Button type="button" variant="ghost" onClick={onFinished} disabled={isSubmitting}>Annuler</Button>
