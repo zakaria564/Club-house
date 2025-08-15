@@ -6,7 +6,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { MobileHeader } from "@/components/layout/mobile-header";
-import { ConditionalDarkMode } from "@/components/layout/conditional-dark-mode";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const fontPoppins = Poppins({
   subsets: ["latin"],
@@ -34,23 +34,25 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen font-body antialiased select-none md:select-auto"
+          "min-h-screen font-body antialiased select-none md:select-auto",
+           fontPoppins.variable,
+           fontPTSans.variable
         )}
       >
-        <ConditionalDarkMode>
-            <SidebarProvider>
-              <Sidebar>
-                <MainSidebar />
-              </Sidebar>
-              <SidebarInset>
-                <MobileHeader />
-                <main className="p-4 sm:p-6 lg:p-8 pt-20 md:pt-6">
-                  {children}
-                </main>
-              </SidebarInset>
-            </SidebarProvider>
-            <Toaster />
-        </ConditionalDarkMode>
+        <ThemeProvider>
+          <SidebarProvider>
+            <Sidebar>
+              <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+              <MobileHeader />
+              <main className="p-4 sm:p-6 lg:p-8 pt-20 md:pt-6">
+                {children}
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
