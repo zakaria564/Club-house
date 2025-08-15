@@ -87,8 +87,10 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const { toast } = useToast()
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+
   const [coachId, setCoachId] = React.useState(coach?.id || "");
 
   React.useEffect(() => {
@@ -126,11 +128,29 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const photoUrlValue = form.watch('photoUrl');
 
   async function onSubmit(data: CoachFormValues) {
-    const isEditing = !!coach?.id;
+    setIsLoading(true);
+    let finalPhotoUrl = data.photoUrl || null;
+
+    if (selectedFile) {
+        try {
+            const storageRef = ref(storage, `coach-photos/${coachId}-${selectedFile.name}`);
+            await uploadBytes(storageRef, selectedFile);
+            finalPhotoUrl = await getDownloadURL(storageRef);
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            toast({
+                variant: "destructive",
+                title: "Échec du téléversement",
+                description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
+            });
+            setIsLoading(false);
+            return;
+        }
+    }
 
     const newCoachData = {
         ...data,
-        photoUrl: photoUrlValue || data.photoUrl || null,
+        photoUrl: finalPhotoUrl,
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
     };
@@ -140,8 +160,8 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
         await setDoc(docRef, newCoachData);
 
         toast({
-            title: isEditing ? "Profil de l'entraîneur mis à jour" : "Entraîneur créé",
-            description: `L'entraîneur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
+            title: coach ? "Profil de l'entraîneur mis à jour" : "Entraîneur créé",
+            description: `L'entraîneur ${data.firstName} ${data.lastName} a été ${coach ? 'mis à jour' : 'ajouté'} avec succès.`,
         });
         onFinished();
     } catch (error) {
@@ -151,43 +171,17 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             title: "Erreur",
             description: "Une erreur est survenue lors de la sauvegarde.",
         });
+    } finally {
+        setIsLoading(false);
     }
 }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !coachId) return;
-
-    const isEditing = !!coach?.id;
-
-    setIsUploading(true);
-    try {
-      const storageRef = ref(storage, `coach-photos/${coachId}-${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-
-      form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
-
-      // If we are editing, update the document in Firestore immediately
-      if (isEditing) {
-        const coachDocRef = doc(db, 'coaches', coachId);
-        await updateDoc(coachDocRef, { photoUrl: downloadURL });
-      }
-
-       toast({
-        title: "Photo sauvegardée",
-        description: "La photo de profil a été téléversée et enregistrée.",
-      });
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      form.setValue('photoUrl', coach?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
-      toast({
-        variant: "destructive",
-        title: "Échec du téléversement",
-        description: "Une erreur est survenue lors du téléversement de la photo.",
-      });
-    } finally {
-        setIsUploading(false);
+    if (file) {
+        setSelectedFile(file);
+        const previewUrl = URL.createObjectURL(file);
+        form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
     }
   };
 
@@ -212,13 +206,9 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             className="hidden"
                             accept="image/png, image/jpeg, image/gif"
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                            {isUploading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Upload className="mr-2 h-4 w-4" />
-                            )}
-                            {isUploading ? 'Ajout en cours...' : 'Ajouter une photo'}
+                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Ajouter une photo
                         </Button>
                     </div>
                 </div>
@@ -416,7 +406,10 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
-            <Button type="submit">{coach ? "Sauvegarder les modifications" : "Créer l'entraîneur"}</Button>
+            <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {coach ? "Sauvegarder les modifications" : "Créer l'entraîneur"}
+            </Button>
           </div>
         </form>
       </Form>

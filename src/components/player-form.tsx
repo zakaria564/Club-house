@@ -95,8 +95,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+
   const [playerId, setPlayerId] = React.useState(player?.id || "");
   
    React.useEffect(() => {
@@ -158,11 +160,29 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
 
   async function onSubmit(data: PlayerFormValues) {
-    const isEditing = !!player?.id;
+    setIsLoading(true);
+    let finalPhotoUrl = data.photoUrl || null;
+
+    if (selectedFile) {
+        try {
+            const storageRef = ref(storage, `player-photos/${playerId}-${selectedFile.name}`);
+            await uploadBytes(storageRef, selectedFile);
+            finalPhotoUrl = await getDownloadURL(storageRef);
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            toast({
+                variant: "destructive",
+                title: "Échec du téléversement",
+                description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
+            });
+            setIsLoading(false);
+            return;
+        }
+    }
 
     const newPlayerData = {
         ...data,
-        photoUrl: photoUrlValue || data.photoUrl || null,
+        photoUrl: finalPhotoUrl,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
@@ -175,8 +195,8 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
         await setDoc(docRef, newPlayerData);
 
         toast({
-            title: isEditing ? "Profil du joueur mis à jour" : "Profil du joueur créé",
-            description: `Le joueur ${data.firstName} ${data.lastName} a été ${isEditing ? 'mis à jour' : 'ajouté'} avec succès.`,
+            title: player ? "Profil du joueur mis à jour" : "Profil du joueur créé",
+            description: `Le joueur ${data.firstName} ${data.lastName} a été ${player ? 'mis à jour' : 'ajouté'} avec succès.`,
         });
         onFinished();
     } catch (error) {
@@ -186,43 +206,17 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
             title: "Erreur",
             description: "Une erreur est survenue lors de la sauvegarde.",
         });
+    } finally {
+        setIsLoading(false);
     }
 }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !playerId) return;
-
-    const isEditing = !!player?.id;
-
-    setIsUploading(true);
-    try {
-      const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-      
-      form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
-      
-      // If we are editing, update the document in Firestore immediately
-      if (isEditing) {
-          const playerDocRef = doc(db, 'players', playerId);
-          await updateDoc(playerDocRef, { photoUrl: downloadURL });
-      }
-
-       toast({
-        title: "Photo sauvegardée",
-        description: "La photo de profil a été téléversée et enregistrée.",
-      });
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      form.setValue('photoUrl', player?.photoUrl || '', { shouldDirty: true, shouldValidate: true });
-      toast({
-        variant: "destructive",
-        title: "Échec du téléversement",
-        description: "Une erreur est survenue lors du téléversement de la photo.",
-      });
-    } finally {
-      setIsUploading(false);
+    if (file) {
+        setSelectedFile(file);
+        const previewUrl = URL.createObjectURL(file);
+        form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
     }
   };
 
@@ -247,13 +241,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             className="hidden"
                             accept="image/png, image/jpeg, image/gif"
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                            {isUploading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Upload className="mr-2 h-4 w-4" />
-                            )}
-                            {isUploading ? 'Ajout en cours...' : 'Ajouter une photo'}
+                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Ajouter une photo
                         </Button>
                     </div>
                  </div>
@@ -611,7 +601,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
           </div>
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
             <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
-            <Button type="submit">{player ? "Sauvegarder les modifications" : "Créer le joueur"}</Button>
+            <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {player ? "Sauvegarder les modifications" : "Créer le joueur"}
+            </Button>
           </div>
         </form>
       </Form>
