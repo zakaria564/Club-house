@@ -125,17 +125,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
   const photoUrlValue = form.watch('photoUrl');
 
-  React.useEffect(() => {
-    // This effect is to clean up blob URLs to prevent memory leaks
-    const currentUrl = form.getValues('photoUrl');
-    return () => {
-      if (currentUrl && currentUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(currentUrl);
-      }
-    };
-  }, [photoUrlValue, form]);
-
- async function onSubmit(data: CoachFormValues) {
+  async function onSubmit(data: CoachFormValues) {
     const isEditing = !!coach?.id;
 
     const newCoachData = {
@@ -168,9 +158,9 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const previousUrl = form.getValues('photoUrl');
-    if (previousUrl && previousUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(previousUrl);
+    const currentPhotoUrl = form.getValues('photoUrl');
+    if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(currentPhotoUrl);
     }
     
     const tempPreviewUrl = URL.createObjectURL(file);
@@ -181,10 +171,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       const storageRef = ref(storage, `coach-photos/${coachId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
-
-      if (tempPreviewUrl) {
-          URL.revokeObjectURL(tempPreviewUrl);
-      }
 
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
        toast({
@@ -200,7 +186,11 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
         description: "Une erreur est survenue lors du téléversement de la photo.",
       });
     } finally {
-      setIsUploading(false);
+        setIsUploading(false);
+        const latestUrl = form.getValues('photoUrl');
+        if (latestUrl && latestUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(latestUrl);
+        }
     }
   };
 
@@ -231,7 +221,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             ) : (
                                 <Upload className="mr-2 h-4 w-4" />
                             )}
-                            {isUploading ? 'Téléversement...' : 'Ajouter une photo'}
+                            {isUploading ? 'Ajout en cours...' : 'Ajouter une photo'}
                         </Button>
                     </div>
                 </div>

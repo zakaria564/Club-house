@@ -144,17 +144,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
 
   React.useEffect(() => {
-    // This effect is to clean up blob URLs to prevent memory leaks
-    const currentUrl = form.getValues('photoUrl');
-    return () => {
-      if (currentUrl && currentUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(currentUrl);
-      }
-    };
-  }, [photoUrlValue, form]);
-
-
-  React.useEffect(() => {
     const q = query(collection(db, "coaches"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const coachesData: Coach[] = [];
@@ -204,9 +193,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const previousUrl = form.getValues('photoUrl');
-    if (previousUrl && previousUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previousUrl);
+    const currentPhotoUrl = form.getValues('photoUrl');
+    if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(currentPhotoUrl);
     }
     
     const tempPreviewUrl = URL.createObjectURL(file);
@@ -217,10 +206,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
-      
-      if (tempPreviewUrl) {
-          URL.revokeObjectURL(tempPreviewUrl);
-      }
       
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
 
@@ -238,6 +223,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       });
     } finally {
       setIsUploading(false);
+      const latestUrl = form.getValues('photoUrl');
+      if (latestUrl && latestUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(latestUrl);
+      }
     }
   };
 
@@ -268,7 +257,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             ) : (
                                 <Upload className="mr-2 h-4 w-4" />
                             )}
-                            {isUploading ? 'Téléversement...' : 'Ajouter une photo'}
+                            {isUploading ? 'Ajout en cours...' : 'Ajouter une photo'}
                         </Button>
                     </div>
                  </div>
