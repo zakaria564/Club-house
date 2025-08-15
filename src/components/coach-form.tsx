@@ -153,32 +153,18 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
-            <div className="flex flex-col md:flex-row items-start gap-6">
-                <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
-                    <Avatar className="h-36 w-36">
-                        <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
-                        <AvatarFallback className="text-4xl">
-                            {form.watch('firstName')?.[0]}
-                            {form.watch('lastName')?.[0]}
-                        </AvatarFallback>
-                    </Avatar>
-                     <div className="w-full space-y-2">
-                        <FormField
-                          control={form.control}
-                          name="photoUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>URL de la photo</FormLabel>
-                              <FormControl>
-                                <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                    </div>
-                </div>
-                 <div className="w-full space-y-4">
+            <div className="flex justify-center">
+                <Avatar className="h-36 w-36">
+                    <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                    <AvatarFallback className="text-4xl">
+                        {form.watch('firstName')?.[0]}
+                        {form.watch('lastName')?.[0]}
+                    </AvatarFallback>
+                </Avatar>
+            </div>
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium">Informations de l'entraîneur</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormItem>
                         <FormLabel>ID Entraîneur</FormLabel>
                         <FormControl>
@@ -186,33 +172,27 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         </FormControl>
                     </FormItem>
                      <FormField
-                    control={form.control}
-                    name="specialty"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Spécialité</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
-                            <FormControl>
-                                <SelectTrigger>
-                                <SelectValue placeholder="Sélectionnez une spécialité" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {specialties.map(specialty => (
-                                    <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
-                                ))}
-                            </SelectContent>
-                            </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium">Informations de l'entraîneur</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        control={form.control}
+                        name="specialty"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Spécialité</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionnez une spécialité" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {specialties.map(specialty => (
+                                        <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                                </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                     <FormField
                     control={form.control}
                     name="firstName"
@@ -272,6 +252,19 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormMessage />
                         </FormItem>
                     )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="photoUrl"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>URL de la photo</FormLabel>
+                            <FormControl>
+                            <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
                     />
                     <FormField
                     control={form.control}
@@ -383,5 +376,3 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
-
-    
