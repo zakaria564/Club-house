@@ -99,14 +99,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const [playerId, setPlayerId] = React.useState(player?.id || "");
+  const [playerId] = React.useState(player?.id || doc(collection(db, "players")).id);
   
    React.useEffect(() => {
     setIsClient(true);
-    if (!player?.id) {
-        setPlayerId(doc(collection(db, "players")).id);
-    }
-  }, [player?.id]);
+  }, []);
 
   
   const defaultValues = React.useMemo(() => ({
@@ -196,10 +193,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!player?.id) {
+    if (!playerId) {
          toast({
             variant: "destructive",
-            title: "Sauvegardez d'abord",
+            title: "Impossible de trouver l'ID du joueur",
             description: "Veuillez d'abord sauvegarder les informations de base du joueur avant d'ajouter une photo.",
         });
         return;
@@ -210,11 +207,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
 
     try {
-      const storageRef = ref(storage, `player-photos/${player.id}-${file.name}`);
+      const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
-      const playerDocRef = doc(db, 'players', player.id);
+      const playerDocRef = doc(db, 'players', playerId);
       await updateDoc(playerDocRef, { photoUrl: downloadURL });
 
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
@@ -232,7 +229,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
             description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
         });
         // Revert to original photo on error
-        form.setValue('photoUrl', player.photoUrl || '', { shouldDirty: true });
+        form.setValue('photoUrl', player?.photoUrl || '', { shouldDirty: true });
     } finally {
         setIsUploading(false);
     }
@@ -642,3 +639,5 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
+
+    
