@@ -176,9 +176,8 @@ export default function Dashboard() {
         .filter(item => item.players > 0);
   }, [activePlayers]);
 
-  const navigateToMember = (payment: Payment) => {
-    const path = payment.paymentType === 'membership' ? 'players' : 'coaches';
-    router.push(`/${path}/${payment.memberId}`);
+  const navigateToPayment = (payment: Payment) => {
+    router.push(`/payments?memberId=${payment.memberId}`);
   };
   
   const statusBadge = (status: Payment['status']) => {
@@ -328,7 +327,7 @@ export default function Dashboard() {
                           <React.Fragment key={payment.id}>
                             <div 
                                 className="flex justify-between items-center cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-md"
-                                onClick={() => navigateToMember(payment)}
+                                onClick={() => navigateToPayment(payment)}
                             >
                                 <div className="flex flex-col flex-grow min-w-0">
                                     <span className="font-semibold truncate">{payment.memberName}</span>
