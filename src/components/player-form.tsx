@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
 import { Loader2, Upload } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { PhotoCaptureDialog } from "./photo-capture-dialog"
 
 const playerFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
@@ -96,10 +97,13 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(player?.photoUrl || null);
+  const [isPhotoDialogVisible, setPhotoDialogVisible] = React.useState(false);
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const cameraInputRef = React.useRef<HTMLInputElement>(null);
 
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
@@ -207,6 +211,16 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     }
   };
 
+  const handleTakePhoto = () => {
+    setPhotoDialogVisible(false);
+    cameraInputRef.current?.click();
+  };
+
+  const handleChooseFromGallery = () => {
+    setPhotoDialogVisible(false);
+    fileInputRef.current?.click();
+  };
+
 
   return (
       <Form {...form}>
@@ -222,17 +236,26 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                       </AvatarFallback>
                     </Avatar>
                      <div className="w-full space-y-2">
-                         <input
+                        <input
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileChange}
                             className="hidden"
-                            accept="image/png, image/jpeg, image/gif"
+                            accept="image/*"
                             disabled={isSubmitting}
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
+                        <input
+                            type="file"
+                            ref={cameraInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept="image/*"
+                            capture="user"
+                            disabled={isSubmitting}
+                        />
+                        <Button type="button" variant="outline" className="w-full" onClick={() => setPhotoDialogVisible(true)} disabled={isSubmitting}>
                            <Upload className="mr-2 h-4 w-4" />
-                           Ajouter une photo
+                           Changer la photo
                         </Button>
                     </div>
                  </div>
@@ -600,6 +623,12 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
             </Button>
           </div>
         </form>
+         <PhotoCaptureDialog
+            open={isPhotoDialogVisible}
+            onOpenChange={setPhotoDialogVisible}
+            onTakePhoto={handleTakePhoto}
+            onChooseFromGallery={handleChooseFromGallery}
+        />
       </Form>
   )
 }

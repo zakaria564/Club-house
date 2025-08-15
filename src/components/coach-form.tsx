@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { handleEnterKeyDown } from "@/lib/utils"
 import { Loader2, Upload } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { PhotoCaptureDialog } from "./photo-capture-dialog"
 
 
 const coachFormSchema = z.object({
@@ -88,10 +89,13 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-
+  
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(coach?.photoUrl || null);
+  const [isPhotoDialogVisible, setPhotoDialogVisible] = React.useState(false);
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const cameraInputRef = React.useRef<HTMLInputElement>(null);
   
   const [coachId] = React.useState(() => coach?.id || doc(collection(db, "coaches")).id);
 
@@ -171,6 +175,16 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       setPhotoPreview(previewUrl);
     }
   };
+  
+  const handleTakePhoto = () => {
+    setPhotoDialogVisible(false);
+    cameraInputRef.current?.click();
+  };
+
+  const handleChooseFromGallery = () => {
+    setPhotoDialogVisible(false);
+    fileInputRef.current?.click();
+  };
 
 
   return (
@@ -191,12 +205,21 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             ref={fileInputRef}
                             onChange={handleFileChange}
                             className="hidden"
-                            accept="image/png, image/jpeg, image/gif"
+                            accept="image/*"
                             disabled={isSubmitting}
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
+                        <input
+                            type="file"
+                            ref={cameraInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept="image/*"
+                            capture="user"
+                            disabled={isSubmitting}
+                        />
+                        <Button type="button" variant="outline" className="w-full" onClick={() => setPhotoDialogVisible(true)} disabled={isSubmitting}>
                             <Upload className="mr-2 h-4 w-4" />
-                            Ajouter une photo
+                            Changer la photo
                         </Button>
                     </div>
                 </div>
@@ -402,6 +425,12 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             </Button>
           </div>
         </form>
+         <PhotoCaptureDialog
+            open={isPhotoDialogVisible}
+            onOpenChange={setPhotoDialogVisible}
+            onTakePhoto={handleTakePhoto}
+            onChooseFromGallery={handleChooseFromGallery}
+        />
       </Form>
   )
 }
