@@ -19,6 +19,7 @@ import { differenceInDays, isAfter, isSameMonth, isToday, startOfMonth, format }
 import { fr } from "date-fns/locale"
 import { collection, onSnapshot, query, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { Separator } from "@/components/ui/separator"
 
 
 const chartConfig = {
@@ -119,7 +120,8 @@ export default function Dashboard() {
     upcomingTrainings,
     paidMemberships,
     activePlayers,
-    monthString
+    monthString,
+    overduePayments,
   } = React.useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -139,6 +141,8 @@ export default function Dashboard() {
     const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
     const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
     
+    const currentOverduePayments = payments.filter(p => p.status === 'Overdue');
+    
     const currentMonthString = format(today, "MMMM yyyy", { locale: fr });
 
     return {
@@ -150,6 +154,7 @@ export default function Dashboard() {
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
         monthString: currentMonthString,
+        overduePayments: currentOverduePayments,
     };
   }, [players, payments, events]);
 
@@ -169,6 +174,11 @@ export default function Dashboard() {
         }))
         .filter(item => item.players > 0);
   }, [activePlayers]);
+
+  const navigateToMember = (payment: Payment) => {
+    const path = payment.paymentType === 'membership' ? 'players' : 'coaches';
+    router.push(`/${path}/${payment.memberId}`);
+  };
 
   return (
     <>
@@ -263,8 +273,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="lg:col-span-2">
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-7 gap-6">
+        <Card className="lg:col-span-5">
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
             <CardDescription>Nombre de joueurs par catégorie.</CardDescription>
@@ -288,11 +298,48 @@ export default function Dashboard() {
             </ChartContainer>
           </CardContent>
         </Card>
+        <Card className="lg:col-span-2">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    Alertes de Paiement
+                </CardTitle>
+                <CardDescription>Suivi des paiements en retard.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {overduePayments.length > 0 ? (
+                    <div className="space-y-4">
+                        {overduePayments.map((payment, index) => (
+                          <React.Fragment key={payment.id}>
+                            <div 
+                                className="flex justify-between items-center cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-md"
+                                onClick={() => navigateToMember(payment)}
+                            >
+                                <div className="flex flex-col">
+                                    <span className="font-semibold">{payment.memberName}</span>
+                                    <span className="text-xs text-muted-foreground capitalize">
+                                        {payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}
+                                    </span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-bold text-destructive">{payment.remaining.toFixed(2)} DH</span>
+                                    <p className="text-xs text-muted-foreground">restant</p>
+                                </div>
+                            </div>
+                            {index < overduePayments.length - 1 && <Separator />}
+                          </React.Fragment>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-sm text-center text-muted-foreground py-8">
+                        <Check className="mx-auto h-8 w-8 text-green-500 mb-2" />
+                        Tous les paiements sont à jour. Excellent travail !
+                    </div>
+                )}
+            </CardContent>
+        </Card>
       </div>
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} />
     </>
   );
 }
-
-    
-    
