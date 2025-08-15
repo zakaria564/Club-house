@@ -166,9 +166,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
     try {
-      const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase();
+      const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase().replace(/\s+/g, ' ');
+      
       const isDuplicate = allPlayers.some(p => 
-          `${p.firstName.trim()} ${p.lastName.trim()}`.toLowerCase() === formattedFullName && p.id !== playerId
+          p.id !== playerId &&
+          `${p.firstName.trim()} ${p.lastName.trim()}`.toLowerCase().replace(/\s+/g, ' ') === formattedFullName
       );
 
       if (isDuplicate) {
@@ -227,15 +229,15 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         </Button>
                     )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-4">
-                    <Avatar className="h-36 w-36">
+                <div className="flex items-start gap-4 flex-col sm:flex-row">
+                    <Avatar className="h-36 w-36 flex-shrink-0">
                         <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                         <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <div className={cn(!isPhotoUrlVisible && "hidden", "sm:col-span-1")}>
+                     <div className={cn(!isPhotoUrlVisible && "hidden", "w-full")}>
                         <FormField
                             control={form.control}
                             name="photoUrl"
@@ -395,9 +397,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         )}
                       />
                     <div className="sm:col-span-2 space-y-2">
-                         <div className="flex items-center gap-2">
-                            <Label htmlFor="medicalCertificateUrl">URL du Certificat Médical</Label>
-                            {player && (
+                        <div className="flex items-center gap-2">
+                           <Label htmlFor="medicalCertificateUrl">URL du Certificat Médical</Label>
+                           {player && (
                                 <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCertUrlVisible(v => !v)}>
                                     {isCertUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     <span className="sr-only">Afficher/Masquer le champ URL du certificat</span>
@@ -631,3 +633,5 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
+
+    

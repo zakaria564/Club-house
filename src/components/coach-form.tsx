@@ -130,9 +130,11 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
     try {
-      const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase();
+      const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase().replace(/\s+/g, ' ');
+      
       const isDuplicate = allCoaches.some(c => 
-          `${c.firstName.trim()} ${c.lastName.trim()}`.toLowerCase() === formattedFullName && c.id !== coachId
+          c.id !== coachId &&
+          `${c.firstName.trim()} ${c.lastName.trim()}`.toLowerCase().replace(/\s+/g, ' ') === formattedFullName
       );
 
        if (isDuplicate) {
@@ -186,15 +188,15 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         </Button>
                     )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-4">
-                    <Avatar className="h-36 w-36">
+                 <div className="flex items-start gap-4 flex-col sm:flex-row">
+                    <Avatar className="h-36 w-36 flex-shrink-0">
                         <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <div className={cn(!isPhotoUrlVisible && "hidden", "sm:col-span-1")}>
+                     <div className={cn(!isPhotoUrlVisible && "hidden", "w-full")}>
                         <FormField
                             control={form.control}
                             name="photoUrl"
@@ -412,3 +414,5 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
+
+    
