@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { collection, doc, setDoc, addDoc, getDocs, query, where, Timestamp } from "firebase/firestore"
+import { collection, doc, setDoc, addDoc, getDocs, query, where, Timestamp, updateDoc } from "firebase/firestore"
 import { db, storage } from "@/lib/firebase"
 
 
@@ -130,7 +130,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
     const newCoachData = {
         ...data,
-        photoUrl: data.photoUrl || null,
+        photoUrl: photoUrlValue || data.photoUrl || null,
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
     };
@@ -156,15 +156,9 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !coachId) return;
 
-    const currentPhotoUrl = form.getValues('photoUrl');
-    if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(currentPhotoUrl);
-    }
-    
-    const tempPreviewUrl = URL.createObjectURL(file);
-    form.setValue('photoUrl', tempPreviewUrl, { shouldDirty: true });
+    const isEditing = !!coach?.id;
 
     setIsUploading(true);
     try {
@@ -173,9 +167,16 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       const downloadURL = await getDownloadURL(storageRef);
 
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
+
+      // If we are editing, update the document in Firestore immediately
+      if (isEditing) {
+        const coachDocRef = doc(db, 'coaches', coachId);
+        await updateDoc(coachDocRef, { photoUrl: downloadURL });
+      }
+
        toast({
-        title: "Photo téléversée",
-        description: "La photo de profil a été mise à jour.",
+        title: "Photo sauvegardée",
+        description: "La photo de profil a été téléversée et enregistrée.",
       });
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -187,10 +188,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       });
     } finally {
         setIsUploading(false);
-        const latestUrl = form.getValues('photoUrl');
-        if (latestUrl && latestUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(latestUrl);
-        }
     }
   };
 
