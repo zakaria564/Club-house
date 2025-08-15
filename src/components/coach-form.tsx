@@ -87,10 +87,10 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const { toast } = useToast()
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-
+  
   const [coachId, setCoachId] = React.useState(coach?.id || "");
 
   React.useEffect(() => {
@@ -128,36 +128,17 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const photoUrlValue = form.watch('photoUrl');
 
   async function onSubmit(data: CoachFormValues) {
-    setIsLoading(true);
-    let finalPhotoUrl = data.photoUrl || null;
-
-    if (selectedFile) {
-        try {
-            const storageRef = ref(storage, `coach-photos/${coachId}-${selectedFile.name}`);
-            await uploadBytes(storageRef, selectedFile);
-            finalPhotoUrl = await getDownloadURL(storageRef);
-        } catch (error) {
-            console.error("Error uploading file:", error);
-            toast({
-                variant: "destructive",
-                title: "Échec du téléversement",
-                description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
-            });
-            setIsLoading(false);
-            return;
-        }
-    }
-
+    setIsSubmitting(true);
+    
     const newCoachData = {
         ...data,
-        photoUrl: finalPhotoUrl,
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
     };
 
     try {
         const docRef = doc(db, "coaches", coachId);
-        await setDoc(docRef, newCoachData);
+        await setDoc(docRef, newCoachData, { merge: true });
 
         toast({
             title: coach ? "Profil de l'entraîneur mis à jour" : "Entraîneur créé",
@@ -172,16 +153,53 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             description: "Une erreur est survenue lors de la sauvegarde.",
         });
     } finally {
-        setIsLoading(false);
+        setIsSubmitting(false);
     }
 }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-        setSelectedFile(file);
-        const previewUrl = URL.createObjectURL(file);
-        form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
+    if (!file) return;
+
+    // For new coaches, we can't upload until the form is submitted
+    if (!coach?.id) {
+        toast({
+            variant: "destructive",
+            title: "Sauvegardez d'abord",
+            description: "Veuillez d'abord sauvegarder les informations de base de l'entraîneur avant d'ajouter une photo.",
+        });
+        return;
+    }
+    
+    setIsUploading(true);
+    const previewUrl = URL.createObjectURL(file);
+    form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
+
+    try {
+        const storageRef = ref(storage, `coach-photos/${coach.id}-${file.name}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        
+        // Update Firestore document immediately
+        const docRef = doc(db, "coaches", coach.id);
+        await updateDoc(docRef, { photoUrl: downloadURL });
+        
+        form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
+        
+        toast({
+            title: "Photo mise à jour",
+            description: "La photo de profil a été mise à jour avec succès.",
+        });
+    } catch (error) {
+        console.error("Error uploading file and updating document:", error);
+        toast({
+            variant: "destructive",
+            title: "Échec du téléversement",
+            description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
+        });
+        form.setValue('photoUrl', coach.photoUrl || '', { shouldDirty: true });
+    } finally {
+        setIsUploading(false);
     }
   };
 
@@ -205,10 +223,20 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             onChange={handleFileChange}
                             className="hidden"
                             accept="image/png, image/jpeg, image/gif"
+                            disabled={isUploading}
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
-                            <Upload className="mr-2 h-4 w-4" />
-                            Ajouter une photo
+                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isUploading || isSubmitting}>
+                            {isUploading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Ajout en cours...
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Ajouter une photo
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>
@@ -225,7 +253,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Spécialité</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                             <FormControl>
                                 <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez une spécialité" />
@@ -254,7 +282,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormItem>
                         <FormLabel>Prénom</FormLabel>
                         <FormControl>
-                            <Input placeholder="Jean" {...field} />
+                            <Input placeholder="Jean" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -267,7 +295,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormItem>
                         <FormLabel>Nom de famille</FormLabel>
                         <FormControl>
-                            <Input placeholder="Dupont" {...field} />
+                            <Input placeholder="Dupont" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -280,7 +308,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             <FormItem>
                             <FormLabel>Âge</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="42" {...field} value={field.value ?? ''} />
+                                <Input type="number" placeholder="42" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -292,7 +320,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Genre</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez un genre" />
@@ -314,7 +342,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormItem>
                         <FormLabel>Pays</FormLabel>
                         <FormControl>
-                            <Input placeholder="France" {...field} />
+                            <Input placeholder="France" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -327,7 +355,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormItem>
                         <FormLabel>Ville</FormLabel>
                         <FormControl>
-                            <Input placeholder="Paris" {...field} />
+                            <Input placeholder="Paris" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -340,7 +368,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                            <Input placeholder="jean.dupont@email.com" {...field} />
+                            <Input placeholder="jean.dupont@email.com" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -353,7 +381,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormItem>
                         <FormLabel>Téléphone</FormLabel>
                         <FormControl>
-                            <Input placeholder="06 12 34 56 78" {...field} />
+                            <Input placeholder="06 12 34 56 78" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -377,6 +405,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                                   placeholder="JJ/MM/AAAA" 
                                   {...field} 
                                   value={field.value ?? ''}
+                                  disabled={isSubmitting}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -395,6 +424,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                                       placeholder="JJ/MM/AAAA" 
                                       {...field} 
                                       value={field.value ?? ''} 
+                                      disabled={isSubmitting}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -405,9 +435,9 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             </div>
 
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
-            <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
-            <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="button" variant="ghost" onClick={onFinished} disabled={isSubmitting}>Annuler</Button>
+            <Button type="submit" disabled={isUploading || isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {coach ? "Sauvegarder les modifications" : "Créer l'entraîneur"}
             </Button>
           </div>

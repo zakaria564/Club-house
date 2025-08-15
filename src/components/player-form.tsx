@@ -95,9 +95,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
   const [playerId, setPlayerId] = React.useState(player?.id || "");
   
@@ -160,29 +160,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
 
   async function onSubmit(data: PlayerFormValues) {
-    setIsLoading(true);
-    let finalPhotoUrl = data.photoUrl || null;
-
-    if (selectedFile) {
-        try {
-            const storageRef = ref(storage, `player-photos/${playerId}-${selectedFile.name}`);
-            await uploadBytes(storageRef, selectedFile);
-            finalPhotoUrl = await getDownloadURL(storageRef);
-        } catch (error) {
-            console.error("Error uploading file:", error);
-            toast({
-                variant: "destructive",
-                title: "Échec du téléversement",
-                description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
-            });
-            setIsLoading(false);
-            return;
-        }
-    }
+    setIsSubmitting(true);
 
     const newPlayerData = {
         ...data,
-        photoUrl: finalPhotoUrl,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
@@ -192,7 +173,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     
     try {
         const docRef = doc(db, "players", playerId);
-        await setDoc(docRef, newPlayerData);
+        await setDoc(docRef, newPlayerData, { merge: true });
 
         toast({
             title: player ? "Profil du joueur mis à jour" : "Profil du joueur créé",
@@ -207,16 +188,53 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
             description: "Une erreur est survenue lors de la sauvegarde.",
         });
     } finally {
-        setIsLoading(false);
+        setIsSubmitting(false);
     }
 }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-        setSelectedFile(file);
-        const previewUrl = URL.createObjectURL(file);
-        form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
+    if (!file) return;
+
+    if (!player?.id) {
+         toast({
+            variant: "destructive",
+            title: "Sauvegardez d'abord",
+            description: "Veuillez d'abord sauvegarder les informations de base du joueur avant d'ajouter une photo.",
+        });
+        return;
+    }
+
+    setIsUploading(true);
+    const previewUrl = URL.createObjectURL(file);
+    form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
+
+    try {
+      const storageRef = ref(storage, `player-photos/${player.id}-${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      const playerDocRef = doc(db, 'players', player.id);
+      await updateDoc(playerDocRef, { photoUrl: downloadURL });
+
+      form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
+      
+      toast({
+          title: "Photo mise à jour",
+          description: "La photo de profil a été mise à jour avec succès.",
+      });
+
+    } catch (error) {
+        console.error("Error uploading file:", error);
+        toast({
+            variant: "destructive",
+            title: "Échec du téléversement",
+            description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
+        });
+        // Revert to original photo on error
+        form.setValue('photoUrl', player.photoUrl || '', { shouldDirty: true });
+    } finally {
+        setIsUploading(false);
     }
   };
 
@@ -240,10 +258,20 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             onChange={handleFileChange}
                             className="hidden"
                             accept="image/png, image/jpeg, image/gif"
+                            disabled={isUploading || isSubmitting}
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
-                            <Upload className="mr-2 h-4 w-4" />
-                            Ajouter une photo
+                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isUploading || isSubmitting}>
+                           {isUploading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Ajout en cours...
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Ajouter une photo
+                                </>
+                            )}
                         </Button>
                     </div>
                  </div>
@@ -258,7 +286,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormItem>
                               <FormLabel>Prénom</FormLabel>
                               <FormControl>
-                                <Input placeholder="Jean" {...field} />
+                                <Input placeholder="Jean" {...field} disabled={isSubmitting} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -271,7 +299,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormItem>
                               <FormLabel>Nom de famille</FormLabel>
                               <FormControl>
-                                <Input placeholder="Dupont" {...field} />
+                                <Input placeholder="Dupont" {...field} disabled={isSubmitting}/>
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -283,7 +311,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Genre</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Sélectionnez un genre" />
@@ -310,6 +338,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                                   placeholder="JJ/MM/AAAA" 
                                   {...field} 
                                   value={field.value ?? ''} 
+                                  disabled={isSubmitting}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -331,7 +360,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="jean.dupont@email.com" {...field} />
+                            <Input placeholder="jean.dupont@email.com" {...field} disabled={isSubmitting}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -344,7 +373,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         <FormItem>
                           <FormLabel>Téléphone</FormLabel>
                           <FormControl>
-                            <Input placeholder="06 12 34 56 78" {...field} />
+                            <Input placeholder="06 12 34 56 78" {...field} disabled={isSubmitting}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -357,7 +386,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         <FormItem className="sm:col-span-2">
                           <FormLabel>Adresse</FormLabel>
                           <FormControl>
-                            <Input placeholder="123 Rue de la République" {...field} />
+                            <Input placeholder="123 Rue de la République" {...field} disabled={isSubmitting}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -370,7 +399,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           <FormItem>
                             <FormLabel>Ville</FormLabel>
                             <FormControl>
-                              <Input placeholder="Paris" {...field} />
+                              <Input placeholder="Paris" {...field} disabled={isSubmitting}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -383,7 +412,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           <FormItem>
                             <FormLabel>Pays</FormLabel>
                             <FormControl>
-                              <Input placeholder="France" {...field} value={field.value ?? ''} />
+                              <Input placeholder="France" {...field} value={field.value ?? ''} disabled={isSubmitting}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -400,6 +429,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                                     placeholder="Coller l'URL du certificat ici..."
                                     {...field}
                                     value={field.value ?? ''}
+                                    disabled={isSubmitting}
                                 />
                             </FormControl>
                             {field.value && (
@@ -426,7 +456,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         <FormItem>
                           <FormLabel>Nom Tuteur</FormLabel>
                           <FormControl>
-                            <Input placeholder="Jacques Dupont" {...field} />
+                            <Input placeholder="Jacques Dupont" {...field} disabled={isSubmitting}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -439,7 +469,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         <FormItem>
                           <FormLabel>Téléphone Tuteur</FormLabel>
                           <FormControl>
-                            <Input placeholder="07 87 65 43 21" {...field} />
+                            <Input placeholder="07 87 65 43 21" {...field} disabled={isSubmitting}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -464,7 +494,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           <FormItem>
                             <FormLabel>N° Joueur</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} value={field.value ?? ''} />
+                              <Input type="number" placeholder="10" {...field} value={field.value ?? ''} disabled={isSubmitting}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -476,7 +506,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Catégorie</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez une catégorie" />
@@ -498,7 +528,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Poste</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez un poste" />
@@ -520,7 +550,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Statut</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Définir le statut du joueur" />
@@ -542,7 +572,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Entraîneur</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                          <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={isSubmitting}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Assigner un entraîneur (optionnel)" />
@@ -572,6 +602,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                               placeholder="JJ/MM/AAAA" 
                               {...field} 
                               value={field.value ?? ''} 
+                              disabled={isSubmitting}
                             />
                           </FormControl>
                           <FormMessage />
@@ -590,6 +621,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                                 placeholder="JJ/MM/AAAA" 
                                 {...field} 
                                 value={field.value ?? ''} 
+                                disabled={isSubmitting}
                               />
                             </FormControl>
                             <FormMessage />
@@ -600,9 +632,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
               </div>
           </div>
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
-            <Button type="button" variant="ghost" onClick={onFinished}>Annuler</Button>
-            <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="button" variant="ghost" onClick={onFinished} disabled={isSubmitting}>Annuler</Button>
+            <Button type="submit" disabled={isUploading || isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {player ? "Sauvegarder les modifications" : "Créer le joueur"}
             </Button>
           </div>
