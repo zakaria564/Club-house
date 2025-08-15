@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
 import { Loader2, Upload, Eye, EyeOff } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { Label } from "./ui/label"
 
 const playerFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
@@ -237,7 +238,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <div className={cn(!isPhotoUrlVisible && "hidden", "w-full")}>
+                     <div className={cn(!isPhotoUrlVisible && "hidden", "w-full", "sm:max-w-md")}>
                         <FormField
                             control={form.control}
                             name="photoUrl"
@@ -633,5 +634,3 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
-
-    
