@@ -126,14 +126,13 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
-    
-    const newCoachData = {
-        ...data,
-        clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
-        clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
-    };
-
     try {
+        const newCoachData = {
+            ...data,
+            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
+        };
+
         const docRef = doc(db, "coaches", coachId);
         await setDoc(docRef, newCoachData, { merge: true });
 
@@ -158,27 +157,14 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!coachId) {
-        toast({
-            variant: "destructive",
-            title: "Impossible de trouver l'ID de l'entraîneur",
-            description: "Veuillez d'abord sauvegarder les informations de base de l'entraîneur avant d'ajouter une photo.",
-        });
-        return;
-    }
-    
     setIsUploading(true);
-    const previewUrl = URL.createObjectURL(file);
-    form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
-
     try {
         const storageRef = ref(storage, `coach-photos/${coachId}-${file.name}`);
         await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(storageRef);
         
-        // Update Firestore document immediately
         const docRef = doc(db, "coaches", coachId);
-        await updateDoc(docRef, { photoUrl: downloadURL });
+        await setDoc(docRef, { photoUrl: downloadURL }, { merge: true });
         
         form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
         
@@ -193,7 +179,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             title: "Échec du téléversement",
             description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
         });
-        form.setValue('photoUrl', coach?.photoUrl || '', { shouldDirty: true });
     } finally {
         setIsUploading(false);
     }
@@ -441,5 +426,3 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
-
-    

@@ -158,17 +158,16 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
-
-    const newPlayerData = {
-        ...data,
-        dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
-        clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
-        clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
-        coachId: data.coachId || null,
-        medicalCertificateUrl: data.medicalCertificateUrl || null,
-    };
-    
     try {
+        const newPlayerData = {
+            ...data,
+            dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
+            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
+            coachId: data.coachId || null,
+            medicalCertificateUrl: data.medicalCertificateUrl || null,
+        };
+        
         const docRef = doc(db, "players", playerId);
         await setDoc(docRef, newPlayerData, { merge: true });
 
@@ -193,33 +192,22 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!playerId) {
-         toast({
-            variant: "destructive",
-            title: "Impossible de trouver l'ID du joueur",
-            description: "Veuillez d'abord sauvegarder les informations de base du joueur avant d'ajouter une photo.",
-        });
-        return;
-    }
-
     setIsUploading(true);
-    const previewUrl = URL.createObjectURL(file);
-    form.setValue('photoUrl', previewUrl, { shouldDirty: true, shouldValidate: true });
-
     try {
-      const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+        const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
 
-      const playerDocRef = doc(db, 'players', playerId);
-      await updateDoc(playerDocRef, { photoUrl: downloadURL });
+        const playerDocRef = doc(db, 'players', playerId);
+        // Using setDoc with merge to create the document if it doesn't exist
+        await setDoc(playerDocRef, { photoUrl: downloadURL }, { merge: true });
 
-      form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
-      
-      toast({
-          title: "Photo mise à jour",
-          description: "La photo de profil a été mise à jour avec succès.",
-      });
+        form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
+        
+        toast({
+            title: "Photo mise à jour",
+            description: "La photo de profil a été mise à jour avec succès.",
+        });
 
     } catch (error) {
         console.error("Error uploading file:", error);
@@ -228,12 +216,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
             title: "Échec du téléversement",
             description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
         });
-        // Revert to original photo on error
-        form.setValue('photoUrl', player?.photoUrl || '', { shouldDirty: true });
     } finally {
         setIsUploading(false);
     }
   };
+
 
   return (
       <Form {...form}>
@@ -639,5 +626,3 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
-
-    
