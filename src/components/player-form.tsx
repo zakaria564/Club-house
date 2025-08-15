@@ -145,12 +145,13 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
   React.useEffect(() => {
     // This effect is to clean up blob URLs to prevent memory leaks
+    const currentUrl = form.getValues('photoUrl');
     return () => {
-      if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
-        URL.revokeObjectURL(photoUrlValue);
+      if (currentUrl && currentUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(currentUrl);
       }
     };
-  }, [photoUrlValue]);
+  }, [photoUrlValue, form]);
 
 
   React.useEffect(() => {
@@ -203,8 +204,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (photoUrlValue && photoUrlValue.startsWith('blob:')) {
-        URL.revokeObjectURL(photoUrlValue);
+    const previousUrl = form.getValues('photoUrl');
+    if (previousUrl && previousUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previousUrl);
     }
     
     const tempPreviewUrl = URL.createObjectURL(file);
@@ -215,6 +217,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
+      
+      if (tempPreviewUrl) {
+          URL.revokeObjectURL(tempPreviewUrl);
+      }
       
       form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
 
