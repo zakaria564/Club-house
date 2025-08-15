@@ -335,17 +335,17 @@ export default function Dashboard() {
                     <div className="space-y-4">
                         {pendingPayments.map((payment, index) => (
                           <React.Fragment key={payment.id}>
-                            <div 
-                                className="flex justify-between items-center cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-md"
-                                onClick={() => navigateToPayment(payment)}
-                            >
+                            <div className="flex justify-between items-center p-2 -m-2 rounded-md">
                                 <div className="flex flex-col flex-grow min-w-0">
                                     <span className="font-semibold truncate">{payment.memberName}</span>
                                     <span className="text-xs text-muted-foreground capitalize">
                                         {payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}
                                     </span>
                                 </div>
-                                <div className="text-right flex-shrink-0 ml-2">
+                                <div 
+                                    className="text-right flex-shrink-0 ml-2 cursor-pointer hover:bg-muted/50 rounded-md p-1 -m-1"
+                                    onClick={() => navigateToPayment(payment)}
+                                >
                                     <span className="font-bold text-destructive">{payment.remaining.toFixed(2)} DH</span>
                                     {statusBadge(payment.status)}
                                 </div>
