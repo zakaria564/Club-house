@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
-import { Loader2, Upload } from "lucide-react"
+import { Loader2, Upload, Eye, EyeOff } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 const playerFormSchema = z.object({
@@ -95,6 +95,8 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isPhotoUrlVisible, setPhotoUrlVisible] = React.useState(!player);
+  const [isCertUrlVisible, setCertUrlVisible] = React.useState(!player);
 
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
@@ -191,7 +193,15 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-8">
           <div className="space-y-8">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Photo de Profil</h3>
+                <div className="flex items-center gap-4">
+                    <h3 className="text-lg font-medium">Photo de Profil</h3>
+                    {player && (
+                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPhotoUrlVisible(v => !v)}>
+                            {isPhotoUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            <span className="sr-only">Afficher/Masquer le champ URL</span>
+                        </Button>
+                    )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-[144px_1fr] items-start gap-4">
                     <Avatar className="h-36 w-36">
                         <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
@@ -200,19 +210,21 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>URL de la photo</FormLabel>
-                            <FormControl>
-                                <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
+                     <div className={cn(!isPhotoUrlVisible && "hidden")}>
+                        <FormField
+                            control={form.control}
+                            name="photoUrl"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>URL de la photo</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
                 </div>
               </div>
 
@@ -290,7 +302,15 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Coordonnées & Documents</h3>
+                 <div className="flex items-center gap-4">
+                    <h3 className="text-lg font-medium">Coordonnées & Documents</h3>
+                     {player && (
+                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCertUrlVisible(v => !v)}>
+                            {isCertUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            <span className="sr-only">Afficher/Masquer le champ URL du certificat</span>
+                        </Button>
+                    )}
+                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -357,31 +377,33 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           </FormItem>
                         )}
                       />
-                     <FormField
-                        control={form.control}
-                        name="medicalCertificateUrl"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>URL du Certificat Médical</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="Coller l'URL du certificat ici..."
-                                    {...field}
-                                    value={field.value ?? ''}
-                                    disabled={isSubmitting}
-                                />
-                            </FormControl>
-                            {field.value && (
-                                <p className="text-xs text-muted-foreground pt-1">
-                                    <a href={field.value} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
-                                        Voir le certificat
-                                    </a>
-                                </p>
+                     <div className={cn("sm:col-span-2", !isCertUrlVisible && "hidden")}>
+                        <FormField
+                            control={form.control}
+                            name="medicalCertificateUrl"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>URL du Certificat Médical</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Coller l'URL du certificat ici..."
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        disabled={isSubmitting}
+                                    />
+                                </FormControl>
+                                {field.value && (
+                                    <p className="text-xs text-muted-foreground pt-1">
+                                        <a href={field.value} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                                            Voir le certificat
+                                        </a>
+                                    </p>
+                                )}
+                                <FormMessage />
+                                </FormItem>
                             )}
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
+                            />
+                    </div>
                 </div>
               </div>
 

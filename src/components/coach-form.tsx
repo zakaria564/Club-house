@@ -23,8 +23,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { handleEnterKeyDown } from "@/lib/utils"
-import { Loader2 } from "lucide-react"
+import { cn, handleEnterKeyDown } from "@/lib/utils"
+import { Loader2, Eye, EyeOff } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 
@@ -87,6 +87,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isPhotoUrlVisible, setPhotoUrlVisible] = React.useState(!coach);
   
   const [coachId] = React.useState(() => coach?.id || doc(collection(db, "coaches")).id);
 
@@ -154,7 +155,15 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
             <div className="space-y-4">
-                <h3 className="text-lg font-medium">Photo de Profil</h3>
+                <div className="flex items-center gap-4">
+                    <h3 className="text-lg font-medium">Photo de Profil</h3>
+                    {coach && (
+                         <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPhotoUrlVisible(v => !v)}>
+                            {isPhotoUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            <span className="sr-only">Afficher/Masquer le champ URL</span>
+                        </Button>
+                    )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-[144px_1fr] items-start gap-4">
                     <Avatar className="h-36 w-36">
                         <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
@@ -163,19 +172,21 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>URL de la photo</FormLabel>
-                            <FormControl>
-                            <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
+                     <div className={cn(!isPhotoUrlVisible && "hidden")}>
+                        <FormField
+                            control={form.control}
+                            name="photoUrl"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>URL de la photo</FormLabel>
+                                <FormControl>
+                                <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
                 </div>
             </div>
             <div className="space-y-4">
