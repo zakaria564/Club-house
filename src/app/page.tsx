@@ -20,6 +20,7 @@ import { fr } from "date-fns/locale"
 import { collection, onSnapshot, query, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 
 
 const chartConfig = {
@@ -121,7 +122,7 @@ export default function Dashboard() {
     paidMemberships,
     activePlayers,
     monthString,
-    overduePayments,
+    pendingPayments,
   } = React.useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -141,7 +142,7 @@ export default function Dashboard() {
     const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
     const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
     
-    const currentOverduePayments = payments.filter(p => p.status === 'Overdue');
+    const currentPendingPayments = payments.filter(p => p.remaining > 0).sort((a,b) => b.remaining - a.remaining);
     
     const currentMonthString = format(today, "MMMM yyyy", { locale: fr });
 
@@ -154,7 +155,7 @@ export default function Dashboard() {
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
         monthString: currentMonthString,
-        overduePayments: currentOverduePayments,
+        pendingPayments: currentPendingPayments,
     };
   }, [players, payments, events]);
 
@@ -179,6 +180,20 @@ export default function Dashboard() {
     const path = payment.paymentType === 'membership' ? 'players' : 'coaches';
     router.push(`/${path}/${payment.memberId}`);
   };
+  
+  const statusBadge = (status: Payment['status']) => {
+    const variants = {
+        'Overdue': 'bg-red-100 text-red-800 border-red-200',
+        'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        'Paid': 'bg-green-100 text-green-800 border-green-200'
+    };
+    const translations = {
+        'Overdue': 'En retard',
+        'Pending': 'En attente',
+        'Paid': 'Payé'
+    };
+    return <Badge className={cn("text-xs", variants[status])}>{translations[status]}</Badge>
+  }
 
   return (
     <>
@@ -302,31 +317,31 @@ export default function Dashboard() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-destructive" />
-                    Alertes de Paiement
+                    Paiements à suivre
                 </CardTitle>
-                <CardDescription>Suivi des paiements en retard.</CardDescription>
+                <CardDescription>Cotisations et salaires non réglés.</CardDescription>
             </CardHeader>
             <CardContent>
-                {overduePayments.length > 0 ? (
+                {pendingPayments.length > 0 ? (
                     <div className="space-y-4">
-                        {overduePayments.map((payment, index) => (
+                        {pendingPayments.map((payment, index) => (
                           <React.Fragment key={payment.id}>
                             <div 
                                 className="flex justify-between items-center cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-md"
                                 onClick={() => navigateToMember(payment)}
                             >
-                                <div className="flex flex-col">
-                                    <span className="font-semibold">{payment.memberName}</span>
+                                <div className="flex flex-col flex-grow min-w-0">
+                                    <span className="font-semibold truncate">{payment.memberName}</span>
                                     <span className="text-xs text-muted-foreground capitalize">
                                         {payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}
                                     </span>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right flex-shrink-0 ml-2">
                                     <span className="font-bold text-destructive">{payment.remaining.toFixed(2)} DH</span>
-                                    <p className="text-xs text-muted-foreground">restant</p>
+                                    {statusBadge(payment.status)}
                                 </div>
                             </div>
-                            {index < overduePayments.length - 1 && <Separator />}
+                            {index < pendingPayments.length - 1 && <Separator />}
                           </React.Fragment>
                         ))}
                     </div>
