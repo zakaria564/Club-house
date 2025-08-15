@@ -561,7 +561,19 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onAddPartial
                   {payment.advance.toFixed(2)} DH
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-right">
-                  {payment.remaining.toFixed(2)} DH
+                  {payment.remaining > 0 ? (
+                    <div
+                      className="cursor-pointer hover:underline font-semibold text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddPartialPayment(payment);
+                      }}
+                    >
+                      {payment.remaining.toFixed(2)} DH
+                    </div>
+                  ) : (
+                    <span>{payment.remaining.toFixed(2)} DH</span>
+                  )}
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
@@ -620,3 +632,4 @@ export default function PaymentsPage() {
     
 
     
+
