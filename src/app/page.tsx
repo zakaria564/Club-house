@@ -315,10 +315,20 @@ export default function Dashboard() {
         <Card className="lg:col-span-2">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-destructive" />
-                    Paiements à suivre
+                    {pendingPayments.length > 0 ? (
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
+                    ) : (
+                        <Check className="h-5 w-5 text-green-500" />
+                    )}
+                    <span>
+                        {pendingPayments.length > 0 ? `${pendingPayments.length} Paiement(s) à suivre` : "Paiements à jour"}
+                    </span>
                 </CardTitle>
-                <CardDescription>Cotisations et salaires non réglés.</CardDescription>
+                <CardDescription>
+                    {pendingPayments.length > 0
+                        ? "Liste des cotisations et salaires non réglés."
+                        : "Tous les paiements sont en ordre. Bravo !"}
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 {pendingPayments.length > 0 ? (
@@ -347,7 +357,7 @@ export default function Dashboard() {
                 ) : (
                     <div className="text-sm text-center text-muted-foreground py-8">
                         <Check className="mx-auto h-8 w-8 text-green-500 mb-2" />
-                        Tous les paiements sont à jour. Excellent travail !
+                        Excellent travail !
                     </div>
                 )}
             </CardContent>
@@ -357,3 +367,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
