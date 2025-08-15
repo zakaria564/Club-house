@@ -210,7 +210,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <div className={cn(!isPhotoUrlVisible && "hidden")}>
+                     <div className={cn(!isPhotoUrlVisible && "hidden", "sm:col-span-1")}>
                         <FormField
                             control={form.control}
                             name="photoUrl"
@@ -369,13 +369,13 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           </FormItem>
                         )}
                       />
-                     <div className={cn("sm:col-span-2")}>
+                     <div className="sm:col-span-2">
                         <FormField
                             control={form.control}
                             name="medicalCertificateUrl"
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
                                         <FormLabel>URL du Certificat Médical</FormLabel>
                                         {player && (
                                             <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCertUrlVisible(v => !v)}>
