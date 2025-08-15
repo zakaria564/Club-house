@@ -5,9 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { collection, doc, setDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
-import { db, storage } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 
 
 import { Button } from "@/components/ui/button"
@@ -27,7 +26,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach } from "@/types"
 import { Loader2, Upload } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { PhotoCaptureDialog } from "./photo-capture-dialog"
 
 const playerFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
@@ -97,13 +95,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = React.useState<string | null>(player?.photoUrl || null);
-  const [isPhotoDialogVisible, setPhotoDialogVisible] = React.useState(false);
-
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const cameraInputRef = React.useRef<HTMLInputElement>(null);
 
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
@@ -143,8 +134,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   
   React.useEffect(() => {
       form.reset(defaultValues);
-      setPhotoPreview(player?.photoUrl || null);
-  }, [defaultValues, form, player]);
+  }, [defaultValues, form]);
 
 
   React.useEffect(() => {
@@ -164,17 +154,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
     try {
-      let finalPhotoUrl = player?.photoUrl || null;
-
-      if (selectedFile) {
-        const storageRef = ref(storage, `player-photos/${playerId}/${selectedFile.name}`);
-        await uploadBytes(storageRef, selectedFile);
-        finalPhotoUrl = await getDownloadURL(storageRef);
-      }
-
       const newPlayerData = {
         ...data,
-        photoUrl: finalPhotoUrl,
+        photoUrl: data.photoUrl || null,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
@@ -203,25 +185,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     }
   }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-        setSelectedFile(file);
-        const previewUrl = URL.createObjectURL(file);
-        setPhotoPreview(previewUrl);
-    }
-  };
-
-  const handleTakePhoto = () => {
-    setPhotoDialogVisible(false);
-    cameraInputRef.current?.click();
-  };
-
-  const handleChooseFromGallery = () => {
-    setPhotoDialogVisible(false);
-    fileInputRef.current?.click();
-  };
-
 
   return (
       <Form {...form}>
@@ -230,34 +193,26 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
               <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
                  <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                      <AvatarImage src={photoPreview || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
                       </AvatarFallback>
                     </Avatar>
                      <div className="w-full space-y-2">
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            className="hidden"
-                            accept="image/*"
-                            disabled={isSubmitting}
+                        <FormField
+                          control={form.control}
+                          name="photoUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL de la photo</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                        <input
-                            type="file"
-                            ref={cameraInputRef}
-                            onChange={handleFileChange}
-                            className="hidden"
-                            accept="image/*"
-                            capture="user"
-                            disabled={isSubmitting}
-                        />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => setPhotoDialogVisible(true)} disabled={isSubmitting}>
-                           <Upload className="mr-2 h-4 w-4" />
-                           Changer la photo
-                        </Button>
                     </div>
                  </div>
 
@@ -624,12 +579,8 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
             </Button>
           </div>
         </form>
-         <PhotoCaptureDialog
-            open={isPhotoDialogVisible}
-            onOpenChange={setPhotoDialogVisible}
-            onTakePhoto={handleTakePhoto}
-            onChooseFromGallery={handleChooseFromGallery}
-        />
       </Form>
   )
 }
+
+    

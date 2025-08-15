@@ -5,9 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { collection, doc, setDoc, addDoc, getDocs, query, where, Timestamp, updateDoc } from "firebase/firestore"
-import { db, storage } from "@/lib/firebase"
+import { collection, doc, setDoc, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 
 import { Button } from "@/components/ui/button"
@@ -25,9 +24,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { handleEnterKeyDown } from "@/lib/utils"
-import { Loader2, Upload } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { PhotoCaptureDialog } from "./photo-capture-dialog"
 
 
 const coachFormSchema = z.object({
@@ -90,13 +88,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = React.useState<string | null>(coach?.photoUrl || null);
-  const [isPhotoDialogVisible, setPhotoDialogVisible] = React.useState(false);
-
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const cameraInputRef = React.useRef<HTMLInputElement>(null);
-  
   const [coachId] = React.useState(() => coach?.id || doc(collection(db, "coaches")).id);
 
   React.useEffect(() => {
@@ -126,23 +117,14 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   
   React.useEffect(() => {
       form.reset(defaultValues);
-      setPhotoPreview(coach?.photoUrl || null);
-  }, [defaultValues, form, coach]);
+  }, [defaultValues, form]);
 
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
     try {
-      let finalPhotoUrl = coach?.photoUrl || null;
-
-      if (selectedFile) {
-        const storageRef = ref(storage, `coach-photos/${coachId}/${selectedFile.name}`);
-        await uploadBytes(storageRef, selectedFile);
-        finalPhotoUrl = await getDownloadURL(storageRef);
-      }
-
       const newCoachData = {
         ...data,
-        photoUrl: finalPhotoUrl,
+        photoUrl: data.photoUrl || null,
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
       };
@@ -168,61 +150,32 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
     }
   }
 
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setPhotoPreview(previewUrl);
-    }
-  };
-  
-  const handleTakePhoto = () => {
-    setPhotoDialogVisible(false);
-    cameraInputRef.current?.click();
-  };
-
-  const handleChooseFromGallery = () => {
-    setPhotoDialogVisible(false);
-    fileInputRef.current?.click();
-  };
-
-
   return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoPreview || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
                      <div className="w-full space-y-2">
-                         <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            className="hidden"
-                            accept="image/*"
-                            disabled={isSubmitting}
+                        <FormField
+                          control={form.control}
+                          name="photoUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL de la photo</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                        <input
-                            type="file"
-                            ref={cameraInputRef}
-                            onChange={handleFileChange}
-                            className="hidden"
-                            accept="image/*"
-                            capture="user"
-                            disabled={isSubmitting}
-                        />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => setPhotoDialogVisible(true)} disabled={isSubmitting}>
-                            <Upload className="mr-2 h-4 w-4" />
-                            Changer la photo
-                        </Button>
                     </div>
                 </div>
                  <div className="w-full space-y-4">
@@ -427,12 +380,8 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             </Button>
           </div>
         </form>
-         <PhotoCaptureDialog
-            open={isPhotoDialogVisible}
-            onOpenChange={setPhotoDialogVisible}
-            onTakePhoto={handleTakePhoto}
-            onChooseFromGallery={handleChooseFromGallery}
-        />
       </Form>
   )
 }
+
+    
