@@ -163,21 +163,21 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
+    let finalPhotoUrl = player?.photoUrl || '';
+
     try {
-        let finalPhotoUrl = player?.photoUrl || '';
-        
         if (selectedFile) {
             const storageRef = ref(storage, `player-photos/${playerId}/${selectedFile.name}`);
             await uploadBytes(storageRef, selectedFile);
             finalPhotoUrl = await getDownloadURL(storageRef);
         }
 
-        const newPlayerData: Omit<Player, 'id'> = {
+        const newPlayerData = {
             ...data,
             photoUrl: finalPhotoUrl || null,
-            dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)).toDate(),
-            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)).toDate(),
-            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)).toDate() : undefined,
+            dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
+            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : undefined,
             coachId: data.coachId || undefined,
             medicalCertificateUrl: data.medicalCertificateUrl || undefined,
         };
@@ -632,3 +632,5 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
+
+    

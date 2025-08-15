@@ -131,20 +131,20 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
-    try {
-        let finalPhotoUrl = coach?.photoUrl || '';
+    let finalPhotoUrl = coach?.photoUrl || '';
 
+    try {
         if (selectedFile) {
             const storageRef = ref(storage, `coach-photos/${coachId}/${selectedFile.name}`);
             await uploadBytes(storageRef, selectedFile);
             finalPhotoUrl = await getDownloadURL(storageRef);
         }
 
-        const newCoachData: Omit<Coach, 'id'> = {
+        const newCoachData = {
             ...data,
             photoUrl: finalPhotoUrl || null,
-            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)).toDate(),
-            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)).toDate() : undefined,
+            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : undefined,
         };
 
         const docRef = doc(db, "coaches", coachId);
@@ -434,3 +434,5 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
+
+    
