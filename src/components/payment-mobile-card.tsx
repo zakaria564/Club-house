@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from 'react';
-import { MoreHorizontal, Printer, CircleDollarSign, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Printer, CircleDollarSign, Trash2, Coins } from 'lucide-react';
 import { Payment } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ interface PaymentMobileCardProps {
   payment: Payment;
   statusTranslations: { [key in Payment['status']]: string };
   onMarkAsPaid: (paymentId: string) => void;
+  onAddPartialPayment: (payment: Payment) => void;
   onViewMember: (memberId: string, paymentType: 'membership' | 'salary') => void;
   onPrintReceipt: (paymentId: string) => void;
   onDelete: (paymentId: string) => void;
@@ -30,6 +31,7 @@ export function PaymentMobileCard({
   payment,
   statusTranslations,
   onMarkAsPaid,
+  onAddPartialPayment,
   onViewMember,
   onPrintReceipt,
   onDelete,
@@ -56,7 +58,13 @@ export function PaymentMobileCard({
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.paymentType)}>Voir le profil</DropdownMenuItem>
                   {payment.status !== 'Paid' && (
-                    <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem onClick={() => onAddPartialPayment(payment)}>
+                        <Coins className="mr-2 h-4 w-4" />
+                        Ajouter un versement
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
                     <Printer className="mr-2 h-4 w-4" />

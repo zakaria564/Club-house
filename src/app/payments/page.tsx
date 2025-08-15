@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check, Coins } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -31,8 +31,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, Timestamp } from "firebase/firestore"
+import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, Timestamp, runTransaction } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import AddPartialPaymentDialog from "@/components/add-partial-payment-dialog"
 
 
 const parsePlayerDoc = (doc: any): Player => {
@@ -116,6 +117,7 @@ function PaymentsPageContent() {
   
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
+  const [paymentToUpdate, setPaymentToUpdate] = React.useState<Payment | null>(null);
   const [paymentToDelete, setPaymentToDelete] = React.useState<string | null>(null);
   const [paymentTypeFilter, setPaymentTypeFilter] = React.useState<'all' | 'membership' | 'salary'>('all');
   
@@ -202,6 +204,41 @@ function PaymentsPageContent() {
         })
     }
   }
+
+  const handlePartialPayment = async (payment: Payment, amount: number) => {
+    const paymentRef = doc(db, 'payments', payment.id);
+    try {
+      await runTransaction(db, async (transaction) => {
+        const paymentDoc = await transaction.get(paymentRef);
+        if (!paymentDoc.exists()) {
+          throw "Document does not exist!";
+        }
+        const currentData = paymentDoc.data() as Payment;
+        const newAdvance = currentData.advance + amount;
+        const newRemaining = currentData.totalAmount - newAdvance;
+        const newStatus = newRemaining <= 0 ? 'Paid' : currentData.status;
+
+        transaction.update(paymentRef, {
+          advance: newAdvance,
+          remaining: newRemaining,
+          status: newStatus
+        });
+      });
+
+      toast({
+        title: "Versement ajouté",
+        description: `Le versement de ${amount.toFixed(2)} DH a été ajouté pour ${payment.memberName}.`
+      });
+      setPaymentToUpdate(null);
+    } catch (e) {
+      console.error("Transaction failed: ", e);
+       toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible d'ajouter le versement.",
+      });
+    }
+  };
 
   const handleMarkAsPaid = async (paymentId: string) => {
     const payment = payments.find(p => p.id === paymentId);
@@ -376,6 +413,7 @@ function PaymentsPageContent() {
                   payments={filteredPayments} 
                   statusTranslations={statusTranslations} 
                   onMarkAsPaid={handleMarkAsPaid} 
+                  onAddPartialPayment={setPaymentToUpdate}
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
@@ -386,6 +424,7 @@ function PaymentsPageContent() {
                   payments={filteredPayments.filter(p => p.status === 'Paid')} 
                   statusTranslations={statusTranslations}
                   onMarkAsPaid={handleMarkAsPaid} 
+                  onAddPartialPayment={setPaymentToUpdate}
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
@@ -396,6 +435,7 @@ function PaymentsPageContent() {
                   payments={filteredPayments.filter(p => p.status === 'Pending')} 
                   statusTranslations={statusTranslations}
                   onMarkAsPaid={handleMarkAsPaid} 
+                  onAddPartialPayment={setPaymentToUpdate}
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
@@ -406,6 +446,7 @@ function PaymentsPageContent() {
                   payments={filteredPayments.filter(p => p.status === 'Overdue')} 
                   statusTranslations={statusTranslations} 
                   onMarkAsPaid={handleMarkAsPaid} 
+                  onAddPartialPayment={setPaymentToUpdate}
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
@@ -422,6 +463,12 @@ function PaymentsPageContent() {
       <AddPaymentDialog
         open={isAddPaymentOpen}
         onOpenChange={setAddPaymentOpen}
+       />
+       <AddPartialPaymentDialog
+          open={!!paymentToUpdate}
+          onOpenChange={() => setPaymentToUpdate(null)}
+          payment={paymentToUpdate}
+          onConfirm={handlePartialPayment}
        />
        <AlertDialog open={!!paymentToDelete} onOpenChange={(open) => !open && setPaymentToDelete(null)}>
             <AlertDialogContent>
@@ -445,13 +492,14 @@ interface PaymentTableProps {
   payments: Payment[];
   statusTranslations: { [key in Payment['status']]: string };
   onMarkAsPaid: (paymentId: string) => void;
+  onAddPartialPayment: (payment: Payment) => void;
   onViewMember: (memberId: string, paymentType: 'membership' | 'salary') => void;
   onPrintReceipt: (paymentId: string) => void;
   onDelete: (paymentId: string) => void;
 }
 
 
-function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember, onPrintReceipt, onDelete }: PaymentTableProps) {
+function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onAddPartialPayment, onViewMember, onPrintReceipt, onDelete }: PaymentTableProps) {
   return (
     <>
       {/* Mobile View */}
@@ -462,6 +510,7 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
             payment={payment}
             statusTranslations={statusTranslations}
             onMarkAsPaid={onMarkAsPaid}
+            onAddPartialPayment={onAddPartialPayment}
             onViewMember={onViewMember}
             onPrintReceipt={onPrintReceipt}
             onDelete={onDelete}
@@ -530,7 +579,13 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onViewMember
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.paymentType)}>Voir le profil</DropdownMenuItem>
                       {payment.status !== 'Paid' && (
-                        <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem onClick={() => onAddPartialPayment(payment)}>
+                            <Coins className="mr-2 h-4 w-4" />
+                            Ajouter un versement
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
+                        </>
                       )}
                       <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
                         <Printer className="mr-2 h-4 w-4" />
