@@ -192,7 +192,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
           <div className="space-y-8">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Photo de Profil</h3>
-                <div className="flex flex-col items-center gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-[144px_1fr] items-start gap-4">
                     <Avatar className="h-36 w-36">
                         <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                         <AvatarFallback className="text-4xl">
@@ -204,7 +204,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         control={form.control}
                         name="photoUrl"
                         render={({ field }) => (
-                        <FormItem className="w-full sm:w-2/3">
+                        <FormItem>
                             <FormLabel>URL de la photo</FormLabel>
                             <FormControl>
                                 <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
