@@ -172,14 +172,14 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
             finalPhotoUrl = await getDownloadURL(storageRef);
         }
 
-        const newPlayerData = {
+        const newPlayerData: Omit<Player, 'id'> = {
             ...data,
             photoUrl: finalPhotoUrl || null,
-            dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
-            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
-            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
-            coachId: data.coachId || null,
-            medicalCertificateUrl: data.medicalCertificateUrl || null,
+            dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)).toDate(),
+            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)).toDate(),
+            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)).toDate() : undefined,
+            coachId: data.coachId || undefined,
+            medicalCertificateUrl: data.medicalCertificateUrl || undefined,
         };
         
         const docRef = doc(db, "players", playerId);

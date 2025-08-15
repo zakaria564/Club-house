@@ -140,11 +140,11 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             finalPhotoUrl = await getDownloadURL(storageRef);
         }
 
-        const newCoachData = {
+        const newCoachData: Omit<Coach, 'id'> = {
             ...data,
             photoUrl: finalPhotoUrl || null,
-            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
-            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
+            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)).toDate(),
+            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)).toDate() : undefined,
         };
 
         const docRef = doc(db, "coaches", coachId);
