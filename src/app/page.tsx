@@ -180,7 +180,7 @@ export default function Dashboard() {
                     variant="outline"
                     role="combobox"
                     aria-expanded={openCombobox}
-                    className="w-full sm:w-[200px] justify-between"
+                    className={cn("w-full sm:w-[200px] justify-between", !selectedPlayerId && "text-muted-foreground dark:text-white")}
                     >
                     {selectedPlayerId
                         ? players.find((player) => player.id === selectedPlayerId)?.firstName + ' ' + players.find((player) => player.id === selectedPlayerId)?.lastName
@@ -294,4 +294,5 @@ export default function Dashboard() {
   );
 }
 
+    
     
