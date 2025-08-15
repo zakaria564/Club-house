@@ -131,41 +131,43 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
-    let finalPhotoUrl = coach?.photoUrl || '';
-
     try {
-        if (selectedFile) {
-            const storageRef = ref(storage, `coach-photos/${coachId}/${selectedFile.name}`);
-            await uploadBytes(storageRef, selectedFile);
-            finalPhotoUrl = await getDownloadURL(storageRef);
-        }
+      let finalPhotoUrl = coach?.photoUrl || null;
 
-        const newCoachData = {
-            ...data,
-            photoUrl: finalPhotoUrl || null,
-            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
-            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : undefined,
-        };
+      if (selectedFile) {
+        const storageRef = ref(storage, `coach-photos/${coachId}/${selectedFile.name}`);
+        await uploadBytes(storageRef, selectedFile);
+        finalPhotoUrl = await getDownloadURL(storageRef);
+      }
 
-        const docRef = doc(db, "coaches", coachId);
-        await setDoc(docRef, newCoachData, { merge: true });
+      const newCoachData = {
+        ...data,
+        photoUrl: finalPhotoUrl,
+        clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+        clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
+      };
 
-        toast({
-            title: coach ? "Profil de l'entraîneur mis à jour" : "Entraîneur créé",
-            description: `L'entraîneur ${data.firstName} ${data.lastName} a été ${coach ? 'mis à jour' : 'ajouté'} avec succès.`,
-        });
-        onFinished();
+      const docRef = doc(db, "coaches", coachId);
+      await setDoc(docRef, newCoachData, { merge: true });
+
+      toast({
+        title: coach ? "Profil de l'entraîneur mis à jour" : "Entraîneur créé",
+        description: `L'entraîneur ${data.firstName} ${data.lastName} a été ${coach ? 'mis à jour' : 'ajouté'} avec succès.`,
+      });
+      onFinished();
+
     } catch (error) {
-        console.error("Error saving coach: ", error);
-        toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Une erreur est survenue lors de la sauvegarde.",
-        });
+      console.error("Error saving coach: ", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la sauvegarde.",
+      });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
-}
+  }
+
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -434,5 +436,3 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
-
-    

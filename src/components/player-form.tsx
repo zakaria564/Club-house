@@ -163,44 +163,45 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
-    let finalPhotoUrl = player?.photoUrl || '';
-
     try {
-        if (selectedFile) {
-            const storageRef = ref(storage, `player-photos/${playerId}/${selectedFile.name}`);
-            await uploadBytes(storageRef, selectedFile);
-            finalPhotoUrl = await getDownloadURL(storageRef);
-        }
+      let finalPhotoUrl = player?.photoUrl || null;
 
-        const newPlayerData = {
-            ...data,
-            photoUrl: finalPhotoUrl || null,
-            dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
-            clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
-            clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : undefined,
-            coachId: data.coachId || undefined,
-            medicalCertificateUrl: data.medicalCertificateUrl || undefined,
-        };
-        
-        const docRef = doc(db, "players", playerId);
-        await setDoc(docRef, newPlayerData, { merge: true });
+      if (selectedFile) {
+        const storageRef = ref(storage, `player-photos/${playerId}/${selectedFile.name}`);
+        await uploadBytes(storageRef, selectedFile);
+        finalPhotoUrl = await getDownloadURL(storageRef);
+      }
 
-        toast({
-            title: player ? "Profil du joueur mis à jour" : "Profil du joueur créé",
-            description: `Le joueur ${data.firstName} ${data.lastName} a été ${player ? 'mis à jour' : 'ajouté'} avec succès.`,
-        });
-        onFinished();
+      const newPlayerData = {
+        ...data,
+        photoUrl: finalPhotoUrl,
+        dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
+        clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
+        clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
+        coachId: data.coachId || null,
+        medicalCertificateUrl: data.medicalCertificateUrl || null,
+      };
+      
+      const docRef = doc(db, "players", playerId);
+      await setDoc(docRef, newPlayerData, { merge: true });
+
+      toast({
+        title: player ? "Profil du joueur mis à jour" : "Profil du joueur créé",
+        description: `Le joueur ${data.firstName} ${data.lastName} a été ${player ? 'mis à jour' : 'ajouté'} avec succès.`,
+      });
+      onFinished();
+
     } catch (error) {
-        console.error("Error saving player: ", error);
-        toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Une erreur est survenue lors de la sauvegarde.",
-        });
+      console.error("Error saving player: ", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la sauvegarde.",
+      });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
-}
+  }
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -632,5 +633,3 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
-
-    
