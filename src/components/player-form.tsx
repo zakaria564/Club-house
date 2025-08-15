@@ -92,6 +92,7 @@ const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisp
 export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
+  const [allPlayers, setAllPlayers] = React.useState<Player[]>([]);
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -140,8 +141,8 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
 
   React.useEffect(() => {
-    const q = query(collection(db, "coaches"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const qCoaches = query(collection(db, "coaches"));
+    const unsubscribeCoaches = onSnapshot(qCoaches, (querySnapshot) => {
         const coachesData: Coach[] = [];
         querySnapshot.forEach((doc) => {
             coachesData.push({ id: doc.id, ...doc.data() } as Coach);
@@ -149,13 +150,37 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
         setCoaches(coachesData);
     });
 
-    return () => unsubscribe();
+    const qPlayers = query(collection(db, "players"));
+    const unsubscribePlayers = onSnapshot(qPlayers, (snapshot) => {
+        const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
+        setAllPlayers(playersData);
+    });
+
+    return () => {
+        unsubscribeCoaches();
+        unsubscribePlayers();
+    };
   }, []);
 
 
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
     try {
+      const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase();
+      const isDuplicate = allPlayers.some(p => 
+          `${p.firstName.trim()} ${p.lastName.trim()}`.toLowerCase() === formattedFullName && p.id !== playerId
+      );
+
+      if (isDuplicate) {
+          toast({
+              variant: "destructive",
+              title: "Joueur en double",
+              description: `Un joueur nommé ${data.firstName} ${data.lastName} existe déjà.`,
+          });
+          setIsSubmitting(false);
+          return;
+      }
+
       const newPlayerData = {
         ...data,
         photoUrl: data.photoUrl || null,
@@ -202,7 +227,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         </Button>
                     )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-[144px_1fr] items-start gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-4">
                     <Avatar className="h-36 w-36">
                         <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                         <AvatarFallback className="text-4xl">
@@ -369,24 +394,25 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           </FormItem>
                         )}
                       />
-                     <div className="sm:col-span-2">
-                        <FormField
-                            control={form.control}
-                            name="medicalCertificateUrl"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <div className="flex items-center gap-2">
-                                        <FormLabel>URL du Certificat Médical</FormLabel>
-                                        {player && (
-                                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCertUrlVisible(v => !v)}>
-                                                {isCertUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                <span className="sr-only">Afficher/Masquer le champ URL du certificat</span>
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <div className={cn(!isCertUrlVisible && "hidden")}>
+                    <div className="sm:col-span-2 space-y-2">
+                         <div className="flex items-center gap-2">
+                            <Label htmlFor="medicalCertificateUrl">URL du Certificat Médical</Label>
+                            {player && (
+                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCertUrlVisible(v => !v)}>
+                                    {isCertUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    <span className="sr-only">Afficher/Masquer le champ URL du certificat</span>
+                                </Button>
+                            )}
+                        </div>
+                        <div className={cn(!isCertUrlVisible && "hidden")}>
+                             <FormField
+                                control={form.control}
+                                name="medicalCertificateUrl"
+                                render={({ field }) => (
+                                    <FormItem>
                                         <FormControl>
                                             <Input
+                                                id="medicalCertificateUrl"
                                                 placeholder="Coller l'URL du certificat ici..."
                                                 {...field}
                                                 value={field.value ?? ''}
@@ -400,11 +426,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                                                 </a>
                                             </p>
                                         )}
-                                    </div>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                            />
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                        </div>
                     </div>
                 </div>
               </div>

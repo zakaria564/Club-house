@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
-import { collection, doc, setDoc, Timestamp } from "firebase/firestore"
+import { collection, doc, setDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 
@@ -88,11 +88,18 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isPhotoUrlVisible, setPhotoUrlVisible] = React.useState(!coach);
+  const [allCoaches, setAllCoaches] = React.useState<Coach[]>([]);
   
   const [coachId] = React.useState(() => coach?.id || doc(collection(db, "coaches")).id);
 
   React.useEffect(() => {
     setIsClient(true);
+    const qCoaches = query(collection(db, "coaches"));
+    const unsubscribe = onSnapshot(qCoaches, (snapshot) => {
+        const coachesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coach));
+        setAllCoaches(coachesData);
+    });
+    return () => unsubscribe();
   }, []);
   
   const defaultValues = React.useMemo(() => ({
@@ -123,6 +130,21 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
     try {
+      const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase();
+      const isDuplicate = allCoaches.some(c => 
+          `${c.firstName.trim()} ${c.lastName.trim()}`.toLowerCase() === formattedFullName && c.id !== coachId
+      );
+
+       if (isDuplicate) {
+          toast({
+              variant: "destructive",
+              title: "Entraîneur en double",
+              description: `Un entraîneur nommé ${data.firstName} ${data.lastName} existe déjà.`,
+          });
+          setIsSubmitting(false);
+          return;
+      }
+
       const newCoachData = {
         ...data,
         photoUrl: data.photoUrl || null,
@@ -164,7 +186,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         </Button>
                     )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-[144px_1fr] items-start gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-4">
                     <Avatar className="h-36 w-36">
                         <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
@@ -172,7 +194,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                     <div className={cn(!isPhotoUrlVisible && "hidden")}>
+                     <div className={cn(!isPhotoUrlVisible && "hidden", "sm:col-span-1")}>
                         <FormField
                             control={form.control}
                             name="photoUrl"
