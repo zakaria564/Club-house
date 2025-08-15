@@ -88,8 +88,10 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = React.useState<string | null>(coach?.photoUrl || null);
   
   const [coachId] = React.useState(coach?.id || doc(collection(db, "coaches")).id);
 
@@ -120,15 +122,22 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   
   React.useEffect(() => {
       form.reset(defaultValues);
-  }, [defaultValues, form]);
-
-  const photoUrlValue = form.watch('photoUrl');
+      setPhotoPreview(coach?.photoUrl || null);
+  }, [defaultValues, form, coach]);
 
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
     try {
+        let photoUrl = coach?.photoUrl || '';
+        if (selectedFile) {
+            const storageRef = ref(storage, `coach-photos/${coachId}-${selectedFile.name}`);
+            await uploadBytes(storageRef, selectedFile);
+            photoUrl = await getDownloadURL(storageRef);
+        }
+
         const newCoachData = {
             ...data,
+            photoUrl: photoUrl || null,
             clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
             clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
         };
@@ -155,32 +164,10 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-        const storageRef = ref(storage, `coach-photos/${coachId}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        
-        const docRef = doc(db, "coaches", coachId);
-        await setDoc(docRef, { photoUrl: downloadURL }, { merge: true });
-        
-        form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
-        
-        toast({
-            title: "Photo mise à jour",
-            description: "La photo de profil a été mise à jour avec succès.",
-        });
-    } catch (error) {
-        console.error("Error uploading file and updating document:", error);
-        toast({
-            variant: "destructive",
-            title: "Échec du téléversement",
-            description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
-        });
-    } finally {
-        setIsUploading(false);
+    if (file) {
+      setSelectedFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setPhotoPreview(previewUrl);
     }
   };
 
@@ -191,7 +178,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                        <AvatarImage src={photoUrlValue || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarImage src={photoPreview || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
                         <AvatarFallback className="text-4xl">
                             {form.watch('firstName')?.[0]}
                             {form.watch('lastName')?.[0]}
@@ -204,20 +191,11 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             onChange={handleFileChange}
                             className="hidden"
                             accept="image/png, image/jpeg, image/gif"
-                            disabled={isUploading}
+                            disabled={isSubmitting}
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isUploading || isSubmitting}>
-                            {isUploading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Ajout en cours...
-                                </>
-                            ) : (
-                                <>
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Ajouter une photo
-                                </>
-                            )}
+                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Ajouter une photo
                         </Button>
                     </div>
                 </div>
@@ -417,7 +395,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
             <Button type="button" variant="ghost" onClick={onFinished} disabled={isSubmitting}>Annuler</Button>
-            <Button type="submit" disabled={isUploading || isSubmitting}>
+            <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {coach ? "Sauvegarder les modifications" : "Créer l'entraîneur"}
             </Button>
@@ -426,3 +404,5 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
+
+    

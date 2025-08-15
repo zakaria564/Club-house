@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { collection, doc, setDoc, getDocs, onSnapshot, query, Timestamp, updateDoc } from "firebase/firestore"
+import { collection, doc, setDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
 import { db, storage } from "@/lib/firebase"
 
 
@@ -96,8 +96,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = React.useState<string | null>(player?.photoUrl || null);
 
   const [playerId] = React.useState(player?.id || doc(collection(db, "players")).id);
   
@@ -137,9 +139,8 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   
   React.useEffect(() => {
       form.reset(defaultValues);
-  }, [defaultValues, form]);
-
-  const photoUrlValue = form.watch('photoUrl');
+      setPhotoPreview(player?.photoUrl || null);
+  }, [defaultValues, form, player]);
 
 
   React.useEffect(() => {
@@ -159,8 +160,17 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
     try {
+        let photoUrl = player?.photoUrl || '';
+        
+        if (selectedFile) {
+            const storageRef = ref(storage, `player-photos/${playerId}-${selectedFile.name}`);
+            await uploadBytes(storageRef, selectedFile);
+            photoUrl = await getDownloadURL(storageRef);
+        }
+
         const newPlayerData = {
             ...data,
+            photoUrl: photoUrl || null,
             dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
             clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
             clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
@@ -190,34 +200,10 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-        const storageRef = ref(storage, `player-photos/${playerId}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-
-        const playerDocRef = doc(db, 'players', playerId);
-        // Using setDoc with merge to create the document if it doesn't exist
-        await setDoc(playerDocRef, { photoUrl: downloadURL }, { merge: true });
-
-        form.setValue('photoUrl', downloadURL, { shouldDirty: true, shouldValidate: true });
-        
-        toast({
-            title: "Photo mise à jour",
-            description: "La photo de profil a été mise à jour avec succès.",
-        });
-
-    } catch (error) {
-        console.error("Error uploading file:", error);
-        toast({
-            variant: "destructive",
-            title: "Échec du téléversement",
-            description: "La photo n'a pas pu être sauvegardée. Veuillez réessayer.",
-        });
-    } finally {
-        setIsUploading(false);
+    if (file) {
+        setSelectedFile(file);
+        const previewUrl = URL.createObjectURL(file);
+        setPhotoPreview(previewUrl);
     }
   };
 
@@ -229,7 +215,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
               <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
                  <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto md:max-w-xs">
                     <Avatar className="h-36 w-36">
-                      <AvatarImage src={photoUrlValue || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                      <AvatarImage src={photoPreview || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
                       <AvatarFallback className="text-4xl">
                         {form.watch('firstName')?.[0]}
                         {form.watch('lastName')?.[0]}
@@ -242,20 +228,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             onChange={handleFileChange}
                             className="hidden"
                             accept="image/png, image/jpeg, image/gif"
-                            disabled={isUploading || isSubmitting}
+                            disabled={isSubmitting}
                         />
-                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isUploading || isSubmitting}>
-                           {isUploading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Ajout en cours...
-                                </>
-                            ) : (
-                                <>
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Ajouter une photo
-                                </>
-                            )}
+                        <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
+                           <Upload className="mr-2 h-4 w-4" />
+                           Ajouter une photo
                         </Button>
                     </div>
                  </div>
@@ -617,7 +594,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
           </div>
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
             <Button type="button" variant="ghost" onClick={onFinished} disabled={isSubmitting}>Annuler</Button>
-            <Button type="submit" disabled={isUploading || isSubmitting}>
+            <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {player ? "Sauvegarder les modifications" : "Créer le joueur"}
             </Button>
@@ -626,3 +603,5 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
+
+    
