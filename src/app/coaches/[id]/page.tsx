@@ -135,13 +135,25 @@ export default function CoachDetailPage() {
         <Card className="shadow-none border-0 print:border print:shadow-lg">
           <CardHeader>
             <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-                <Avatar className="w-32 h-32 mb-4 md:mb-0">
-                <AvatarImage src={coach.photoUrl || undefined} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
-                <AvatarFallback className="text-4xl">
-                    {coach.firstName?.[0]}
-                    {coach.lastName?.[0]}
-                </AvatarFallback>
-                </Avatar>
+                {coach.photoUrl ? (
+                  <a href={coach.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
+                    <Avatar className="w-32 h-32 mb-4 md:mb-0">
+                        <AvatarImage src={coach.photoUrl} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
+                        <AvatarFallback className="text-4xl">
+                            {coach.firstName?.[0]}
+                            {coach.lastName?.[0]}
+                        </AvatarFallback>
+                    </Avatar>
+                  </a>
+                ) : (
+                    <Avatar className="w-32 h-32 mb-4 md:mb-0">
+                        <AvatarImage src={undefined} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
+                        <AvatarFallback className="text-4xl">
+                            {coach.firstName?.[0]}
+                            {coach.lastName?.[0]}
+                        </AvatarFallback>
+                    </Avatar>
+                )}
                 <div className="flex-grow">
                     <CardTitle className="text-3xl font-headline">
                         {coach.firstName} {coach.lastName}

@@ -160,13 +160,25 @@ export default function PlayerDetailPage() {
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
             <CardHeader className="flex flex-col items-center text-center">
-              <Avatar className="w-32 h-32 mb-4">
-                <AvatarImage src={player.photoUrl || undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
-                <AvatarFallback className="text-4xl">
-                  {player.firstName?.[0]}
-                  {player.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
+              {player.photoUrl ? (
+                <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
+                    <Avatar className="w-32 h-32 mb-4">
+                        <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
+                        <AvatarFallback className="text-4xl">
+                        {player.firstName?.[0]}
+                        {player.lastName?.[0]}
+                        </AvatarFallback>
+                    </Avatar>
+                </a>
+              ) : (
+                <Avatar className="w-32 h-32 mb-4">
+                    <AvatarImage src={undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
+                    <AvatarFallback className="text-4xl">
+                    {player.firstName?.[0]}
+                    {player.lastName?.[0]}
+                    </AvatarFallback>
+                </Avatar>
+              )}
               <CardTitle className="text-3xl font-headline">
                 {player.firstName} {player.lastName}
               </CardTitle>
