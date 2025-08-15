@@ -189,16 +189,33 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-8">
-            <div className="flex justify-center">
-                <Avatar className="h-36 w-36">
-                    <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
-                    <AvatarFallback className="text-4xl">
-                    {form.watch('firstName')?.[0]}
-                    {form.watch('lastName')?.[0]}
-                    </AvatarFallback>
-                </Avatar>
-            </div>
           <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Photo de Profil</h3>
+                <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-36 w-36">
+                        <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo du joueur" data-ai-hint="player profile placeholder" />
+                        <AvatarFallback className="text-4xl">
+                        {form.watch('firstName')?.[0]}
+                        {form.watch('lastName')?.[0]}
+                        </AvatarFallback>
+                    </Avatar>
+                    <FormField
+                        control={form.control}
+                        name="photoUrl"
+                        render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>URL de la photo</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Informations Personnelles</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -275,19 +292,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Coordonnées & Documents</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                        <FormItem className="sm:col-span-2">
-                            <FormLabel>URL de la photo</FormLabel>
-                            <FormControl>
-                                <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
                     <FormField
                       control={form.control}
                       name="email"

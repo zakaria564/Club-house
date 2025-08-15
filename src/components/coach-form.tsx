@@ -153,14 +153,30 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={handleEnterKeyDown} className="space-y-6">
-            <div className="flex justify-center">
-                <Avatar className="h-36 w-36">
-                    <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
-                    <AvatarFallback className="text-4xl">
-                        {form.watch('firstName')?.[0]}
-                        {form.watch('lastName')?.[0]}
-                    </AvatarFallback>
-                </Avatar>
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium">Photo de Profil</h3>
+                <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-36 w-36">
+                        <AvatarImage src={form.watch('photoUrl') || undefined} alt="Photo de l'entraîneur" data-ai-hint="coach profile placeholder" />
+                        <AvatarFallback className="text-4xl">
+                            {form.watch('firstName')?.[0]}
+                            {form.watch('lastName')?.[0]}
+                        </AvatarFallback>
+                    </Avatar>
+                     <FormField
+                        control={form.control}
+                        name="photoUrl"
+                        render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>URL de la photo</FormLabel>
+                            <FormControl>
+                            <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
             </div>
             <div className="space-y-4">
                 <h3 className="text-lg font-medium">Informations de l'entraîneur</h3>
@@ -252,19 +268,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                         <FormMessage />
                         </FormItem>
                     )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="photoUrl"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>URL de la photo</FormLabel>
-                            <FormControl>
-                            <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
                     />
                     <FormField
                     control={form.control}
