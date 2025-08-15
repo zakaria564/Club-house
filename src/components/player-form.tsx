@@ -302,15 +302,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
 
 
               <div className="space-y-4">
-                 <div className="flex items-center gap-4">
-                    <h3 className="text-lg font-medium">Coordonnées & Documents</h3>
-                     {player && (
-                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCertUrlVisible(v => !v)}>
-                            {isCertUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            <span className="sr-only">Afficher/Masquer le champ URL du certificat</span>
-                        </Button>
-                    )}
-                 </div>
+                 <h3 className="text-lg font-medium">Coordonnées & Documents</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -377,28 +369,38 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           </FormItem>
                         )}
                       />
-                     <div className={cn("sm:col-span-2", !isCertUrlVisible && "hidden")}>
+                     <div className={cn("sm:col-span-2")}>
                         <FormField
                             control={form.control}
                             name="medicalCertificateUrl"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>URL du Certificat Médical</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Coller l'URL du certificat ici..."
-                                        {...field}
-                                        value={field.value ?? ''}
-                                        disabled={isSubmitting}
-                                    />
-                                </FormControl>
-                                {field.value && (
-                                    <p className="text-xs text-muted-foreground pt-1">
-                                        <a href={field.value} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
-                                            Voir le certificat
-                                        </a>
-                                    </p>
-                                )}
+                                    <div className="flex items-center gap-4">
+                                        <FormLabel>URL du Certificat Médical</FormLabel>
+                                        {player && (
+                                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCertUrlVisible(v => !v)}>
+                                                {isCertUrlVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                <span className="sr-only">Afficher/Masquer le champ URL du certificat</span>
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <div className={cn(!isCertUrlVisible && "hidden")}>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Coller l'URL du certificat ici..."
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                disabled={isSubmitting}
+                                            />
+                                        </FormControl>
+                                        {field.value && (
+                                            <p className="text-xs text-muted-foreground pt-1">
+                                                <a href={field.value} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                                                    Voir le certificat
+                                                </a>
+                                            </p>
+                                        )}
+                                    </div>
                                 <FormMessage />
                                 </FormItem>
                             )}
