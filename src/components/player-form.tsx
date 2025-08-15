@@ -200,11 +200,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                         {form.watch('lastName')?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                    <FormField
+                     <FormField
                         control={form.control}
                         name="photoUrl"
                         render={({ field }) => (
-                        <FormItem className="w-full">
+                        <FormItem className="w-full sm:w-2/3">
                             <FormLabel>URL de la photo</FormLabel>
                             <FormControl>
                                 <Input placeholder="https://exemple.com/photo.jpg" {...field} value={field.value ?? ''} disabled={isSubmitting} />
