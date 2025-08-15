@@ -101,7 +101,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(player?.photoUrl || null);
 
-  const [playerId] = React.useState(player?.id || doc(collection(db, "players")).id);
+  const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
    React.useEffect(() => {
     setIsClient(true);
@@ -160,17 +160,17 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
     try {
-        let photoUrl = player?.photoUrl || '';
+        let finalPhotoUrl = player?.photoUrl || '';
         
         if (selectedFile) {
-            const storageRef = ref(storage, `player-photos/${playerId}-${selectedFile.name}`);
+            const storageRef = ref(storage, `player-photos/${playerId}/${selectedFile.name}`);
             await uploadBytes(storageRef, selectedFile);
-            photoUrl = await getDownloadURL(storageRef);
+            finalPhotoUrl = await getDownloadURL(storageRef);
         }
 
         const newPlayerData = {
             ...data,
-            photoUrl: photoUrl || null,
+            photoUrl: finalPhotoUrl || null,
             dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
             clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
             clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
@@ -603,5 +603,3 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
-
-    

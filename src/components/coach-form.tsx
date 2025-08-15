@@ -93,7 +93,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(coach?.photoUrl || null);
   
-  const [coachId] = React.useState(coach?.id || doc(collection(db, "coaches")).id);
+  const [coachId] = React.useState(() => coach?.id || doc(collection(db, "coaches")).id);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -128,16 +128,17 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
     try {
-        let photoUrl = coach?.photoUrl || '';
+        let finalPhotoUrl = coach?.photoUrl || '';
+
         if (selectedFile) {
-            const storageRef = ref(storage, `coach-photos/${coachId}-${selectedFile.name}`);
+            const storageRef = ref(storage, `coach-photos/${coachId}/${selectedFile.name}`);
             await uploadBytes(storageRef, selectedFile);
-            photoUrl = await getDownloadURL(storageRef);
+            finalPhotoUrl = await getDownloadURL(storageRef);
         }
 
         const newCoachData = {
             ...data,
-            photoUrl: photoUrl || null,
+            photoUrl: finalPhotoUrl || null,
             clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
             clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
         };
@@ -404,5 +405,3 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
-
-    
