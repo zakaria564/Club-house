@@ -507,7 +507,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                 <h3 className="text-lg font-medium">Données du Club</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormItem>
-                        <FormLabel>ID joueur</FormLabel>
+                        <Label>ID joueur</Label>
                         <FormControl>
                             <Input value={playerId} disabled />
                         </FormControl>
@@ -702,3 +702,5 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
+
+    
