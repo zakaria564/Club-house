@@ -229,11 +229,14 @@ export default function Dashboard() {
   
   const PaymentList = ({ payments, type }: { payments: Payment[], type: 'player' | 'coach' }) => {
     const playerMap = new Map(players.map(p => [p.id, p]));
+    const coachMap = new Map(coaches.map(c => [c.id, c]));
 
     return (
         <div className="space-y-3">
             {payments.map((payment, index) => {
                 const player = type === 'player' ? playerMap.get(payment.memberId) : null;
+                const coach = type === 'coach' ? coachMap.get(payment.memberId) : null;
+
                 return (
                     <React.Fragment key={payment.id}>
                         <div 
@@ -243,6 +246,7 @@ export default function Dashboard() {
                             <div className="flex flex-col flex-grow min-w-0">
                                 <span className="font-semibold truncate">{payment.memberName}</span>
                                 {player && <span className="text-xs text-muted-foreground">{player.category}</span>}
+                                {coach && <span className="text-xs text-muted-foreground">{coach.specialty}</span>}
                             </div>
                             <div 
                                 className="text-right flex-shrink-0 ml-2"
