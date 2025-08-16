@@ -163,27 +163,7 @@ export default function PlayerDetailPage() {
 
   return (
     <>
-      <div className="no-print">
-        <PageHeader title="Fiche du Joueur">
-           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour
-            </Button>
-            <Button onClick={() => setPlayerDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Modifier
-            </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimer la fiche
-            </Button>
-          </div>
-        </PageHeader>
-      </div>
-
-      <div className="space-y-8">
-        <div className="printable-area">
+      <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
             <CardHeader className="flex flex-col items-center text-center">
@@ -291,173 +271,188 @@ export default function PlayerDetailPage() {
 
             </CardContent>
           </Card>
-        </div>
-        
-        <div className="no-print space-y-8">
-            <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Documents</h3>
-                <Card>
-                  <CardContent className="pt-6">
-                    {player.medicalCertificateUrl ? (
-                        isCertificateUrlValid ? (
-                            <div className="flex flex-col sm:flex-row items-center gap-4">
-                                <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="block w-full max-w-xs sm:w-48 flex-shrink-0">
-                                    <Image 
-                                        src={player.medicalCertificateUrl}
-                                        alt="Certificat Médical"
-                                        width={200}
-                                        height={282}
-                                        className="rounded-md border shadow-md w-full h-auto object-cover"
-                                        data-ai-hint="medical certificate document"
-                                    />
-                                </a>
-                                <div className="flex-grow">
-                                    <h4 className="font-semibold">Certificat Médical</h4>
-                                    <p className="text-sm text-muted-foreground mb-4">Le certificat médical est disponible. Cliquez sur l'aperçu pour le visualiser ou l'imprimer.</p>
-                                    <Button onClick={handlePrintCertificate}>
-                                        <Printer className="mr-2 h-4 w-4" />
-                                        Imprimer le certificat
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                             <p className="text-sm text-destructive text-center py-4">L'URL du certificat médical est invalide et ne peut pas être affichée. Veuillez la corriger.</p>
-                        )
-                    ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">Aucun certificat médical fourni.</p>
-                    )}
-                  </CardContent>
-                </Card>
-            </div>
-
-            <div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Historique des paiements</CardTitle>
-                        <CardDescription>
-                            Liste de tous les paiements enregistrés pour ce joueur.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         {/* Mobile view: list of cards */}
-                        <div className="sm:hidden space-y-3">
-                            {payments.length > 0 ? (
-                                payments.map(payment => (
-                                    <div key={payment.id} className="border rounded-lg p-3 text-sm">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="font-semibold capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</span>
-                                            <Badge
-                                                className={cn({
-                                                    'bg-green-100 text-green-800 border-green-200': payment.status === 'Paid',
-                                                    'bg-yellow-100 text-yellow-800 border-yellow-200': payment.status === 'Pending',
-                                                    'bg-red-100 text-red-800 border-red-200': payment.status === 'Overdue'
-                                                })}
-                                            >
-                                                {statusTranslations[payment.status]}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex justify-between border-t pt-2">
-                                            <span className="text-muted-foreground">Reste à payer</span>
-                                            <span className="font-medium">{payment.remaining.toFixed(2)} DH</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Avance</span>
-                                            <span>{payment.advance.toFixed(2)} DH</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Total</span>
-                                            <span className="font-semibold">{payment.totalAmount.toFixed(2)} DH</span>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center text-muted-foreground py-4">
-                                    Aucun paiement trouvé pour ce joueur.
-                                </div>
-                            )}
-                        </div>
-                        {/* Desktop view: table */}
-                        <div className="hidden sm:block">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Date du Paiement</TableHead>
-                                        <TableHead>Statut</TableHead>
-                                        <TableHead className="text-right">Total</TableHead>
-                                        <TableHead className="text-right">Avance</TableHead>
-                                        <TableHead className="text-right">Reste</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {payments.length > 0 ? (
-                                        payments.map(payment => (
-                                        <React.Fragment key={payment.id}>
-                                            <TableRow 
-                                                className="cursor-pointer"
-                                                onClick={() => setExpandedPayment(expandedPayment === payment.id ? null : payment.id)}
-                                            >
-                                                <TableCell className="capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        className={cn({
-                                                            'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
-                                                            'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
-                                                            'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
-                                                        })}
-                                                    >
-                                                        {statusTranslations[payment.status]}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
-                                                <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
-                                                <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
-                                            </TableRow>
-                                            {expandedPayment === payment.id && (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} className="p-0">
-                                                        <div className="p-4 bg-muted/50">
-                                                            <h4 className="font-semibold mb-2">Historique des versements</h4>
-                                                            <Table>
-                                                                <TableHeader>
-                                                                    <TableRow>
-                                                                        <TableHead>Date</TableHead>
-                                                                        <TableHead className="text-right">Avance</TableHead>
-                                                                    </TableRow>
-                                                                </TableHeader>
-                                                                <TableBody>
-                                                                {payment.history?.map((transaction, index) => (
-                                                                    <TableRow key={index}>
-                                                                        <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
-                                                                        <TableCell className="text-right">
-                                                                            {transaction.amount.toFixed(2)} DH
-                                                                            <span className="text-muted-foreground text-xs ml-2">{getAdvanceLabel(index)}</span>
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                ))}
-                                                                </TableBody>
-                                                            </Table>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                            </React.Fragment>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center">
-                                                Aucun paiement trouvé pour ce joueur.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
       </div>
 
+      <div className="no-print space-y-8 mt-8">
+        <PageHeader title="Détails du Joueur">
+           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => router.back()}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour
+            </Button>
+            <Button onClick={() => setPlayerDialogOpen(true)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Button>
+            <Button onClick={handlePrint}>
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimer la fiche
+            </Button>
+          </div>
+        </PageHeader>
+        
+        <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Documents</h3>
+            <Card>
+              <CardContent className="pt-6">
+                {player.medicalCertificateUrl ? (
+                    isCertificateUrlValid ? (
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                            <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="block w-full max-w-xs sm:w-48 flex-shrink-0">
+                                <Image 
+                                    src={player.medicalCertificateUrl}
+                                    alt="Certificat Médical"
+                                    width={200}
+                                    height={282}
+                                    className="rounded-md border shadow-md w-full h-auto object-cover"
+                                    data-ai-hint="medical certificate document"
+                                />
+                            </a>
+                            <div className="flex-grow">
+                                <h4 className="font-semibold">Certificat Médical</h4>
+                                <p className="text-sm text-muted-foreground mb-4">Le certificat médical est disponible. Cliquez sur l'aperçu pour le visualiser ou l'imprimer.</p>
+                                <Button onClick={handlePrintCertificate}>
+                                    <Printer className="mr-2 h-4 w-4" />
+                                    Imprimer le certificat
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                         <p className="text-sm text-destructive text-center py-4">L'URL du certificat médical est invalide et ne peut pas être affichée. Veuillez la corriger.</p>
+                    )
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucun certificat médical fourni.</p>
+                )}
+              </CardContent>
+            </Card>
+        </div>
+
+        <div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Historique des paiements</CardTitle>
+                    <CardDescription>
+                        Liste de tous les paiements enregistrés pour ce joueur.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                     {/* Mobile view: list of cards */}
+                    <div className="sm:hidden space-y-3">
+                        {payments.length > 0 ? (
+                            payments.map(payment => (
+                                <div key={payment.id} className="border rounded-lg p-3 text-sm">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="font-semibold capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</span>
+                                        <Badge
+                                            className={cn({
+                                                'bg-green-100 text-green-800 border-green-200': payment.status === 'Paid',
+                                                'bg-yellow-100 text-yellow-800 border-yellow-200': payment.status === 'Pending',
+                                                'bg-red-100 text-red-800 border-red-200': payment.status === 'Overdue'
+                                            })}
+                                        >
+                                            {statusTranslations[payment.status]}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex justify-between border-t pt-2">
+                                        <span className="text-muted-foreground">Reste à payer</span>
+                                        <span className="font-medium">{payment.remaining.toFixed(2)} DH</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Avance</span>
+                                        <span>{payment.advance.toFixed(2)} DH</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total</span>
+                                        <span className="font-semibold">{payment.totalAmount.toFixed(2)} DH</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center text-muted-foreground py-4">
+                                Aucun paiement trouvé pour ce joueur.
+                            </div>
+                        )}
+                    </div>
+                    {/* Desktop view: table */}
+                    <div className="hidden sm:block">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date du Paiement</TableHead>
+                                    <TableHead>Statut</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                    <TableHead className="text-right">Avance</TableHead>
+                                    <TableHead className="text-right">Reste</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {payments.length > 0 ? (
+                                    payments.map(payment => (
+                                    <React.Fragment key={payment.id}>
+                                        <TableRow 
+                                            className="cursor-pointer"
+                                            onClick={() => setExpandedPayment(expandedPayment === payment.id ? null : payment.id)}
+                                        >
+                                            <TableCell className="capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    className={cn({
+                                                        'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
+                                                        'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
+                                                        'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
+                                                    })}
+                                                >
+                                                    {statusTranslations[payment.status]}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
+                                            <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
+                                            <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
+                                        </TableRow>
+                                        {expandedPayment === payment.id && (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="p-0">
+                                                    <div className="p-4 bg-muted/50">
+                                                        <h4 className="font-semibold mb-2">Historique des versements</h4>
+                                                        <Table>
+                                                            <TableHeader>
+                                                                <TableRow>
+                                                                    <TableHead>Date</TableHead>
+                                                                    <TableHead className="text-right">Avance</TableHead>
+                                                                </TableRow>
+                                                            </TableHeader>
+                                                            <TableBody>
+                                                            {payment.history?.map((transaction, index) => (
+                                                                <TableRow key={index}>
+                                                                    <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
+                                                                    <TableCell className="text-right">
+                                                                        {transaction.amount.toFixed(2)} DH
+                                                                        <span className="text-muted-foreground text-xs ml-2">{getAdvanceLabel(index)}</span>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                        </React.Fragment>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center">
+                                            Aucun paiement trouvé pour ce joueur.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    </div>
       <AddPlayerDialog
         key={player?.id || 'new'}
         open={isPlayerDialogOpen}
