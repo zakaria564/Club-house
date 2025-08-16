@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck, Printer } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck, Printer, FileText } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { collection, onSnapshot, doc, deleteDoc, query, where, getDocs, writeBatch } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -115,8 +115,7 @@ export default function PlayersPage() {
   }
   
   const handleAddNewPlayer = () => {
-    setSelectedPlayer(null);
-    setPlayerDialogOpen(true);
+    router.push('/players/new');
   }
 
   const handleViewPlayer = (playerId: string) => {
@@ -197,8 +196,8 @@ export default function PlayersPage() {
                 Imprimer formulaire vierge
             </Button>
             <Button onClick={handleAddNewPlayer} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Ajouter un joueur
+                <FileText className="mr-2 h-4 w-4" />
+                Nouvelle Inscription
             </Button>
         </div>
       </PageHeader>

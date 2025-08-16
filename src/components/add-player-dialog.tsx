@@ -32,11 +32,10 @@ export default function AddPlayerDialog({ open, onOpenChange, player }: AddPlaye
               key={player?.id || 'new'}
               onFinished={() => onOpenChange(false)} 
               player={player}
+              isDialog={true}
             />
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-
-    

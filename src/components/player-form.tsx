@@ -60,6 +60,7 @@ type PlayerFormValues = z.infer<typeof playerFormSchema>
 interface PlayerFormProps {
   onFinished: () => void;
   player?: Player | null;
+  isDialog?: boolean;
 }
 
 const dateToInputFormat = (date?: Date | null): string => {
@@ -94,7 +95,7 @@ const positions = [
 const categories = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"]
 const statuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisponible"];
 
-export function PlayerForm({ onFinished, player }: PlayerFormProps) {
+export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [allPlayers, setAllPlayers] = React.useState<Player[]>([]);
@@ -742,16 +743,14 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                )}
 
           </div>
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
-            <Button type="button" variant="ghost" onClick={onFinished} disabled={isSubmitting}>Annuler</Button>
-            <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {player ? "Sauvegarder les modifications" : "Créer le joueur"}
-            </Button>
-          </div>
+            <div className={cn("flex justify-end gap-2", !isDialog && "mt-8 pt-4 border-t")}>
+                <Button type="button" variant="ghost" onClick={onFinished} disabled={isSubmitting}>Annuler</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {player ? "Sauvegarder les modifications" : "Créer le joueur"}
+                </Button>
+            </div>
         </form>
       </Form>
   )
 }
-
-    
