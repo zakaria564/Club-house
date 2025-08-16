@@ -346,7 +346,6 @@ export default function Dashboard() {
                                     className="text-right flex-shrink-0 ml-2 cursor-pointer hover:bg-muted/50 rounded-md p-1 -m-1"
                                     onClick={() => navigateToPayment(payment)}
                                 >
-                                    <span className="font-bold text-destructive">{payment.remaining.toFixed(2)} DH</span>
                                     {statusBadge(payment.status)}
                                 </div>
                             </div>
