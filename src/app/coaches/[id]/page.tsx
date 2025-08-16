@@ -122,6 +122,22 @@ export default function CoachDetailPage() {
   
   return (
     <>
+      <PageHeader title="Détails de l'Entraîneur" className="no-print">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => router.back()}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          <Button onClick={() => setCoachDialogOpen(true)}>
+            <Edit className="mr-2 h-4 w-4" />
+            Modifier
+          </Button>
+          <Button onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimer
+          </Button>
+        </div>
+      </PageHeader>
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg">
@@ -202,22 +218,6 @@ export default function CoachDetailPage() {
           </Card>
       </div>
       <div className="no-print space-y-8 mt-8">
-        <PageHeader title="Détails de l'Entraîneur">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour
-            </Button>
-            <Button onClick={() => setCoachDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Modifier
-            </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimer
-            </Button>
-          </div>
-        </PageHeader>
         <Card>
             <CardHeader>
                 <CardTitle>Historique des salaires</CardTitle>

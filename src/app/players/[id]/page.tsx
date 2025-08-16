@@ -163,6 +163,22 @@ export default function PlayerDetailPage() {
 
   return (
     <>
+      <PageHeader title="Détails du Joueur" className="no-print">
+           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => router.back()}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour
+            </Button>
+            <Button onClick={() => setPlayerDialogOpen(true)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Button>
+            <Button onClick={handlePrint}>
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimer la fiche
+            </Button>
+          </div>
+        </PageHeader>
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
@@ -274,23 +290,6 @@ export default function PlayerDetailPage() {
       </div>
 
       <div className="no-print space-y-8 mt-8">
-        <PageHeader title="Détails du Joueur">
-           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour
-            </Button>
-            <Button onClick={() => setPlayerDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Modifier
-            </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimer la fiche
-            </Button>
-          </div>
-        </PageHeader>
-        
         <div className="space-y-4">
             <h3 className="text-xl font-semibold">Documents</h3>
             <Card>
