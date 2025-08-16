@@ -50,7 +50,7 @@ const playerFormSchema = z.object({
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
-  initialTotalAmount: z.coerce.number().optional(),
+  initialTotalAmount: z.coerce.number().optional().default(300),
 })
 
 
@@ -104,17 +104,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
 
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
-  const dynamicPlayerFormSchema = playerFormSchema.superRefine((data, ctx) => {
-    if (!player) {
-      if (data.initialTotalAmount === undefined || data.initialTotalAmount === null || data.initialTotalAmount <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Le montant de la cotisation est requis et doit être positif.",
-          path: ["initialTotalAmount"],
-        });
-      }
-    }
-  });
+  const dynamicPlayerFormSchema = playerFormSchema;
 
   
   const defaultValues = React.useMemo(() => ({
@@ -138,7 +128,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       clubExitDate: dateToInputFormat(player?.clubExitDate),
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
-      initialTotalAmount: 300.00,
+      initialTotalAmount: 300,
   }), [player]);
 
   const form = useForm<PlayerFormValues>({
@@ -228,9 +218,8 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       const playerDocRef = doc(db, "players", playerId);
       batch.set(playerDocRef, newPlayerData, { merge: true });
       
-      // If it's a new player, create the initial payment
-      if (!player && initialTotalAmount !== undefined) {
-          const total = initialTotalAmount;
+      if (!player) {
+          const total = initialTotalAmount || 300;
 
           const history: Transaction[] = [];
           if (total > 0) {
@@ -687,20 +676,14 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                {!player && (
                 <div className="space-y-4">
                     <h3 className="text-lg font-medium">Cotisation Initiale</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                       <FormField
-                        control={form.control}
-                        name="initialTotalAmount"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Montant de la cotisation (DH)</FormLabel>
+                    <div className="grid grid-cols-1">
+                        <FormItem>
+                            <FormLabel>Montant de la cotisation</FormLabel>
                             <FormControl>
-                                <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} value={field.value ?? ''} disabled={isSubmitting} />
+                                <Input value="300.00 DH" readOnly disabled className="font-semibold text-base" />
                             </FormControl>
                             <FormMessage />
-                            </FormItem>
-                        )}
-                        />
+                        </FormItem>
                     </div>
                 </div>
                )}
@@ -718,3 +701,4 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
   )
 }
 
+    
