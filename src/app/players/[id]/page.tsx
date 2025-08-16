@@ -145,11 +145,6 @@ export default function PlayerDetailPage() {
     document.title = originalTitle;
   };
 
-  const handlePrintRegistration = () => {
-    const url = `/players/${playerId}/registration-form`;
-    window.open(url, '_blank');
-  };
-  
   const handlePrintCertificate = () => {
     if (player?.medicalCertificateUrl) {
       const url = `/players/${player.id}/certificate`;
@@ -180,10 +175,6 @@ export default function PlayerDetailPage() {
             <Button variant="outline" onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />
               Imprimer la fiche
-            </Button>
-             <Button onClick={handlePrintRegistration}>
-              <FileText className="mr-2 h-4 w-4" />
-              Imprimer l'inscription
             </Button>
           </div>
         </PageHeader>

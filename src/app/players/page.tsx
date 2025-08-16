@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck, Printer } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { collection, onSnapshot, doc, deleteDoc, query, where, getDocs, writeBatch } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -127,6 +127,11 @@ export default function PlayersPage() {
     router.push(`/payments?memberId=${playerId}`);
   }
 
+  const handlePrintBlankForm = () => {
+    const url = `/players/registration-form`;
+    window.open(url, '_blank');
+  };
+
   const filteredPlayers = players.filter(player =>
     `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     player.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -186,6 +191,10 @@ export default function PlayersPage() {
             <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
+            </Button>
+            <Button variant="outline" onClick={handlePrintBlankForm} className="w-full sm:w-auto">
+                <Printer className="mr-2 h-4 w-4" />
+                Imprimer formulaire vierge
             </Button>
             <Button onClick={handleAddNewPlayer} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -322,5 +331,3 @@ export default function PlayersPage() {
     </>
   )
 }
-
-    

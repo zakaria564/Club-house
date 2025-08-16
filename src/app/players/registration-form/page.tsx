@@ -1,0 +1,118 @@
+
+'use client';
+
+import * as React from 'react';
+import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
+
+const BlankRegistrationFormPage = () => {
+  
+  React.useEffect(() => {
+    const originalTitle = document.title;
+    document.title = `Fiche d'Inscription Vierge - Club CAOS 2011`;
+    document.body.classList.add('print-receipt');
+    setTimeout(() => {
+      window.print();
+    }, 500);
+    
+    return () => {
+      document.title = originalTitle;
+      document.body.classList.remove('print-receipt');
+    }
+  }, []);
+
+  const currentSeason = `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+
+  const InfoField = ({ label }: { label: string }) => (
+    <div className="flex items-end gap-2 border-b border-dotted border-gray-400 pb-1">
+      <strong className="font-semibold text-base">{label}:</strong>
+      <span className="flex-grow"></span>
+    </div>
+  );
+
+  return (
+    <div className="bg-white text-black font-sans printable-area flex items-center justify-center min-h-screen p-4">
+      <div className="max-w-4xl w-full border border-gray-400 p-8 rounded-lg shadow-lg">
+        {/* Header */}
+        <header className="flex flex-col items-center justify-center text-center pb-6 border-b-2 border-gray-800">
+          <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club Logo" width={96} height={96} className="h-24 w-auto" data-ai-hint="club logo" />
+          <h1 className="text-4xl font-bold text-gray-900 mt-4">FICHE D'INSCRIPTION {currentSeason}</h1>
+          <h2 className="text-2xl font-semibold text-gray-700">Club CAOS 2011</h2>
+          <p className="text-gray-600">Ligue du grand Casablanca de football</p>
+        </header>
+
+        {/* Player Info */}
+        <section className="my-8">
+            <div className="flex items-start gap-8">
+                <div className="w-40 h-40 flex-shrink-0 border-2 border-gray-400 border-dashed rounded-md flex items-center justify-center">
+                    <p className="text-sm text-gray-500 text-center">Photo du joueur</p>
+                </div>
+                <div className="flex-grow space-y-4">
+                    <InfoField label="Nom" />
+                    <InfoField label="Prénom" />
+                    <InfoField label="Date de naissance" />
+                </div>
+            </div>
+        </section>
+
+        {/* Detailed Info */}
+        <section className="space-y-6">
+            <div>
+                <h4 className="text-xl font-bold mb-3 border-b-2 border-primary pb-1">Informations sur le Joueur</h4>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                    <InfoField label="Nationalité" />
+                    <InfoField label="Genre" />
+                    <InfoField label="Adresse complète" />
+                    <InfoField label="Ville" />
+                    <InfoField label="Email" />
+                    <InfoField label="Téléphone" />
+                    <InfoField label="Catégorie" />
+                    <InfoField label="Poste" />
+                </div>
+            </div>
+            <div>
+                <h4 className="text-xl font-bold mb-3 border-b-2 border-primary pb-1">Informations du Tuteur Légal</h4>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                    <InfoField label="Nom et Prénom" />
+                    <InfoField label="Lien de parenté" />
+                    <InfoField label="Téléphone" />
+                    <InfoField label="Email" />
+                </div>
+            </div>
+        </section>
+
+        {/* Regulations */}
+        <section className="my-8">
+            <h4 className="text-xl font-bold mb-2 border-b-2 border-primary pb-1">Règlement et Autorisation</h4>
+            <div className="text-sm text-gray-700 space-y-2 text-justify bg-gray-50 p-4 rounded-md border border-gray-200">
+                <p>Je soussigné(e), ...................................................................., tuteur légal du joueur ...................................................................., autorise ce dernier à participer à toutes les activités sportives (entraînements, matchs, tournois) organisées par le Club CAOS 2011 pour la saison {currentSeason}.</p>
+                <p>J'ai pris connaissance du règlement intérieur du club et m'engage à le respecter et à le faire respecter par mon enfant. Je certifie que mon enfant est en bonne condition physique et apte à la pratique du football, comme attesté par le certificat médical fourni. J'autorise également le club à utiliser l'image de mon enfant dans le cadre de ses activités et de sa communication (site web, réseaux sociaux, presse), sauf avis contraire de ma part notifié par écrit.</p>
+                <p>En cas d'urgence médicale, j'autorise les responsables du club à prendre toutes les mesures nécessaires, y compris le transport à l'hôpital et les soins requis.</p>
+            </div>
+        </section>
+        
+        {/* Footer & Signature */}
+        <footer className="text-center mt-12 pt-8 border-t-2 border-gray-800">
+            <div className="grid grid-cols-2 gap-8 text-left">
+                <div>
+                     <p className="mb-1 text-base font-semibold">Fait à Casablanca, le ________________________</p>
+                </div>
+                 <div>
+                    <p className="mb-1 text-base font-semibold">Signature du tuteur (précédée de "Lu et approuvé"):</p>
+                    <div className="w-full h-20 border-2 border-dashed border-gray-400 rounded-md mt-2"></div>
+                </div>
+            </div>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+
+export default function BlankRegistrationFormPageWrapper() {
+  return (
+    <React.Suspense fallback={<div>Chargement...</div>}>
+        <BlankRegistrationFormPage />
+    </React.Suspense>
+  )
+}
