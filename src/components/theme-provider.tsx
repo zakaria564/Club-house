@@ -1,24 +1,31 @@
 "use client"
 import * as React from 'react';
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export function ThemeProvider({ children }: { children: React.ReactNode}) {
-    const isMobile = useIsMobile();
-    const [isClient, setIsClient] = React.useState(false);
-
     React.useEffect(() => {
-        setIsClient(true);
-    }, []);
+        const matchMedia = window.matchMedia('(prefers-color-scheme: dark)');
 
-    React.useEffect(() => {
-        if (isClient) {
-            if (isMobile) {
+        const handleChange = (e: MediaQueryListEvent) => {
+            if (e.matches) {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
             }
+        };
+
+        matchMedia.addEventListener('change', handleChange);
+
+        // Set initial theme
+        if (matchMedia.matches) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
         }
-    }, [isMobile, isClient]);
+
+        return () => {
+            matchMedia.removeEventListener('change', handleChange);
+        };
+    }, []);
 
     return <>{children}</>;
 }
