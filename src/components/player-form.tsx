@@ -695,7 +695,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                             <FormItem>
                             <FormLabel>Montant de la cotisation (DH)</FormLabel>
                             <FormControl>
-                                <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value ?? ''} disabled={isSubmitting} />
+                                <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} value={field.value ?? ''} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -718,4 +718,3 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
   )
 }
 
-    
