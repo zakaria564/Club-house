@@ -65,8 +65,8 @@ const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime
 const isValidUrl = (url: string | null | undefined): boolean => {
     if (!url) return false;
     try {
-        const newUrl = new URL(url);
-        return newUrl.protocol === 'http:' || newUrl.protocol === 'https:';
+        // Use a simple check, as new URL() might fail on valid but unencoded URLs.
+        return url.startsWith('http://') || url.startsWith('https://');
     } catch (e) {
         return false;
     }

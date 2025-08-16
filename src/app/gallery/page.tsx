@@ -35,6 +35,17 @@ const parseCoachDoc = (doc: any): Coach => {
   } as Coach;
 };
 
+const isValidUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false;
+    try {
+        // Use a simple check, as new URL() might fail on valid but unencoded URLs.
+        return url.startsWith('http://') || url.startsWith('https://');
+    } catch (e) {
+        return false;
+    }
+}
+
+
 export default function GalleryPage() {
     const router = useRouter();
     const [players, setPlayers] = React.useState<Player[]>([]);
@@ -122,12 +133,24 @@ function ImageGrid({ items, type, onImageClick }: ImageGridProps) {
             </div>
         )
     }
+    
+    const validItems = items.filter(item => {
+        const url = type === 'certificate' ? (item as Player).medicalCertificateUrl : item.photoUrl;
+        return isValidUrl(url);
+    });
+
+    if (validItems.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-16">
+                <p>Aucune image valide à afficher. Vérifiez les URLs des images.</p>
+            </div>
+        )
+    }
+
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-            {items.map(item => {
-                const imageUrl = type === 'certificate' ? (item as Player).medicalCertificateUrl : item.photoUrl;
-                if (!imageUrl) return null;
-                
+            {validItems.map(item => {
+                const imageUrl = type === 'certificate' ? (item as Player).medicalCertificateUrl! : item.photoUrl!;
                 const dataAiHint = type === 'player' ? 'player profile' : (type === 'coach' ? 'coach profile' : 'medical certificate document');
 
                 return (
@@ -149,5 +172,3 @@ function ImageGrid({ items, type, onImageClick }: ImageGridProps) {
         </div>
     )
 }
-
-    
