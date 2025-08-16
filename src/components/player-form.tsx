@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
-import { collection, doc, setDoc, onSnapshot, query, Timestamp, writeBatch } from "firebase/firestore"
+import { collection, doc, setDoc, onSnapshot, query, Timestamp, writeBatch, arrayUnion } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 
@@ -23,7 +23,7 @@ import { cn, handleEnterKeyDown } from "@/lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { Player, Coach, Payment } from "@/types"
+import type { Player, Coach, Payment, Transaction } from "@/types"
 import { Loader2, Upload, Eye, EyeOff } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Label } from "./ui/label"
@@ -261,6 +261,14 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
           const remaining = total - advance;
           const status: Payment['status'] = remaining <= 0 ? 'Paid' : 'Pending';
 
+          const history: Transaction[] = [];
+          if (advance > 0) {
+            history.push({
+              date: new Date(),
+              amount: advance,
+            });
+          }
+
           const newPayment: Omit<Payment, 'id'> = {
               memberId: playerId,
               memberName: `${data.firstName} ${data.lastName}`,
@@ -270,6 +278,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
               remaining: remaining,
               date: Timestamp.fromDate(new Date(data.clubEntryDate)),
               status: status,
+              history: history.map(t => ({...t, date: Timestamp.fromDate(t.date)})) as any,
           };
           
           const paymentDocRef = doc(collection(db, "payments"));
@@ -750,5 +759,3 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       </Form>
   )
 }
-
-    

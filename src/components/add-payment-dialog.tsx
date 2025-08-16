@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { useToast } from "@/hooks/use-toast"
 import { cn, handleEnterKeyDown } from "@/lib/utils"
-import type { Player, Payment, Coach } from "@/types"
+import type { Player, Payment, Coach, Transaction } from "@/types"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { collection, addDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
@@ -142,7 +142,15 @@ export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialo
     const remaining = totalAmountNum - advanceNum;
     const status: Payment['status'] = remaining === 0 ? 'Paid' : (new Date() > paymentDate ? 'Overdue' : 'Pending');
 
-    const newPayment = {
+    const history: Transaction[] = [];
+    if (advanceNum > 0) {
+      history.push({
+        date: new Date(),
+        amount: advanceNum,
+      });
+    }
+
+    const newPayment: Omit<Payment, 'id'> = {
       memberId: selectedMemberId,
       memberName: selectedMember.name,
       paymentType: memberType === 'player' ? 'membership' as const : 'salary' as const,
@@ -151,6 +159,7 @@ export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialo
       remaining: remaining,
       date: Timestamp.fromDate(paymentDate),
       status,
+      history: history.map(t => ({ ...t, date: Timestamp.fromDate(t.date) })) as any, // Firestore expects Timestamps
     };
 
     try {
@@ -318,5 +327,3 @@ function MemberCombobox({ members, value, onValueChange, memberType }: MemberCom
     </Popover>
   )
 }
-
-    

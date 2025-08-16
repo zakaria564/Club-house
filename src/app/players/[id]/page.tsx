@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers, ChevronDown } from 'lucide-react';
 import type { Player, Payment, Coach, ClubEvent } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,6 +48,7 @@ const parsePaymentDoc = (doc: any): Payment => {
     ...data,
     id: doc.id,
     date: (data.date as Timestamp)?.toDate(),
+    history: Array.isArray(data.history) ? data.history.map((t: any) => ({ ...t, date: t.date.toDate() })) : [],
   } as Payment;
 }
 
@@ -86,6 +87,7 @@ export default function PlayerDetailPage() {
   const [payments, setPayments] = React.useState<Payment[]>([]);
   const [coach, setCoach] = React.useState<Coach | null>(null);
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
+  const [expandedPayment, setExpandedPayment] = React.useState<string | null>(null);
 
 
   React.useEffect(() => {
@@ -117,7 +119,7 @@ export default function PlayerDetailPage() {
         where("paymentType", "==", "membership")
     );
     const unsubscribePayments = onSnapshot(paymentsQuery, (querySnapshot) => {
-        setPayments(querySnapshot.docs.map(parsePaymentDoc));
+        setPayments(querySnapshot.docs.map(parsePaymentDoc).sort((a,b) => b.date.getTime() - a.date.getTime()));
     });
 
     return () => {
@@ -375,12 +377,17 @@ export default function PlayerDetailPage() {
                                     <TableHead className="text-right">Total</TableHead>
                                     <TableHead className="text-right">Avance</TableHead>
                                     <TableHead className="text-right">Reste</TableHead>
+                                    <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {payments.length > 0 ? (
                                     payments.map(payment => (
-                                        <TableRow key={payment.id}>
+                                    <React.Fragment key={payment.id}>
+                                        <TableRow 
+                                            className="cursor-pointer"
+                                            onClick={() => setExpandedPayment(expandedPayment === payment.id ? null : payment.id)}
+                                        >
                                             <TableCell className="capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</TableCell>
                                             <TableCell>
                                                 <Badge
@@ -396,11 +403,42 @@ export default function PlayerDetailPage() {
                                             <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
                                             <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
                                             <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
+                                            <TableCell>
+                                                {payment.history && payment.history.length > 0 && (
+                                                    <ChevronDown className={cn("h-4 w-4 transition-transform", expandedPayment === payment.id && "rotate-180")} />
+                                                )}
+                                            </TableCell>
                                         </TableRow>
+                                        {expandedPayment === payment.id && (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="p-0">
+                                                    <div className="p-4 bg-muted/50">
+                                                        <h4 className="font-semibold mb-2">Historique des versements</h4>
+                                                        <Table>
+                                                            <TableHeader>
+                                                                <TableRow>
+                                                                    <TableHead>Date</TableHead>
+                                                                    <TableHead className="text-right">Montant</TableHead>
+                                                                </TableRow>
+                                                            </TableHeader>
+                                                            <TableBody>
+                                                            {payment.history?.map((transaction, index) => (
+                                                                <TableRow key={index}>
+                                                                    <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
+                                                                    <TableCell className="text-right">{transaction.amount.toFixed(2)} DH</TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                        </React.Fragment>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center">
+                                        <TableCell colSpan={6} className="text-center">
                                             Aucun paiement trouvé pour ce joueur.
                                         </TableCell>
                                     </TableRow>
@@ -423,5 +461,3 @@ export default function PlayerDetailPage() {
     </>
   );
 }
-
-    

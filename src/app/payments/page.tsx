@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import type { Payment, Player, Coach } from "@/types"
+import type { Payment, Player, Coach, Transaction } from "@/types"
 import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, Timestamp, runTransaction } from "firebase/firestore"
+import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, Timestamp, runTransaction, arrayUnion } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import AddPartialPaymentDialog from "@/components/add-partial-payment-dialog"
 
@@ -208,11 +208,17 @@ function PaymentsPageContent() {
   const handlePartialPayment = async (payment: Payment, amount: number) => {
     const paymentRef = doc(db, 'payments', payment.id);
     try {
+      const newTransaction: Transaction = {
+        amount,
+        date: new Date(),
+      };
+
       await runTransaction(db, async (transaction) => {
         const paymentDoc = await transaction.get(paymentRef);
         if (!paymentDoc.exists()) {
           throw "Document does not exist!";
         }
+
         const currentData = paymentDoc.data() as Payment;
         const newAdvance = currentData.advance + amount;
         const newRemaining = currentData.totalAmount - newAdvance;
@@ -221,7 +227,8 @@ function PaymentsPageContent() {
         transaction.update(paymentRef, {
           advance: newAdvance,
           remaining: newRemaining,
-          status: newStatus
+          status: newStatus,
+          history: arrayUnion({ amount, date: Timestamp.fromDate(newTransaction.date) }),
         });
       });
 
@@ -246,10 +253,19 @@ function PaymentsPageContent() {
 
     const paymentRef = doc(db, "payments", paymentId);
     try {
+        const amountToAdd = payment.remaining;
+        if(amountToAdd <= 0) return;
+
+        const newTransaction = {
+            amount: amountToAdd,
+            date: Timestamp.fromDate(new Date()),
+        };
+
         await updateDoc(paymentRef, {
             advance: payment.totalAmount,
             remaining: 0,
-            status: 'Paid'
+            status: 'Paid',
+            history: arrayUnion(newTransaction),
         });
         toast({
             title: "Paiement mis à jour",
@@ -632,4 +648,5 @@ export default function PaymentsPage() {
     
 
     
+
 

@@ -23,6 +23,11 @@ export type Player = {
   medicalCertificateUrl?: string;
 };
 
+export type Transaction = {
+  date: Date;
+  amount: number;
+}
+
 export type Payment = {
   id: string;
   memberId: string; // Can be playerId or coachId
@@ -33,6 +38,7 @@ export type Payment = {
   remaining: number;
   date: Date;
   status: 'Paid' | 'Pending' | 'Overdue';
+  history?: Transaction[];
 };
 
 export type StatEvent = {
