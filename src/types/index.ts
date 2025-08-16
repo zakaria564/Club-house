@@ -70,3 +70,9 @@ export type Coach = {
   clubEntryDate: Date;
   clubExitDate?: Date;
 };
+
+export type PerformanceStats = {
+  matchesPlayed: number;
+  goalsScored: number;
+  assistsMade: number;
+};
