@@ -42,6 +42,15 @@ export function PaymentMobileCard({
   expanded,
   onToggleExpand,
 }: PaymentMobileCardProps) {
+  
+    const getAdvanceLabel = (index: number) => {
+        const labels = ['1er', '2ème', '3ème', '4ème', '5ème'];
+        if (index < labels.length) {
+            return `(${labels[index]})`;
+        }
+        return `(${index + 1}ème)`;
+    };
+  
   return (
     <Collapsible open={expanded} onOpenChange={onToggleExpand} className="bg-card p-3 rounded-lg border flex flex-col space-y-3">
         <div className="flex items-start justify-between">
@@ -118,7 +127,7 @@ export function PaymentMobileCard({
                                 <TableCell className="py-1.5">{format(transaction.date, 'dd/MM/yy HH:mm')}</TableCell>
                                 <TableCell className="text-right py-1.5">
                                     {transaction.amount.toFixed(2)} DH
-                                    {index === 0 && <span className="text-muted-foreground text-xs ml-1">(1er)</span>}
+                                    <span className="text-muted-foreground text-xs ml-1">{getAdvanceLabel(index)}</span>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -130,5 +139,3 @@ export function PaymentMobileCard({
     </Collapsible>
   );
 }
-
-    

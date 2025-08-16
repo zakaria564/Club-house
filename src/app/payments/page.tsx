@@ -541,6 +541,15 @@ function PaymentTable({
     expandedPaymentId,
     onToggleExpand
 }: PaymentTableProps) {
+  
+    const getAdvanceLabel = (index: number) => {
+        const labels = ['première', 'deuxième', 'troisième', 'quatrième', 'cinquième'];
+        if (index < labels.length) {
+            return `(${labels[index]} avance)`;
+        }
+        return `(${index + 1}ème avance)`;
+    };
+  
   return (
     <>
       {/* Mobile View */}
@@ -680,7 +689,7 @@ function PaymentTable({
                                                 <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
                                                 <TableCell className="text-right">
                                                     {transaction.amount.toFixed(2)} DH
-                                                    {index === 0 && <span className="text-muted-foreground text-xs ml-2">(première avance)</span>}
+                                                    <span className="text-muted-foreground text-xs ml-2">{getAdvanceLabel(index)}</span>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -707,11 +716,3 @@ export default function PaymentsPage() {
     </React.Suspense>
   )
 }
-
-    
-
-    
-
-    
-
-    
