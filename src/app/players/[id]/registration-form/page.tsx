@@ -142,7 +142,7 @@ const RegistrationFormPage = () => {
         <section className="my-8">
             <h4 className="text-xl font-bold mb-2 border-b-2 border-primary pb-1">Règlement et Autorisation</h4>
             <div className="text-sm text-gray-700 space-y-2 text-justify bg-gray-50 p-4 rounded-md border border-gray-200">
-                <p>Je soussigné(e), <strong className="font-semibold">{player.guardianName}</strong>, tuteur légal du joueur <strong className="font-semibold">{player.firstName} {player.lastName}</strong>, autorise ce dernier à participer à toutes les activités sportives (entraînements, matchs, tournois) organisées par le Club CAOS 2011 pour la saison {currentSeason}.</p>
+                <p>Je soussigné(e), <strong className="font-semibold">{player.guardianName}</strong>, tuteur légal du joueur <strong className="font-semibold">{player.firstName} ${player.lastName}</strong>, autorise ce dernier à participer à toutes les activités sportives (entraînements, matchs, tournois) organisées par le Club CAOS 2011 pour la saison {currentSeason}.</p>
                 <p>J'ai pris connaissance du règlement intérieur du club et m'engage à le respecter et à le faire respecter par mon enfant. Je certifie que mon enfant est en bonne condition physique et apte à la pratique du football, comme attesté par le certificat médical fourni. J'autorise également le club à utiliser l'image de mon enfant dans le cadre de ses activités et de sa communication (site web, réseaux sociaux, presse), sauf avis contraire de ma part notifié par écrit.</p>
                 <p>En cas d'urgence médicale, j'autorise les responsables du club à prendre toutes les mesures nécessaires, y compris le transport à l'hôpital et les soins requis.</p>
             </div>
