@@ -116,7 +116,10 @@ export function PaymentMobileCard({
                         {payment.history?.map((transaction, index) => (
                             <TableRow key={index}>
                                 <TableCell className="py-1.5">{format(transaction.date, 'dd/MM/yy HH:mm')}</TableCell>
-                                <TableCell className="text-right py-1.5">{transaction.amount.toFixed(2)} DH</TableCell>
+                                <TableCell className="text-right py-1.5">
+                                    {transaction.amount.toFixed(2)} DH
+                                    {index === 0 && <span className="text-muted-foreground text-xs ml-1">(1er)</span>}
+                                </TableCell>
                             </TableRow>
                         ))}
                         </TableBody>

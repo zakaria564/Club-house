@@ -671,14 +671,17 @@ function PaymentTable({
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Date</TableHead>
-                                                <TableHead className="text-right">Montant</TableHead>
+                                                <TableHead className="text-right">Avance</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                         {payment.history?.map((transaction, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
-                                                <TableCell className="text-right">{transaction.amount.toFixed(2)} DH</TableCell>
+                                                <TableCell className="text-right">
+                                                    {transaction.amount.toFixed(2)} DH
+                                                    {index === 0 && <span className="text-muted-foreground text-xs ml-2">(première avance)</span>}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                         </TableBody>
