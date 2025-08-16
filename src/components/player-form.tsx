@@ -51,9 +51,12 @@ const playerFormSchema = z.object({
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
   // New fields for initial payment, only for new players
-  initialTotalAmount: z.coerce.number().optional(),
-  initialAdvance: z.coerce.number().optional(),
-})
+  initialTotalAmount: z.coerce.number({ required_error: "Le montant total est requis." }).positive("Le montant total doit être positif."),
+  initialAdvance: z.coerce.number({ required_error: "L'avance est requise." }).min(0, "L'avance ne peut pas être négative."),
+}).refine(data => data.initialAdvance <= data.initialTotalAmount, {
+    message: "L'avance ne peut pas être supérieure au montant total.",
+    path: ["initialAdvance"],
+});
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
 
@@ -188,6 +191,26 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
           });
           setIsSubmitting(false);
           return;
+      }
+      
+      const isUrlValid = (url: string | null | undefined): boolean => {
+        if (!url) return true; // optional field
+        try {
+          const newUrl = new URL(url);
+          return newUrl.protocol === 'http:' || newUrl.protocol === 'https:';
+        } catch (e) {
+          return false;
+        }
+      }
+
+      if(!isUrlValid(data.medicalCertificateUrl)) {
+        toast({
+            variant: "destructive",
+            title: "URL de certificat invalide",
+            description: "Veuillez fournir une URL web valide (http ou https).",
+        });
+        setIsSubmitting(false);
+        return;
       }
 
       const { initialTotalAmount, initialAdvance, ...playerData } = data;
