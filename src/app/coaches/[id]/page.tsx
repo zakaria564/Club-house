@@ -2,7 +2,7 @@
 'use client';
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Edit, Printer, Mail, Phone, User, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, Mail, Phone, User } from 'lucide-react';
 import type { Coach, Payment } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -267,7 +267,6 @@ export default function CoachDetailPage() {
                                     <TableHead className="text-right">Montant Total</TableHead>
                                     <TableHead className="text-right">Avance</TableHead>
                                     <TableHead className="text-right">Reste</TableHead>
-                                    <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -293,15 +292,10 @@ export default function CoachDetailPage() {
                                             <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
                                             <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
                                             <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
-                                            <TableCell>
-                                                {payment.history && payment.history.length > 0 && (
-                                                    <ChevronDown className={cn("h-4 w-4 transition-transform", expandedPayment === payment.id && "rotate-180")} />
-                                                )}
-                                            </TableCell>
                                         </TableRow>
                                         {expandedPayment === payment.id && (
                                             <TableRow>
-                                                <TableCell colSpan={6} className="p-0">
+                                                <TableCell colSpan={5} className="p-0">
                                                     <div className="p-4 bg-muted/50">
                                                         <h4 className="font-semibold mb-2">Historique des versements</h4>
                                                         <Table>
@@ -328,7 +322,7 @@ export default function CoachDetailPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center">
+                                        <TableCell colSpan={5} className="text-center">
                                             Aucun paiement trouvé pour cet entraîneur.
                                         </TableCell>
                                     </TableRow>
@@ -350,5 +344,3 @@ export default function CoachDetailPage() {
     </>
   );
 }
-
-    

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers } from 'lucide-react';
 import type { Player, Payment, Coach, ClubEvent } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -377,7 +377,6 @@ export default function PlayerDetailPage() {
                                     <TableHead className="text-right">Total</TableHead>
                                     <TableHead className="text-right">Avance</TableHead>
                                     <TableHead className="text-right">Reste</TableHead>
-                                    <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -403,15 +402,10 @@ export default function PlayerDetailPage() {
                                             <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
                                             <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
                                             <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
-                                            <TableCell>
-                                                {payment.history && payment.history.length > 0 && (
-                                                    <ChevronDown className={cn("h-4 w-4 transition-transform", expandedPayment === payment.id && "rotate-180")} />
-                                                )}
-                                            </TableCell>
                                         </TableRow>
                                         {expandedPayment === payment.id && (
                                             <TableRow>
-                                                <TableCell colSpan={6} className="p-0">
+                                                <TableCell colSpan={5} className="p-0">
                                                     <div className="p-4 bg-muted/50">
                                                         <h4 className="font-semibold mb-2">Historique des versements</h4>
                                                         <Table>
@@ -438,7 +432,7 @@ export default function PlayerDetailPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center">
+                                        <TableCell colSpan={5} className="text-center">
                                             Aucun paiement trouvé pour ce joueur.
                                         </TableCell>
                                     </TableRow>
@@ -461,5 +455,3 @@ export default function PlayerDetailPage() {
     </>
   );
 }
-
-    

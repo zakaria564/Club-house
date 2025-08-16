@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check, Coins, ChevronDown } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check, Coins } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -630,9 +630,6 @@ function PaymentTable({
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px]">
                             <div className="flex items-center justify-end">
-                                {payment.history && payment.history.length > 0 && (
-                                    <ChevronDown className={cn("h-4 w-4 transition-transform", expandedPaymentId === payment.id && "rotate-180")} />
-                                )}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                     <Button
