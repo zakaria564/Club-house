@@ -418,7 +418,7 @@ export default function PlayerDetailPage() {
                                                             <TableHeader>
                                                                 <TableRow>
                                                                     <TableHead>Date</TableHead>
-                                                                    <TableHead className="text-right">Montant</TableHead>
+                                                                    <TableHead className="text-right">Avance</TableHead>
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>

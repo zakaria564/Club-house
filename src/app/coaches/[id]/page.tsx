@@ -308,7 +308,7 @@ export default function CoachDetailPage() {
                                                             <TableHeader>
                                                                 <TableRow>
                                                                     <TableHead>Date</TableHead>
-                                                                    <TableHead className="text-right">Montant</TableHead>
+                                                                    <TableHead className="text-right">Avance</TableHead>
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>
