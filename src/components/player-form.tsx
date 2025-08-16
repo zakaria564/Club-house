@@ -50,22 +50,9 @@ const playerFormSchema = z.object({
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
-  // New fields for initial payment, optional for validation here
   initialTotalAmount: z.coerce.number().optional(),
   initialAdvance: z.coerce.number().optional(),
-}).superRefine((data, ctx) => {
-    // Conditional validation for initial payment only on creation (when player is null)
-    // This check will be done inside the component logic. Here we just validate the relation if fields exist.
-    if (data.initialTotalAmount !== undefined && data.initialAdvance !== undefined) {
-        if (data.initialAdvance > data.initialTotalAmount) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "L'avance ne peut pas être supérieure au montant total.",
-                path: ["initialAdvance"],
-            });
-        }
-    }
-});
+})
 
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -123,6 +110,37 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     setIsClient(true);
   }, []);
 
+  const dynamicPlayerFormSchema = playerFormSchema.superRefine((data, ctx) => {
+    // Only apply this validation for new players
+    if (!player) {
+      if (data.initialTotalAmount === undefined || data.initialTotalAmount === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Le montant total est requis.",
+          path: ["initialTotalAmount"],
+        });
+      }
+      if (data.initialAdvance === undefined || data.initialAdvance === null) {
+         ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "L'avance est requise (peut être 0).",
+          path: ["initialAdvance"],
+        });
+      }
+    }
+    
+    // This validation applies always
+    if (data.initialTotalAmount !== undefined && data.initialAdvance !== undefined) {
+        if (data.initialAdvance > data.initialTotalAmount) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "L'avance ne peut pas être supérieure au montant total.",
+                path: ["initialAdvance"],
+            });
+        }
+    }
+  });
+
   
   const defaultValues = React.useMemo(() => ({
       firstName: player?.firstName || '',
@@ -146,11 +164,11 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
       initialTotalAmount: 300.00,
-      initialAdvance: 0,
+      initialAdvance: undefined, // Let it be undefined by default
   }), [player]);
 
   const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(playerFormSchema),
+    resolver: zodResolver(dynamicPlayerFormSchema),
     defaultValues,
     mode: "onChange",
   });
@@ -187,24 +205,22 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
     setIsSubmitting(true);
     try {
 
-      // Manual validation for initial payment on new player creation
-      if (!player) {
-          if (data.initialTotalAmount === undefined || data.initialTotalAmount <= 0) {
-              form.setError("initialTotalAmount", { type: "manual", message: "Le montant total est requis et doit être positif." });
-          }
-          if (data.initialAdvance === undefined || data.initialAdvance < 0) {
-              form.setError("initialAdvance", { type: "manual", message: "L'avance est requise et ne peut être négative." });
-          }
-          if (data.initialAdvance !== undefined && data.initialTotalAmount !== undefined && data.initialAdvance > data.initialTotalAmount) {
-             form.setError("initialAdvance", { type: "manual", message: "L'avance ne peut pas être supérieure au montant total." });
-          }
-
-          if (form.formState.errors.initialTotalAmount || form.formState.errors.initialAdvance) {
-              setIsSubmitting(false);
-              return;
-          }
+      const isUrlValid = (url: string | null | undefined): boolean => {
+        if (!url) return true; // optional field
+        try {
+          const newUrl = new URL(url);
+          return newUrl.protocol === 'http:' || newUrl.protocol === 'https:';
+        } catch (e) {
+          return false;
+        }
       }
 
+      if(!isUrlValid(data.medicalCertificateUrl)) {
+        form.setError("medicalCertificateUrl", { type: "manual", message: "Veuillez entrer une URL web valide (http/https)." });
+        setIsSubmitting(false);
+        return;
+      }
+      
       const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase().replace(/\s+/g, ' ');
       
       const isDuplicate = allPlayers.some(p => 
@@ -222,26 +238,6 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
           return;
       }
       
-      const isUrlValid = (url: string | null | undefined): boolean => {
-        if (!url) return true; // optional field
-        try {
-          const newUrl = new URL(url);
-          return newUrl.protocol === 'http:' || newUrl.protocol === 'https:';
-        } catch (e) {
-          return false;
-        }
-      }
-
-      if(!isUrlValid(data.medicalCertificateUrl)) {
-        toast({
-            variant: "destructive",
-            title: "URL de certificat invalide",
-            description: "Veuillez fournir une URL web valide (http ou https).",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
       const { initialTotalAmount, initialAdvance, ...playerData } = data;
 
       const newPlayerData = {
@@ -259,9 +255,9 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
       batch.set(playerDocRef, newPlayerData, { merge: true });
       
       // If it's a new player, create the initial payment
-      if (!player) {
-          const total = initialTotalAmount || 300;
-          const advance = initialAdvance || 0;
+      if (!player && initialTotalAmount !== undefined && initialAdvance !== undefined) {
+          const total = initialTotalAmount;
+          const advance = initialAdvance;
           const remaining = total - advance;
           const status: Payment['status'] = remaining <= 0 ? 'Paid' : 'Pending';
 
@@ -732,7 +728,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormItem>
                             <FormLabel>Avance payée (DH)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value ?? ''} disabled={isSubmitting} />
+                                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value === undefined ? '' : field.value} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
