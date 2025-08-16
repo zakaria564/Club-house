@@ -78,6 +78,8 @@ export default function Dashboard() {
   
   const [openCombobox, setOpenCombobox] = React.useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = React.useState<string | null>(null)
+  const [visiblePaymentId, setVisiblePaymentId] = React.useState<string | null>(null);
+
 
   React.useEffect(() => {
     setIsClient(true);
@@ -193,6 +195,15 @@ export default function Dashboard() {
     };
     return <Badge className={cn("text-xs", variants[status])}>{translations[status]}</Badge>
   }
+
+  const handleStatusClick = (e: React.MouseEvent, paymentId: string) => {
+    e.stopPropagation(); // Prevents the navigation from firing
+    if (visiblePaymentId === paymentId) {
+        setVisiblePaymentId(null); // Hide if already visible
+    } else {
+        setVisiblePaymentId(paymentId); // Show if hidden
+    }
+  };
 
   return (
     <>
@@ -335,7 +346,7 @@ export default function Dashboard() {
                     <div className="space-y-4">
                         {pendingPayments.map((payment, index) => (
                           <React.Fragment key={payment.id}>
-                            <div className="flex justify-between items-center p-2 -m-2 rounded-md">
+                            <div className="flex justify-between items-center p-2 -m-2 rounded-md cursor-pointer hover:bg-muted/50" onClick={() => navigateToPayment(payment)}>
                                 <div className="flex flex-col flex-grow min-w-0">
                                     <span className="font-semibold truncate">{payment.memberName}</span>
                                     <span className="text-xs text-muted-foreground capitalize">
@@ -343,10 +354,14 @@ export default function Dashboard() {
                                     </span>
                                 </div>
                                 <div 
-                                    className="text-right flex-shrink-0 ml-2 cursor-pointer hover:bg-muted/50 rounded-md p-1 -m-1"
-                                    onClick={() => navigateToPayment(payment)}
+                                    className="text-right flex-shrink-0 ml-2"
+                                    onClick={(e) => handleStatusClick(e, payment.id)}
                                 >
-                                    {statusBadge(payment.status)}
+                                    {visiblePaymentId === payment.id ? (
+                                        <div className="font-semibold text-destructive">{payment.remaining.toFixed(2)} DH</div>
+                                    ) : (
+                                        statusBadge(payment.status)
+                                    )}
                                 </div>
                             </div>
                             {index < pendingPayments.length - 1 && <Separator />}
@@ -366,5 +381,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-    
