@@ -45,7 +45,7 @@ export function PaymentMobileCard({
   return (
     <Collapsible open={expanded} onOpenChange={onToggleExpand} className="bg-card p-3 rounded-lg border flex flex-col space-y-3">
         <div className="flex items-start justify-between">
-            <div className="flex flex-col flex-grow min-w-0" onClick={() => onViewMember(payment.memberId, payment.paymentType)}>
+            <div className="flex flex-col flex-grow min-w-0" onClick={(e) => { e.stopPropagation(); onViewMember(payment.memberId, payment.paymentType)}}>
               <h3 className="font-semibold text-base leading-tight truncate">{payment.memberName}</h3>
               <p className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</p>
               <p className="text-xs text-muted-foreground capitalize">{format(payment.date, "PPP", { locale: fr })}</p>
@@ -127,3 +127,5 @@ export function PaymentMobileCard({
     </Collapsible>
   );
 }
+
+    

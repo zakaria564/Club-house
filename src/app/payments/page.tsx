@@ -315,6 +315,10 @@ function PaymentsPageContent() {
     const url = `/payments/${paymentId}/receipt`;
     window.open(url, '_blank');
   }
+  
+  const handleToggleExpand = (paymentId: string) => {
+    setExpandedPaymentId(currentId => currentId === paymentId ? null : paymentId);
+  };
 
   return (
     <>
@@ -435,7 +439,7 @@ function PaymentsPageContent() {
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
                   expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={setExpandedPaymentId}
+                  onToggleExpand={handleToggleExpand}
               />
               </TabsContent>
               <TabsContent value="paid">
@@ -448,7 +452,7 @@ function PaymentsPageContent() {
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
                   expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={setExpandedPaymentId}
+                  onToggleExpand={handleToggleExpand}
               />
               </TabsContent>
               <TabsContent value="pending">
@@ -461,7 +465,7 @@ function PaymentsPageContent() {
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
                   expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={setExpandedPaymentId}
+                  onToggleExpand={handleToggleExpand}
               />
               </TabsContent>
               <TabsContent value="overdue">
@@ -474,7 +478,7 @@ function PaymentsPageContent() {
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
                   expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={setExpandedPaymentId}
+                  onToggleExpand={handleToggleExpand}
               />
               </TabsContent>
           </Tabs>
@@ -522,7 +526,7 @@ interface PaymentTableProps {
   onPrintReceipt: (paymentId: string) => void;
   onDelete: (paymentId: string) => void;
   expandedPaymentId: string | null;
-  onToggleExpand: (id: string | null) => void;
+  onToggleExpand: (id: string) => void;
 }
 
 
@@ -552,7 +556,7 @@ function PaymentTable({
             onPrintReceipt={onPrintReceipt}
             onDelete={onDelete}
             expanded={expandedPaymentId === payment.id}
-            onToggleExpand={() => onToggleExpand(expandedPaymentId === payment.id ? null : payment.id)}
+            onToggleExpand={() => onToggleExpand(payment.id)}
           />
         ))}
       </div>
@@ -575,7 +579,7 @@ function PaymentTable({
           <TableBody>
             {payments.map(payment => (
                 <React.Fragment key={payment.id}>
-                    <TableRow onClick={() => onToggleExpand(expandedPaymentId === payment.id ? null : payment.id)} className="cursor-pointer">
+                    <TableRow onClick={() => onToggleExpand(payment.id)} className="cursor-pointer">
                         <TableCell>
                         <div className="font-medium">{payment.memberName}</div>
                         <div className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</div>
@@ -707,3 +711,4 @@ export default function PaymentsPage() {
 
     
 
+    
