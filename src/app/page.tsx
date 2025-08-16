@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -125,6 +125,8 @@ export default function Dashboard() {
     activePlayers,
     monthString,
     pendingPayments,
+    pendingPlayerPayments,
+    pendingCoachPayments
   } = React.useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -145,6 +147,8 @@ export default function Dashboard() {
     const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
     
     const currentPendingPayments = payments.filter(p => p.remaining > 0).sort((a,b) => b.remaining - a.remaining);
+    const currentPendingPlayerPayments = currentPendingPayments.filter(p => p.paymentType === 'membership');
+    const currentPendingCoachPayments = currentPendingPayments.filter(p => p.paymentType === 'salary');
     
     const currentMonthString = format(today, "MMMM yyyy", { locale: fr });
 
@@ -158,6 +162,8 @@ export default function Dashboard() {
         activePlayers: currentActivePlayers,
         monthString: currentMonthString,
         pendingPayments: currentPendingPayments,
+        pendingPlayerPayments: currentPendingPlayerPayments,
+        pendingCoachPayments: currentPendingCoachPayments
     };
   }, [players, payments, events]);
 
@@ -204,6 +210,35 @@ export default function Dashboard() {
         setVisiblePaymentId(paymentId); // Show if hidden
     }
   };
+  
+  const PaymentList = ({ payments }: { payments: Payment[] }) => (
+    <div className="space-y-3">
+        {payments.map((payment, index) => (
+            <React.Fragment key={payment.id}>
+                <div 
+                    className="flex justify-between items-center p-2 -m-2 rounded-md cursor-pointer hover:bg-muted/50" 
+                    onClick={() => navigateToPayment(payment)}
+                >
+                    <div className="flex flex-col flex-grow min-w-0">
+                        <span className="font-semibold truncate">{payment.memberName}</span>
+                    </div>
+                    <div 
+                        className="text-right flex-shrink-0 ml-2"
+                        onClick={(e) => handleStatusClick(e, payment.id)}
+                    >
+                        {visiblePaymentId === payment.id ? (
+                            <div className="font-semibold text-destructive">{payment.remaining.toFixed(2)} DH</div>
+                        ) : (
+                            statusBadge(payment.status)
+                        )}
+                    </div>
+                </div>
+                {index < payments.length - 1 && <Separator />}
+            </React.Fragment>
+        ))}
+    </div>
+);
+
 
   return (
     <>
@@ -343,30 +378,25 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
                 {pendingPayments.length > 0 ? (
-                    <div className="space-y-4">
-                        {pendingPayments.map((payment, index) => (
-                          <React.Fragment key={payment.id}>
-                            <div className="flex justify-between items-center p-2 -m-2 rounded-md cursor-pointer hover:bg-muted/50" onClick={() => navigateToPayment(payment)}>
-                                <div className="flex flex-col flex-grow min-w-0">
-                                    <span className="font-semibold truncate">{payment.memberName}</span>
-                                    <span className="text-xs text-muted-foreground capitalize">
-                                        {payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}
-                                    </span>
-                                </div>
-                                <div 
-                                    className="text-right flex-shrink-0 ml-2"
-                                    onClick={(e) => handleStatusClick(e, payment.id)}
-                                >
-                                    {visiblePaymentId === payment.id ? (
-                                        <div className="font-semibold text-destructive">{payment.remaining.toFixed(2)} DH</div>
-                                    ) : (
-                                        statusBadge(payment.status)
-                                    )}
-                                </div>
+                    <div className="space-y-6">
+                         {pendingPlayerPayments.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-muted-foreground" />
+                                    Joueurs ({pendingPlayerPayments.length})
+                                </h3>
+                                <PaymentList payments={pendingPlayerPayments} />
                             </div>
-                            {index < pendingPayments.length - 1 && <Separator />}
-                          </React.Fragment>
-                        ))}
+                         )}
+                         {pendingCoachPayments.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                    <Shield className="h-4 w-4 text-muted-foreground" />
+                                    Entraîneurs ({pendingCoachPayments.length})
+                                </h3>
+                                <PaymentList payments={pendingCoachPayments} />
+                            </div>
+                         )}
                     </div>
                 ) : (
                     <div className="text-sm text-center text-muted-foreground py-8">
