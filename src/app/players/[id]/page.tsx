@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers, Sparkles, Loader2, MessageSquareQuote } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers } from 'lucide-react';
 import type { Player, Payment, Coach, ClubEvent } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,7 +18,6 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
-import { analyzePlayerPerformance } from '@/ai/flows/player-analysis-flow';
 
 
 const PrintHeader = () => (
@@ -85,11 +84,8 @@ export default function PlayerDetailPage() {
 
   const [player, setPlayer] = React.useState<Player | null>(null);
   const [payments, setPayments] = React.useState<Payment[]>([]);
-  const [events, setEvents] = React.useState<ClubEvent[]>([]);
   const [coach, setCoach] = React.useState<Coach | null>(null);
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
-  const [analysis, setAnalysis] = React.useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
 
   React.useEffect(() => {
@@ -124,67 +120,11 @@ export default function PlayerDetailPage() {
         setPayments(querySnapshot.docs.map(parsePaymentDoc));
     });
 
-    const eventsQuery = query(collection(db, "events"), where("type", "==", "Match"));
-    const unsubscribeEvents = onSnapshot(eventsQuery, (querySnapshot) => {
-      setEvents(querySnapshot.docs.map(parseEventDoc));
-    });
-
     return () => {
         unsubscribePlayer();
         unsubscribePayments();
-        unsubscribeEvents();
     };
   }, [playerId]);
-
-  const playerStats = React.useMemo(() => {
-    if (!playerId) return { matchesPlayed: 0, goalsScored: 0, assistsMade: 0 };
-    
-    let matchesPlayed = 0;
-    let goalsScored = 0;
-    let assistsMade = 0;
-
-    events.forEach(event => {
-        const played = event.scorers?.some(s => s.playerId === playerId) || event.assists?.some(a => a.playerId === playerId);
-        if (played) {
-            matchesPlayed++;
-        }
-        event.scorers?.forEach(scorer => {
-            if (scorer.playerId === playerId) {
-                goalsScored += scorer.count;
-            }
-        });
-        event.assists?.forEach(assist => {
-            if (assist.playerId === playerId) {
-                assistsMade += assist.count;
-            }
-        });
-    });
-
-    return { matchesPlayed, goalsScored, assistsMade };
-  }, [events, playerId]);
-
-
-  const handleGenerateAnalysis = async () => {
-    if (!player) return;
-    setIsAnalyzing(true);
-    setAnalysis(null);
-    try {
-        const result = await analyzePlayerPerformance({
-            playerName: `${player.firstName} ${player.lastName}`,
-            playerCategory: player.category,
-            playerPosition: player.position,
-            matchesPlayed: playerStats.matchesPlayed,
-            goalsScored: playerStats.goalsScored,
-            assistsMade: playerStats.assistsMade,
-        });
-        setAnalysis(result.analysis);
-    } catch (error) {
-        console.error("Failed to generate analysis:", error);
-        setAnalysis("Une erreur est survenue lors de la génération de l'analyse.");
-    } finally {
-        setIsAnalyzing(false);
-    }
-  };
 
   const coachName = coach ? `${coach.firstName} ${coach.lastName}` : 'Non assigné';
 
@@ -341,33 +281,6 @@ export default function PlayerDetailPage() {
 
             </CardContent>
           </Card>
-        </div>
-
-        <div className="space-y-4 no-print">
-            <h3 className="text-xl font-semibold">Analyse de Performance IA</h3>
-            <Card>
-                <CardContent className="pt-6">
-                    <div className="flex flex-col items-center justify-center text-center gap-4">
-                        <Button onClick={handleGenerateAnalysis} disabled={isAnalyzing}>
-                            {isAnalyzing ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Sparkles className="mr-2 h-4 w-4" />
-                            )}
-                            {isAnalyzing ? "Analyse en cours..." : "Générer une analyse IA"}
-                        </Button>
-                        {analysis && !isAnalyzing && (
-                            <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm text-foreground/80 w-full flex items-start gap-3">
-                                <MessageSquareQuote className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                                <p className="text-left">{analysis}</p>
-                            </div>
-                        )}
-                        {isAnalyzing && (
-                            <p className="text-sm text-muted-foreground">L'IA prépare son rapport sur les performances du joueur...</p>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
         </div>
         
         <div className="space-y-4 no-print">
