@@ -65,7 +65,6 @@ const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime
 const isValidUrl = (url: string | null | undefined): boolean => {
     if (!url) return false;
     try {
-        // Use a simple check, as new URL() might fail on valid but unencoded URLs.
         return url.startsWith('http://') || url.startsWith('https://');
     } catch (e) {
         return false;
@@ -145,6 +144,11 @@ export default function PlayerDetailPage() {
     window.print();
     document.title = originalTitle;
   };
+
+  const handlePrintRegistration = () => {
+    const url = `/players/${playerId}/registration-form`;
+    window.open(url, '_blank');
+  };
   
   const handlePrintCertificate = () => {
     if (player?.medicalCertificateUrl) {
@@ -173,15 +177,19 @@ export default function PlayerDetailPage() {
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </Button>
-            <Button onClick={handlePrint}>
+            <Button variant="outline" onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />
               Imprimer la fiche
+            </Button>
+             <Button onClick={handlePrintRegistration}>
+              <FileText className="mr-2 h-4 w-4" />
+              Imprimer l'inscription
             </Button>
           </div>
         </PageHeader>
       <div className="printable-area">
           <PrintHeader />
-          <Card className="shadow-none border-0 print:border print:shadow-lg print:block">
+          <Card className="shadow-none border-0 print:border print:shadow-lg">
             <CardHeader className="flex flex-col items-center text-center">
               {player.photoUrl ? (
                 <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
