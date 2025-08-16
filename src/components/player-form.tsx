@@ -129,8 +129,8 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       clubExitDate: dateToInputFormat(player?.clubExitDate),
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
-      initialTotalAmount: 300.00,
-      initialAdvanceAmount: 0.00,
+      initialTotalAmount: 300,
+      initialAdvanceAmount: 0,
   }), [player]);
 
   const form = useForm<PlayerFormValues>({
@@ -699,7 +699,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                                 <FormItem>
                                     <FormLabel>Montant total (DH)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} />
+                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.valueAsNumber)} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -712,7 +712,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                                 <FormItem>
                                     <FormLabel>Avance payée (DH)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} />
+                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.valueAsNumber)} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -734,3 +734,5 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       </Form>
   )
 }
+
+    
