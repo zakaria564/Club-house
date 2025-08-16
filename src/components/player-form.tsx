@@ -50,13 +50,23 @@ const playerFormSchema = z.object({
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
-  // New fields for initial payment, only for new players
-  initialTotalAmount: z.coerce.number({ required_error: "Le montant total est requis." }).positive("Le montant total doit être positif."),
-  initialAdvance: z.coerce.number({ required_error: "L'avance est requise." }).min(0, "L'avance ne peut pas être négative."),
-}).refine(data => data.initialAdvance <= data.initialTotalAmount, {
-    message: "L'avance ne peut pas être supérieure au montant total.",
-    path: ["initialAdvance"],
+  // New fields for initial payment, optional for validation here
+  initialTotalAmount: z.coerce.number().optional(),
+  initialAdvance: z.coerce.number().optional(),
+}).superRefine((data, ctx) => {
+    // Conditional validation for initial payment only on creation (when player is null)
+    // This check will be done inside the component logic. Here we just validate the relation if fields exist.
+    if (data.initialTotalAmount !== undefined && data.initialAdvance !== undefined) {
+        if (data.initialAdvance > data.initialTotalAmount) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "L'avance ne peut pas être supérieure au montant total.",
+                path: ["initialAdvance"],
+            });
+        }
+    }
 });
+
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
 
@@ -176,6 +186,25 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true);
     try {
+
+      // Manual validation for initial payment on new player creation
+      if (!player) {
+          if (data.initialTotalAmount === undefined || data.initialTotalAmount <= 0) {
+              form.setError("initialTotalAmount", { type: "manual", message: "Le montant total est requis et doit être positif." });
+          }
+          if (data.initialAdvance === undefined || data.initialAdvance < 0) {
+              form.setError("initialAdvance", { type: "manual", message: "L'avance est requise et ne peut être négative." });
+          }
+          if (data.initialAdvance !== undefined && data.initialTotalAmount !== undefined && data.initialAdvance > data.initialTotalAmount) {
+             form.setError("initialAdvance", { type: "manual", message: "L'avance ne peut pas être supérieure au montant total." });
+          }
+
+          if (form.formState.errors.initialTotalAmount || form.formState.errors.initialAdvance) {
+              setIsSubmitting(false);
+              return;
+          }
+      }
+
       const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase().replace(/\s+/g, ' ');
       
       const isDuplicate = allPlayers.some(p => 
@@ -690,7 +719,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormItem>
                             <FormLabel>Montant total (DH)</FormLabel>
                             <FormControl>
-                                <Input type="number" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                                <Input type="number" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value ?? ''} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -703,7 +732,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormItem>
                             <FormLabel>Avance payée (DH)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="0" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value ?? ''} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
