@@ -25,8 +25,6 @@ import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { cn, handleEnterKeyDown } from "@/lib/utils"
 import { Loader2, Eye, EyeOff } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
-
 
 const coachFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
@@ -84,8 +82,6 @@ const specialties = [
 
 export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const { toast } = useToast()
-  const isMobile = useIsMobile();
-  const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isPhotoUrlVisible, setPhotoUrlVisible] = React.useState(!coach);
   const [allCoaches, setAllCoaches] = React.useState<Coach[]>([]);
@@ -93,7 +89,6 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const [coachId] = React.useState(() => coach?.id || doc(collection(db, "coaches")).id);
 
   React.useEffect(() => {
-    setIsClient(true);
     const qCoaches = query(collection(db, "coaches"));
     const unsubscribe = onSnapshot(qCoaches, (snapshot) => {
         const coachesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coach));
@@ -370,7 +365,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                             <FormLabel>Date d'entrée</FormLabel>
                             <FormControl>
                                 <Input 
-                                  type={isClient && isMobile ? 'text' : 'date'}
+                                  type="date"
                                   placeholder="JJ/MM/AAAA" 
                                   {...field} 
                                   value={field.value ?? ''}
@@ -389,7 +384,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
                                 <FormLabel>Date de sortie (optionnel)</FormLabel>
                                 <FormControl>
                                     <Input 
-                                      type={isClient && isMobile ? 'text' : 'date'}
+                                      type="date"
                                       placeholder="JJ/MM/AAAA" 
                                       {...field} 
                                       value={field.value ?? ''} 

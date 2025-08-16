@@ -98,18 +98,12 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
   const { toast } = useToast()
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [allPlayers, setAllPlayers] = React.useState<Player[]>([]);
-  const isMobile = useIsMobile();
-  const [isClient, setIsClient] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isPhotoUrlVisible, setPhotoUrlVisible] = React.useState(!player);
   const [isCertUrlVisible, setCertUrlVisible] = React.useState(!player);
 
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
-   React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const dynamicPlayerFormSchema = playerFormSchema.superRefine((data, ctx) => {
     // Only apply this validation for new players
     if (!player) {
@@ -404,7 +398,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormLabel>Date de naissance</FormLabel>
                             <FormControl>
                             <Input 
-                                type={isClient && isMobile ? 'text' : 'date'} 
+                                type="date"
                                 placeholder="JJ/MM/AAAA" 
                                 {...field} 
                                 value={field.value ?? ''} 
@@ -680,7 +674,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                           <FormLabel>Date d'entrée</FormLabel>
                           <FormControl>
                             <Input 
-                              type={isClient && isMobile ? 'text' : 'date'}
+                              type="date"
                               placeholder="JJ/MM/AAAA" 
                               {...field} 
                               value={field.value ?? ''} 
@@ -699,7 +693,7 @@ export function PlayerForm({ onFinished, player }: PlayerFormProps) {
                             <FormLabel>Date de sortie (optionnel)</FormLabel>
                             <FormControl>
                               <Input 
-                                type={isClient && isMobile ? 'text' : 'date'}
+                                type="date"
                                 placeholder="JJ/MM/AAAA" 
                                 {...field} 
                                 value={field.value ?? ''} 

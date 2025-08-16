@@ -53,12 +53,8 @@ export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialo
   const [totalAmount, setTotalAmount] = React.useState<string>("300.00");
   const [advance, setAdvance] = React.useState<string>("");
   const [date, setDate] = React.useState<string>(dateToInputFormat(new Date()));
-  const isMobile = useIsMobile();
-  const [isClient, setIsClient] = React.useState(false);
   
   React.useEffect(() => {
-    setIsClient(true);
-
     const unsubscribePlayers = onSnapshot(query(collection(db, "players")), (snapshot) => {
         setPlayers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player)));
     });
@@ -252,7 +248,7 @@ export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialo
               Date
             </Label>
             <Input 
-              type={isClient && isMobile ? 'text' : 'date'}
+              type="date"
               placeholder="JJ/MM/AAAA" 
               className="col-span-3" 
               value={date} 
