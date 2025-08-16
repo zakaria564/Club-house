@@ -10,7 +10,7 @@ import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDo
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Player, Payment, ClubEvent } from '@/types'
+import type { Player, Payment, ClubEvent, Coach } from '@/types'
 import AddPlayerDialog from "@/components/add-player-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -39,6 +39,16 @@ const parsePlayerDoc = (doc: any): Player => {
     clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
     clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
   } as Player;
+};
+
+const parseCoachDoc = (doc: any): Coach => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Coach;
 };
 
 const parsePaymentDoc = (doc: any): Payment => {
@@ -70,6 +80,7 @@ const normalizeString = (str: string) => {
 export default function Dashboard() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>([]);
+  const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [payments, setPayments] = React.useState<Payment[]>([]);
   const [events, setEvents] = React.useState<ClubEvent[]>([]);
 
@@ -88,6 +99,10 @@ export default function Dashboard() {
         setPlayers(snapshot.docs.map(parsePlayerDoc));
     });
 
+    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches")), (snapshot) => {
+        setCoaches(snapshot.docs.map(parseCoachDoc));
+    });
+
     const unsubscribePayments = onSnapshot(query(collection(db, "payments")), (snapshot) => {
         setPayments(snapshot.docs.map(parsePaymentDoc));
     });
@@ -98,6 +113,7 @@ export default function Dashboard() {
 
     return () => {
         unsubscribePlayers();
+        unsubscribeCoaches();
         unsubscribePayments();
         unsubscribeEvents();
     };
@@ -211,33 +227,41 @@ export default function Dashboard() {
     }
   };
   
-  const PaymentList = ({ payments }: { payments: Payment[] }) => (
-    <div className="space-y-3">
-        {payments.map((payment, index) => (
-            <React.Fragment key={payment.id}>
-                <div 
-                    className="flex justify-between items-center p-2 -m-2 rounded-md cursor-pointer hover:bg-muted/50" 
-                    onClick={() => navigateToPayment(payment)}
-                >
-                    <div className="flex flex-col flex-grow min-w-0">
-                        <span className="font-semibold truncate">{payment.memberName}</span>
-                    </div>
-                    <div 
-                        className="text-right flex-shrink-0 ml-2"
-                        onClick={(e) => handleStatusClick(e, payment.id)}
-                    >
-                        {visiblePaymentId === payment.id ? (
-                            <div className="font-semibold text-destructive">{payment.remaining.toFixed(2)} DH</div>
-                        ) : (
-                            statusBadge(payment.status)
-                        )}
-                    </div>
-                </div>
-                {index < payments.length - 1 && <Separator />}
-            </React.Fragment>
-        ))}
-    </div>
-);
+  const PaymentList = ({ payments, type }: { payments: Payment[], type: 'player' | 'coach' }) => {
+    const playerMap = new Map(players.map(p => [p.id, p]));
+
+    return (
+        <div className="space-y-3">
+            {payments.map((payment, index) => {
+                const player = type === 'player' ? playerMap.get(payment.memberId) : null;
+                return (
+                    <React.Fragment key={payment.id}>
+                        <div 
+                            className="flex justify-between items-center p-2 -m-2 rounded-md cursor-pointer hover:bg-muted/50" 
+                            onClick={() => navigateToPayment(payment)}
+                        >
+                            <div className="flex flex-col flex-grow min-w-0">
+                                <span className="font-semibold truncate">{payment.memberName}</span>
+                                {player && <span className="text-xs text-muted-foreground">{player.category}</span>}
+                            </div>
+                            <div 
+                                className="text-right flex-shrink-0 ml-2"
+                                onClick={(e) => handleStatusClick(e, payment.id)}
+                            >
+                                {visiblePaymentId === payment.id ? (
+                                    <div className="font-semibold text-destructive">{payment.remaining.toFixed(2)} DH</div>
+                                ) : (
+                                    statusBadge(payment.status)
+                                )}
+                            </div>
+                        </div>
+                        {index < payments.length - 1 && <Separator />}
+                    </React.Fragment>
+                )
+            })}
+        </div>
+    )
+};
 
 
   return (
@@ -385,7 +409,7 @@ export default function Dashboard() {
                                     <Users className="h-4 w-4 text-muted-foreground" />
                                     Joueurs ({pendingPlayerPayments.length})
                                 </h3>
-                                <PaymentList payments={pendingPlayerPayments} />
+                                <PaymentList payments={pendingPlayerPayments} type="player" />
                             </div>
                          )}
                          {pendingCoachPayments.length > 0 && (
@@ -394,7 +418,7 @@ export default function Dashboard() {
                                     <Shield className="h-4 w-4 text-muted-foreground" />
                                     Entraîneurs ({pendingCoachPayments.length})
                                 </h3>
-                                <PaymentList payments={pendingCoachPayments} />
+                                <PaymentList payments={pendingCoachPayments} type="coach" />
                             </div>
                          )}
                     </div>
@@ -411,3 +435,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
