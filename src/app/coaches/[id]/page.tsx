@@ -96,6 +96,15 @@ export default function CoachDetailPage() {
         unsubscribePayments();
     };
   }, [coachId]);
+  
+    const getAdvanceLabel = (index: number) => {
+        const labels = ['première avance', 'deuxième avance', 'troisième avance', 'quatrième avance', 'cinquième avance'];
+        if (index < labels.length) {
+            return `(${labels[index]})`;
+        }
+        return `(${index + 1}ème avance)`;
+    };
+
 
   const handlePrint = () => {
     const originalTitle = document.title;
@@ -132,84 +141,86 @@ export default function CoachDetailPage() {
         </PageHeader>
       </div>
 
-      <div className="space-y-8 printable-area">
-        <PrintHeader />
-        <Card className="shadow-none border-0 print:border print:shadow-lg">
-          <CardHeader>
-            <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-                {coach.photoUrl ? (
-                  <a href={coach.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
-                    <Avatar className="w-32 h-32 mb-4 md:mb-0">
-                        <AvatarImage src={coach.photoUrl} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
-                        <AvatarFallback className="text-4xl">
-                            {coach.firstName?.[0]}
-                            {coach.lastName?.[0]}
-                        </AvatarFallback>
-                    </Avatar>
-                  </a>
-                ) : (
-                    <Avatar className="w-32 h-32 mb-4 md:mb-0">
-                        <AvatarImage src={undefined} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
-                        <AvatarFallback className="text-4xl">
-                            {coach.firstName?.[0]}
-                            {coach.lastName?.[0]}
-                        </AvatarFallback>
-                    </Avatar>
-                )}
-                <div className="flex-grow">
-                    <CardTitle className="text-3xl font-headline">
-                        {coach.firstName} {coach.lastName}
-                    </CardTitle>
-                    <CardDescription className="text-xl text-muted-foreground mt-1">
-                        {coach.specialty}
-                    </CardDescription>
-                </div>
-            </div>
-          </CardHeader>
-          <CardContent className="mt-6 space-y-6">
-             <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                   <div className="flex items-center gap-3">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <span>{coach.age ? `${coach.age} ans` : 'N/A'} ({coach.gender})</span>
-                  </div>
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 col-span-full hover:underline">
-                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                    <span>{coach.city}, {coach.country}</span>
-                  </a>
-                </div>
-              </div>
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Informations de Contact</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <a href={`mailto:${coach.email}`} className="flex items-center gap-3 hover:underline">
-                        <Mail className="w-4 h-4 text-muted-foreground" />
-                        <span className="truncate">{coach.email}</span>
+      <div className="space-y-8">
+        <div className="printable-area">
+          <PrintHeader />
+          <Card className="shadow-none border-0 print:border print:shadow-lg">
+            <CardHeader>
+              <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+                  {coach.photoUrl ? (
+                    <a href={coach.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
+                      <Avatar className="w-32 h-32 mb-4 md:mb-0">
+                          <AvatarImage src={coach.photoUrl} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
+                          <AvatarFallback className="text-4xl">
+                              {coach.firstName?.[0]}
+                              {coach.lastName?.[0]}
+                          </AvatarFallback>
+                      </Avatar>
                     </a>
-                    <a href={`tel:${coach.phone}`} className="flex items-center gap-3 hover:underline">
-                        <Phone className="w-4 h-4 text-muted-foreground" />
-                        <span>{coach.phone}</span>
-                    </a>
-                </div>
-              </div>
-               <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  <div className="grid grid-cols-[auto,1fr] gap-x-4">
-                    <span className="font-medium">Date d'entrée:</span>
-                    <span>{isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
-                  </div>
-                  {coach.clubExitDate && isValidDate(coach.clubExitDate) && (
-                    <div className="grid grid-cols-[auto,1fr] gap-x-4">
-                        <span className="font-medium">Date de sortie:</span>
-                        <span>{format(coach.clubExitDate, 'PPP', { locale: fr })}</span>
-                    </div>
+                  ) : (
+                      <Avatar className="w-32 h-32 mb-4 md:mb-0">
+                          <AvatarImage src={undefined} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
+                          <AvatarFallback className="text-4xl">
+                              {coach.firstName?.[0]}
+                              {coach.lastName?.[0]}
+                          </AvatarFallback>
+                      </Avatar>
                   )}
-                </div>
+                  <div className="flex-grow">
+                      <CardTitle className="text-3xl font-headline">
+                          {coach.firstName} {coach.lastName}
+                      </CardTitle>
+                      <CardDescription className="text-xl text-muted-foreground mt-1">
+                          {coach.specialty}
+                      </CardDescription>
+                  </div>
               </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="mt-6 space-y-6">
+               <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                     <div className="flex items-center gap-3">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span>{coach.age ? `${coach.age} ans` : 'N/A'} ({coach.gender})</span>
+                    </div>
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 col-span-full hover:underline">
+                       <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>{coach.city}, {coach.country}</span>
+                    </a>
+                  </div>
+                </div>
+              <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Informations de Contact</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <a href={`mailto:${coach.email}`} className="flex items-center gap-3 hover:underline">
+                          <Mail className="w-4 h-4 text-muted-foreground" />
+                          <span className="truncate">{coach.email}</span>
+                      </a>
+                      <a href={`tel:${coach.phone}`} className="flex items-center gap-3 hover:underline">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          <span>{coach.phone}</span>
+                      </a>
+                  </div>
+                </div>
+                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                      <span className="font-medium">Date d'entrée:</span>
+                      <span>{isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
+                    </div>
+                    {coach.clubExitDate && isValidDate(coach.clubExitDate) && (
+                      <div className="grid grid-cols-[auto,1fr] gap-x-4">
+                          <span className="font-medium">Date de sortie:</span>
+                          <span>{format(coach.clubExitDate, 'PPP', { locale: fr })}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+            </CardContent>
+          </Card>
+        </div>
          <div className="no-print">
             <Card>
                 <CardHeader>
@@ -309,7 +320,10 @@ export default function CoachDetailPage() {
                                                             {payment.history?.map((transaction, index) => (
                                                                 <TableRow key={index}>
                                                                     <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
-                                                                    <TableCell className="text-right">{transaction.amount.toFixed(2)} DH</TableCell>
+                                                                    <TableCell className="text-right">
+                                                                        {transaction.amount.toFixed(2)} DH
+                                                                        <span className="text-muted-foreground text-xs ml-2">{getAdvanceLabel(index)}</span>
+                                                                    </TableCell>
                                                                 </TableRow>
                                                             ))}
                                                             </TableBody>
