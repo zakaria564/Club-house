@@ -106,12 +106,11 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
   const dynamicPlayerFormSchema = playerFormSchema.superRefine((data, ctx) => {
-    // Only apply this validation for new players
     if (!player) {
-      if (data.initialTotalAmount === undefined || data.initialTotalAmount === null) {
+      if (data.initialTotalAmount === undefined || data.initialTotalAmount === null || data.initialTotalAmount <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Le montant total est requis.",
+          message: "Le montant total est requis et doit être positif.",
           path: ["initialTotalAmount"],
         });
       }
@@ -124,12 +123,11 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       }
     }
     
-    // This validation applies always
     if (data.initialTotalAmount !== undefined && data.initialAdvance !== undefined) {
         if (data.initialAdvance > data.initialTotalAmount) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: "L'avance ne peut pas être supérieure au montant total.",
+                message: "L'avance ne peut être supérieure au montant total.",
                 path: ["initialAdvance"],
             });
         }
@@ -159,7 +157,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
       initialTotalAmount: 300.00,
-      initialAdvance: undefined, // Let it be undefined by default
+      initialAdvance: undefined,
   }), [player]);
 
   const form = useForm<PlayerFormValues>({
@@ -719,7 +717,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                             <FormItem>
                             <FormLabel>Montant total (DH)</FormLabel>
                             <FormControl>
-                                <Input type="number" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value ?? ''} disabled={isSubmitting} />
+                                <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value ?? ''} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -732,7 +730,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                             <FormItem>
                             <FormLabel>Avance payée (DH)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value === undefined ? '' : field.value} disabled={isSubmitting} />
+                                <Input type="number" step="0.01" placeholder="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value === undefined ? '' : field.value} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
