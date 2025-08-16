@@ -50,7 +50,8 @@ const playerFormSchema = z.object({
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
-  initialTotalAmount: z.coerce.number().optional().default(300),
+  initialTotalAmount: z.coerce.number().optional(),
+  initialAdvanceAmount: z.coerce.number().optional(),
 })
 
 
@@ -128,7 +129,8 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       clubExitDate: dateToInputFormat(player?.clubExitDate),
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
-      initialTotalAmount: 300,
+      initialTotalAmount: 300.00,
+      initialAdvanceAmount: 0.00,
   }), [player]);
 
   const form = useForm<PlayerFormValues>({
@@ -201,8 +203,18 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
           setIsSubmitting(false);
           return;
       }
+
+      if (!player && (data.initialAdvanceAmount ?? 0) > (data.initialTotalAmount ?? 0)) {
+         toast({
+              variant: "destructive",
+              title: "Montant invalide",
+              description: "L'avance ne peut pas être supérieure au montant total.",
+          });
+          setIsSubmitting(false);
+          return;
+      }
       
-      const { initialTotalAmount, ...playerData } = data;
+      const { initialTotalAmount, initialAdvanceAmount, ...playerData } = data;
 
       const newPlayerData = {
         ...playerData,
@@ -220,12 +232,15 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       
       if (!player) {
           const total = initialTotalAmount || 300;
+          const advance = initialAdvanceAmount || 0;
+          const remaining = total - advance;
+          const status: Payment['status'] = remaining <= 0 ? 'Paid' : 'Pending';
 
           const history: Transaction[] = [];
-          if (total > 0) {
+          if (advance > 0) {
             history.push({
               date: new Date(),
-              amount: total,
+              amount: advance,
             });
           }
 
@@ -234,10 +249,10 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
               memberName: `${data.firstName} ${data.lastName}`,
               paymentType: 'membership',
               totalAmount: total,
-              advance: total,
-              remaining: 0,
+              advance: advance,
+              remaining: remaining,
               date: Timestamp.fromDate(new Date(data.clubEntryDate)),
-              status: 'Paid',
+              status: status,
               history: history.map(t => ({...t, date: Timestamp.fromDate(t.date)})) as any,
           };
           
@@ -676,14 +691,33 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                {!player && (
                 <div className="space-y-4">
                     <h3 className="text-lg font-medium">Cotisation Initiale</h3>
-                    <div className="grid grid-cols-1">
-                        <FormItem>
-                            <FormLabel>Montant de la cotisation</FormLabel>
-                            <FormControl>
-                                <Input value="300.00 DH" readOnly disabled className="font-semibold text-base" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="initialTotalAmount"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Montant total (DH)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="initialAdvanceAmount"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Avance payée (DH)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
                 </div>
                )}
@@ -700,5 +734,3 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       </Form>
   )
 }
-
-    
