@@ -51,7 +51,6 @@ const playerFormSchema = z.object({
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
   initialTotalAmount: z.coerce.number().optional(),
-  initialAdvance: z.coerce.number().optional(),
 })
 
 
@@ -110,27 +109,10 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       if (data.initialTotalAmount === undefined || data.initialTotalAmount === null || data.initialTotalAmount <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Le montant total est requis et doit être positif.",
+          message: "Le montant de la cotisation est requis et doit être positif.",
           path: ["initialTotalAmount"],
         });
       }
-      if (data.initialAdvance === undefined || data.initialAdvance === null) {
-         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "L'avance est requise (peut être 0).",
-          path: ["initialAdvance"],
-        });
-      }
-    }
-    
-    if (data.initialTotalAmount !== undefined && data.initialAdvance !== undefined) {
-        if (data.initialAdvance > data.initialTotalAmount) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "L'avance ne peut être supérieure au montant total.",
-                path: ["initialAdvance"],
-            });
-        }
     }
   });
 
@@ -157,7 +139,6 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       coachId: player?.coachId || null,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
       initialTotalAmount: 300.00,
-      initialAdvance: undefined,
   }), [player]);
 
   const form = useForm<PlayerFormValues>({
@@ -231,7 +212,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
           return;
       }
       
-      const { initialTotalAmount, initialAdvance, ...playerData } = data;
+      const { initialTotalAmount, ...playerData } = data;
 
       const newPlayerData = {
         ...playerData,
@@ -248,17 +229,14 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       batch.set(playerDocRef, newPlayerData, { merge: true });
       
       // If it's a new player, create the initial payment
-      if (!player && initialTotalAmount !== undefined && initialAdvance !== undefined) {
+      if (!player && initialTotalAmount !== undefined) {
           const total = initialTotalAmount;
-          const advance = initialAdvance;
-          const remaining = total - advance;
-          const status: Payment['status'] = remaining <= 0 ? 'Paid' : 'Pending';
 
           const history: Transaction[] = [];
-          if (advance > 0) {
+          if (total > 0) {
             history.push({
               date: new Date(),
-              amount: advance,
+              amount: total,
             });
           }
 
@@ -267,10 +245,10 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
               memberName: `${data.firstName} ${data.lastName}`,
               paymentType: 'membership',
               totalAmount: total,
-              advance: advance,
-              remaining: remaining,
+              advance: total,
+              remaining: 0,
               date: Timestamp.fromDate(new Date(data.clubEntryDate)),
-              status: status,
+              status: 'Paid',
               history: history.map(t => ({...t, date: Timestamp.fromDate(t.date)})) as any,
           };
           
@@ -715,22 +693,9 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                         name="initialTotalAmount"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Montant total (DH)</FormLabel>
+                            <FormLabel>Montant de la cotisation (DH)</FormLabel>
                             <FormControl>
                                 <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value ?? ''} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                         <FormField
-                        control={form.control}
-                        name="initialAdvance"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Avance payée (DH)</FormLabel>
-                            <FormControl>
-                                <Input type="number" step="0.01" placeholder="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} value={field.value === undefined ? '' : field.value} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -752,3 +717,5 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       </Form>
   )
 }
+
+    
