@@ -4,6 +4,7 @@ import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/a
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
+import "dotenv/config";
 
 // Your web app's Firebase configuration is now hardcoded
 const firebaseConfig: FirebaseOptions = {
