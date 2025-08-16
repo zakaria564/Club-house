@@ -226,7 +226,7 @@ export default function PlayersPage() {
                         </div>
                     </AccordionTrigger>
                     <AccordionContent className="p-2 sm:p-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         {groupedPlayers[category].map(player => {
                             const coachName = player.coachId ? coachMap.get(player.coachId) : null;
                             return (
@@ -235,10 +235,10 @@ export default function PlayersPage() {
                                 className="flex flex-col cursor-pointer transition-all hover:shadow-md"
                                 onClick={() => handleViewPlayer(player.id)}
                                 >
-                                <CardHeader className="flex-row items-center justify-between p-4">
+                                <CardHeader className="flex-row items-center justify-between p-3">
                                     <div className="flex flex-col min-w-0">
-                                        <div className="font-semibold text-base leading-tight truncate">{player.firstName} {player.lastName}</div>
-                                        <div className="text-sm text-muted-foreground">#{player.playerNumber}</div>
+                                        <div className="font-semibold text-sm leading-tight truncate">{player.firstName} {player.lastName}</div>
+                                        <div className="text-xs text-muted-foreground">#{player.playerNumber}</div>
                                     </div>
                                     <div onClick={(e) => e.stopPropagation()}>
                                         <DropdownMenu>
@@ -247,7 +247,7 @@ export default function PlayersPage() {
                                             aria-haspopup="true"
                                             size="icon"
                                             variant="ghost"
-                                            className="h-8 w-8"
+                                            className="h-7 w-7"
                                             >
                                             <MoreHorizontal className="h-4 w-4" />
                                             <span className="sr-only">Ouvrir le menu</span>
@@ -272,7 +272,7 @@ export default function PlayersPage() {
                                         </DropdownMenu>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="p-4 pt-0 flex-grow space-y-2">
+                                <CardContent className="p-3 pt-0 flex-grow space-y-1.5">
                                     <div className="text-xs text-muted-foreground">{player.position}</div>
                                     <div className="flex items-center justify-end">
                                       <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
@@ -280,7 +280,7 @@ export default function PlayersPage() {
                                     {coachName && (
                                     <div className="text-xs text-muted-foreground flex items-center gap-1 truncate pt-1">
                                         <UserCheck className="h-3 w-3 shrink-0" />
-                                        <span>Entraîneur: {coachName}</span>
+                                        <span className="truncate">Ent.: {coachName}</span>
                                     </div>
                                     )}
                                 </CardContent>
