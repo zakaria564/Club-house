@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check, Coins } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check, Coins, Users, Shield } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils"
 import type { Payment, Player, Coach, Transaction } from "@/types"
 import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { PaymentMobileCard } from "@/components/payment-mobile-card"
@@ -120,7 +119,6 @@ function PaymentsPageContent() {
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
   const [paymentToUpdate, setPaymentToUpdate] = React.useState<Payment | null>(null);
   const [paymentToDelete, setPaymentToDelete] = React.useState<string | null>(null);
-  const [paymentTypeFilter, setPaymentTypeFilter] = React.useState<'all' | 'membership' | 'salary'>('all');
   
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
@@ -186,18 +184,29 @@ function PaymentsPageContent() {
     'Overdue': 'En retard'
   }
 
-  const basePayments = selectedMemberId ? payments.filter(p => p.memberId === selectedMemberId) : payments;
-  
-  const filteredByType = basePayments.filter(p => paymentTypeFilter === 'all' || p.paymentType === paymentTypeFilter);
+  const basePlayerPayments = payments.filter(p => p.paymentType === 'membership');
+  const baseCoachPayments = payments.filter(p => p.paymentType === 'salary');
 
-  const filteredPayments = searchQuery ? filteredByType.filter(payment =>
-    payment.memberName?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) : filteredByType;
+  const filterPayments = (baseList: Payment[]) => {
+    let list = baseList;
+    if (selectedMemberId) {
+      list = list.filter(p => p.memberId === selectedMemberId);
+    }
+    if (searchQuery) {
+      list = list.filter(p => normalizeString(p.memberName).includes(normalizeString(searchQuery)));
+    }
+    return list;
+  }
 
-  const handleExport = () => {
-    if (filteredPayments.length > 0) {
-      const csvData = convertToCSV(filteredPayments.map(({ id, ...rest }) => ({ ...rest, date: rest.date.toISOString().split('T')[0] })));
-      downloadCSV(csvData, `paiements-${new Date().toISOString().split('T')[0]}.csv`);
+  const filteredPlayerPayments = filterPayments(basePlayerPayments);
+  const filteredCoachPayments = filterPayments(baseCoachPayments);
+
+  const handleExport = (type: 'membership' | 'salary') => {
+    const dataToExport = type === 'membership' ? filteredPlayerPayments : filteredCoachPayments;
+    const fileNameType = type === 'membership' ? 'cotisations' : 'salaires';
+    if (dataToExport.length > 0) {
+      const csvData = convertToCSV(dataToExport.map(({ id, ...rest }) => ({ ...rest, date: rest.date.toISOString().split('T')[0] })));
+      downloadCSV(csvData, `${fileNameType}-${new Date().toISOString().split('T')[0]}.csv`);
     } else {
         toast({
             variant: "destructive",
@@ -328,167 +337,53 @@ function PaymentsPageContent() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
             </Button>
-            <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
-            <File className="mr-2 h-4 w-4" />
-            Exporter
-            </Button>
             <Button onClick={() => setAddPaymentOpen(true)} className="w-full sm:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
             Ajouter un paiement
             </Button>
         </div>
       </PageHeader>
-       <Card>
-        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="w-full">
-              <CardTitle>Historique des transactions</CardTitle>
-              <CardDescription>
-                Suivez et gérez tous les paiements et salaires.
-              </CardDescription>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                <Select value={paymentTypeFilter} onValueChange={(value) => setPaymentTypeFilter(value as any)}>
-                    <SelectTrigger className="w-full sm:w-[220px]">
-                        <SelectValue placeholder="Filtrer par type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Toutes les transactions</SelectItem>
-                        <SelectItem value="membership">Cotisations (Joueurs)</SelectItem>
-                        <SelectItem value="salary">Salaires (Entraîneurs)</SelectItem>
-                    </SelectContent>
-                </Select>
-                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openCombobox}
-                            className="w-full sm:w-[200px] justify-between"
-                            >
-                            {selectedMemberId
-                                ? allMembers.find((member) => member.id === selectedMemberId)?.name
-                                : "Filtrer par nom..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <Command filter={commandFilter}>
-                                <CommandInput placeholder="Rechercher un membre..." />
-                                <CommandList>
-                                    <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
-                                    <CommandGroup heading="Joueurs">
-                                    {players.map((player) => (
-                                        <CommandItem
-                                        key={`player-${player.id}`}
-                                        value={player.firstName + " " + player.lastName}
-                                        onSelect={() => handleMemberSelect(player.id)}
-                                        >
-                                        <Check
-                                            className={cn(
-                                            "mr-2 h-4 w-4",
-                                            selectedMemberId === player.id ? "opacity-100" : "opacity-0"
-                                            )}
-                                        />
-                                        {player.firstName} {player.lastName}
-                                        </CommandItem>
-                                    ))}
-                                    </CommandGroup>
-                                    <CommandGroup heading="Entraîneurs">
-                                    {coaches.map((coach) => (
-                                        <CommandItem
-                                        key={`coach-${coach.id}`}
-                                        value={coach.firstName + " " + coach.lastName}
-                                        onSelect={() => handleMemberSelect(coach.id)}
-                                        >
-                                        <Check
-                                            className={cn(
-                                            "mr-2 h-4 w-4",
-                                            selectedMemberId === coach.id ? "opacity-100" : "opacity-0"
-                                            )}
-                                        />
-                                        {coach.firstName} {coach.lastName}
-                                        </CommandItem>
-                                    ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
-                    {selectedMemberId && (
-                        <Button variant="ghost" size="sm" onClick={handleResetFilter}>Réinitialiser</Button>
-                    )}
-                </div>
-            </div>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6 sm:pt-0">
-          <Tabs defaultValue="all-status">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-sm sm:w-auto mb-4 px-2 sm:px-0">
-              <TabsTrigger value="all-status">Tous</TabsTrigger>
-              <TabsTrigger value="paid">Payé</TabsTrigger>
-              <TabsTrigger value="pending">En attente</TabsTrigger>
-              <TabsTrigger value="overdue">En retard</TabsTrigger>
-              </TabsList>
-              <TabsContent value="all-status">
-              <PaymentTable 
-                  payments={filteredPayments} 
-                  statusTranslations={statusTranslations} 
-                  onMarkAsPaid={handleMarkAsPaid} 
-                  onAddPartialPayment={setPaymentToUpdate}
-                  onViewMember={handleViewMember}
-                  onPrintReceipt={handlePrintReceipt}
-                  onDelete={handleDeleteInitiate}
-                  expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={handleToggleExpand}
-              />
-              </TabsContent>
-              <TabsContent value="paid">
-              <PaymentTable 
-                  payments={filteredPayments.filter(p => p.status === 'Paid')} 
-                  statusTranslations={statusTranslations}
-                  onMarkAsPaid={handleMarkAsPaid} 
-                  onAddPartialPayment={setPaymentToUpdate}
-                  onViewMember={handleViewMember}
-                  onPrintReceipt={handlePrintReceipt}
-                  onDelete={handleDeleteInitiate}
-                  expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={handleToggleExpand}
-              />
-              </TabsContent>
-              <TabsContent value="pending">
-              <PaymentTable 
-                  payments={filteredPayments.filter(p => p.status === 'Pending')} 
-                  statusTranslations={statusTranslations}
-                  onMarkAsPaid={handleMarkAsPaid} 
-                  onAddPartialPayment={setPaymentToUpdate}
-                  onViewMember={handleViewMember}
-                  onPrintReceipt={handlePrintReceipt}
-                  onDelete={handleDeleteInitiate}
-                  expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={handleToggleExpand}
-              />
-              </TabsContent>
-              <TabsContent value="overdue">
-              <PaymentTable 
-                  payments={filteredPayments.filter(p => p.status === 'Overdue')} 
-                  statusTranslations={statusTranslations} 
-                  onMarkAsPaid={handleMarkAsPaid} 
-                  onAddPartialPayment={setPaymentToUpdate}
-                  onViewMember={handleViewMember}
-                  onPrintReceipt={handlePrintReceipt}
-                  onDelete={handleDeleteInitiate}
-                  expandedPaymentId={expandedPaymentId}
-                  onToggleExpand={handleToggleExpand}
-              />
-              </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter>
-          <div className="text-xs text-muted-foreground">
-            Affichage de <strong>1-{filteredPayments.length}</strong> sur <strong>{basePayments.length}</strong> paiements
-          </div>
-        </CardFooter>
-      </Card>
+       <Tabs defaultValue="players" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="players"><Users className="mr-2 h-4 w-4" /> Joueurs (Cotisations)</TabsTrigger>
+                <TabsTrigger value="coaches"><Shield className="mr-2 h-4 w-4" /> Entraîneurs (Salaires)</TabsTrigger>
+            </TabsList>
+            <TabsContent value="players">
+                <PaymentCategoryContent
+                    title="Historique des cotisations des joueurs"
+                    description="Suivez et gérez les cotisations des joueurs."
+                    payments={filteredPlayerPayments}
+                    basePayments={basePlayerPayments}
+                    statusTranslations={statusTranslations}
+                    onMarkAsPaid={handleMarkAsPaid}
+                    onAddPartialPayment={setPaymentToUpdate}
+                    onViewMember={handleViewMember}
+                    onPrintReceipt={handlePrintReceipt}
+                    onDelete={handleDeleteInitiate}
+                    expandedPaymentId={expandedPaymentId}
+                    onToggleExpand={handleToggleExpand}
+                    onExport={() => handleExport('membership')}
+                />
+            </TabsContent>
+            <TabsContent value="coaches">
+                <PaymentCategoryContent
+                    title="Historique des salaires des entraîneurs"
+                    description="Suivez et gérez les salaires des entraîneurs."
+                    payments={filteredCoachPayments}
+                    basePayments={baseCoachPayments}
+                    statusTranslations={statusTranslations}
+                    onMarkAsPaid={handleMarkAsPaid}
+                    onAddPartialPayment={setPaymentToUpdate}
+                    onViewMember={handleViewMember}
+                    onPrintReceipt={handlePrintReceipt}
+                    onDelete={handleDeleteInitiate}
+                    expandedPaymentId={expandedPaymentId}
+                    onToggleExpand={handleToggleExpand}
+                    onExport={() => handleExport('salary')}
+                />
+            </TabsContent>
+        </Tabs>
+      
       <AddPaymentDialog
         open={isAddPaymentOpen}
         onOpenChange={setAddPaymentOpen}
@@ -515,6 +410,120 @@ function PaymentsPageContent() {
       </AlertDialog>
     </>
   )
+}
+
+interface PaymentCategoryContentProps {
+    title: string;
+    description: string;
+    payments: Payment[];
+    basePayments: Payment[];
+    statusTranslations: { [key in Payment['status']]: string };
+    onMarkAsPaid: (paymentId: string) => void;
+    onAddPartialPayment: (payment: Payment) => void;
+    onViewMember: (memberId: string, paymentType: 'membership' | 'salary') => void;
+    onPrintReceipt: (paymentId: string) => void;
+    onDelete: (paymentId: string) => void;
+    expandedPaymentId: string | null;
+    onToggleExpand: (id: string) => void;
+    onExport: () => void;
+}
+
+function PaymentCategoryContent({
+    title,
+    description,
+    payments,
+    basePayments,
+    statusTranslations,
+    onMarkAsPaid,
+    onAddPartialPayment,
+    onViewMember,
+    onPrintReceipt,
+    onDelete,
+    expandedPaymentId,
+    onToggleExpand,
+    onExport
+}: PaymentCategoryContentProps) {
+    return (
+        <Card>
+            <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="w-full">
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                </div>
+                 <Button variant="outline" onClick={onExport} className="w-full sm:w-auto shrink-0">
+                    <File className="mr-2 h-4 w-4" />
+                    Exporter la liste
+                </Button>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6 sm:pt-0">
+                <Tabs defaultValue="all-status">
+                    <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-sm sm:w-auto mb-4 px-2 sm:px-0">
+                        <TabsTrigger value="all-status">Tous</TabsTrigger>
+                        <TabsTrigger value="paid">Payé</TabsTrigger>
+                        <TabsTrigger value="pending">En attente</TabsTrigger>
+                        <TabsTrigger value="overdue">En retard</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="all-status">
+                        <PaymentTable 
+                            payments={payments} 
+                            statusTranslations={statusTranslations} 
+                            onMarkAsPaid={onMarkAsPaid} 
+                            onAddPartialPayment={onAddPartialPayment}
+                            onViewMember={onViewMember}
+                            onPrintReceipt={onPrintReceipt}
+                            onDelete={onDelete}
+                            expandedPaymentId={expandedPaymentId}
+                            onToggleExpand={onToggleExpand}
+                        />
+                    </TabsContent>
+                    <TabsContent value="paid">
+                        <PaymentTable 
+                            payments={payments.filter(p => p.status === 'Paid')} 
+                            statusTranslations={statusTranslations}
+                            onMarkAsPaid={onMarkAsPaid} 
+                            onAddPartialPayment={onAddPartialPayment}
+                            onViewMember={onViewMember}
+                            onPrintReceipt={onPrintReceipt}
+                            onDelete={onDelete}
+                            expandedPaymentId={expandedPaymentId}
+                            onToggleExpand={onToggleExpand}
+                        />
+                    </TabsContent>
+                    <TabsContent value="pending">
+                        <PaymentTable 
+                            payments={payments.filter(p => p.status === 'Pending')} 
+                            statusTranslations={statusTranslations}
+                            onMarkAsPaid={onMarkAsPaid} 
+                            onAddPartialPayment={onAddPartialPayment}
+                            onViewMember={onViewMember}
+                            onPrintReceipt={onPrintReceipt}
+                            onDelete={onDelete}
+                            expandedPaymentId={expandedPaymentId}
+                            onToggleExpand={onToggleExpand}
+                        />
+                    </TabsContent>
+                    <TabsContent value="overdue">
+                        <PaymentTable 
+                            payments={payments.filter(p => p.status === 'Overdue')} 
+                            statusTranslations={statusTranslations} 
+                            onMarkAsPaid={onMarkAsPaid} 
+                            onAddPartialPayment={onAddPartialPayment}
+                            onViewMember={onViewMember}
+                            onPrintReceipt={onPrintReceipt}
+                            onDelete={onDelete}
+                            expandedPaymentId={expandedPaymentId}
+                            onToggleExpand={onToggleExpand}
+                        />
+                    </TabsContent>
+                </Tabs>
+            </CardContent>
+            <CardFooter>
+                <div className="text-xs text-muted-foreground">
+                    Affichage de <strong>{payments.length}</strong> sur <strong>{basePayments.length}</strong> paiements
+                </div>
+            </CardFooter>
+        </Card>
+    );
 }
 
 interface PaymentTableProps {
