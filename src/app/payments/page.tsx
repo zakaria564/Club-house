@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check, Coins } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, ChevronsUpDown, Check, Coins, ChevronDown } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -63,6 +63,7 @@ const parsePaymentDoc = (doc: any): Payment => {
     ...data,
     id: doc.id,
     date: (data.date as Timestamp)?.toDate(),
+    history: Array.isArray(data.history) ? data.history.map((t: any) => ({ ...t, date: t.date.toDate() })) : [],
   } as Payment;
 }
 
@@ -127,6 +128,7 @@ function PaymentsPageContent() {
 
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(initialMemberId);
+  const [expandedPaymentId, setExpandedPaymentId] = React.useState<string | null>(null);
   
 
   React.useEffect(() => {
@@ -314,7 +316,6 @@ function PaymentsPageContent() {
     window.open(url, '_blank');
   }
 
-
   return (
     <>
       <PageHeader title="Paiements">
@@ -433,6 +434,8 @@ function PaymentsPageContent() {
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
+                  expandedPaymentId={expandedPaymentId}
+                  onToggleExpand={setExpandedPaymentId}
               />
               </TabsContent>
               <TabsContent value="paid">
@@ -444,6 +447,8 @@ function PaymentsPageContent() {
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
+                  expandedPaymentId={expandedPaymentId}
+                  onToggleExpand={setExpandedPaymentId}
               />
               </TabsContent>
               <TabsContent value="pending">
@@ -455,6 +460,8 @@ function PaymentsPageContent() {
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
+                  expandedPaymentId={expandedPaymentId}
+                  onToggleExpand={setExpandedPaymentId}
               />
               </TabsContent>
               <TabsContent value="overdue">
@@ -466,6 +473,8 @@ function PaymentsPageContent() {
                   onViewMember={handleViewMember}
                   onPrintReceipt={handlePrintReceipt}
                   onDelete={handleDeleteInitiate}
+                  expandedPaymentId={expandedPaymentId}
+                  onToggleExpand={setExpandedPaymentId}
               />
               </TabsContent>
           </Tabs>
@@ -512,10 +521,22 @@ interface PaymentTableProps {
   onViewMember: (memberId: string, paymentType: 'membership' | 'salary') => void;
   onPrintReceipt: (paymentId: string) => void;
   onDelete: (paymentId: string) => void;
+  expandedPaymentId: string | null;
+  onToggleExpand: (id: string | null) => void;
 }
 
 
-function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onAddPartialPayment, onViewMember, onPrintReceipt, onDelete }: PaymentTableProps) {
+function PaymentTable({ 
+    payments, 
+    statusTranslations, 
+    onMarkAsPaid, 
+    onAddPartialPayment, 
+    onViewMember, 
+    onPrintReceipt, 
+    onDelete,
+    expandedPaymentId,
+    onToggleExpand
+}: PaymentTableProps) {
   return (
     <>
       {/* Mobile View */}
@@ -530,6 +551,8 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onAddPartial
             onViewMember={onViewMember}
             onPrintReceipt={onPrintReceipt}
             onDelete={onDelete}
+            expanded={expandedPaymentId === payment.id}
+            onToggleExpand={() => onToggleExpand(expandedPaymentId === payment.id ? null : payment.id)}
           />
         ))}
       </div>
@@ -544,90 +567,123 @@ function PaymentTable({ payments, statusTranslations, onMarkAsPaid, onAddPartial
               <TableHead className="text-right">Total</TableHead>
               <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
               <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
-              <TableHead>
+              <TableHead className="w-[50px]">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {payments.map(payment => (
-              <TableRow key={payment.id} onClick={() => onViewMember(payment.memberId, payment.paymentType)} className="cursor-pointer">
-                <TableCell>
-                  <div className="font-medium">{payment.memberName}</div>
-                  <div className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</div>
-                </TableCell>
-                <TableCell className="hidden sm:table-cell">
-                  <Badge 
-                    className={cn({
-                      'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
-                      'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
-                      'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
-                    })}
-                  >
-                    {statusTranslations[payment.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell className="hidden lg:table-cell capitalize">
-                  {format(payment.date, 'PPP', { locale: fr })}
-                </TableCell>
-                <TableCell className="text-right">
-                  {payment.totalAmount.toFixed(2)} DH
-                </TableCell>
-                <TableCell className="hidden md:table-cell text-right">
-                  {payment.advance.toFixed(2)} DH
-                </TableCell>
-                <TableCell className="hidden md:table-cell text-right">
-                  {payment.remaining > 0 ? (
-                    <div
-                      className="cursor-pointer hover:underline font-semibold text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddPartialPayment(payment);
-                      }}
-                    >
-                      {payment.remaining.toFixed(2)} DH
-                    </div>
-                  ) : (
-                    <span>{payment.remaining.toFixed(2)} DH</span>
-                  )}
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        aria-haspopup="true"
-                        size="icon"
-                        variant="ghost"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Ouvrir le menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.paymentType)}>Voir le profil</DropdownMenuItem>
-                      {payment.status !== 'Paid' && (
-                        <>
-                          <DropdownMenuItem onClick={() => onAddPartialPayment(payment)}>
-                            <Coins className="mr-2 h-4 w-4" />
-                            Ajouter un versement
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
-                        </>
-                      )}
-                      <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Imprimer le reçu
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => onDelete(payment.id)}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Supprimer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
+                <React.Fragment key={payment.id}>
+                    <TableRow onClick={() => onToggleExpand(expandedPaymentId === payment.id ? null : payment.id)} className="cursor-pointer">
+                        <TableCell>
+                        <div className="font-medium">{payment.memberName}</div>
+                        <div className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                        <Badge 
+                            className={cn({
+                            'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
+                            'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
+                            'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
+                            })}
+                        >
+                            {statusTranslations[payment.status]}
+                        </Badge>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell capitalize">
+                        {format(payment.date, 'PPP', { locale: fr })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                        {payment.totalAmount.toFixed(2)} DH
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-right">
+                        {payment.advance.toFixed(2)} DH
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-right">
+                        {payment.remaining > 0 ? (
+                            <div
+                            className="cursor-pointer hover:underline font-semibold text-destructive"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAddPartialPayment(payment);
+                            }}
+                            >
+                            {payment.remaining.toFixed(2)} DH
+                            </div>
+                        ) : (
+                            <span>{payment.remaining.toFixed(2)} DH</span>
+                        )}
+                        </TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px]">
+                            <div className="flex items-center justify-end">
+                                {payment.history && payment.history.length > 0 && (
+                                    <ChevronDown className={cn("h-4 w-4 transition-transform", expandedPaymentId === payment.id && "rotate-180")} />
+                                )}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                    <Button
+                                        aria-haspopup="true"
+                                        size="icon"
+                                        variant="ghost"
+                                        className="-mr-2 h-8 w-8"
+                                    >
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Ouvrir le menu</span>
+                                    </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => onViewMember(payment.memberId, payment.paymentType)}>Voir le profil</DropdownMenuItem>
+                                    {payment.status !== 'Paid' && (
+                                        <>
+                                        <DropdownMenuItem onClick={() => onAddPartialPayment(payment)}>
+                                            <Coins className="mr-2 h-4 w-4" />
+                                            Ajouter un versement
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onMarkAsPaid(payment.id)}>Marquer comme payé</DropdownMenuItem>
+                                        </>
+                                    )}
+                                    <DropdownMenuItem onClick={() => onPrintReceipt(payment.id)}>
+                                        <Printer className="mr-2 h-4 w-4" />
+                                        Imprimer le reçu
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => onDelete(payment.id)}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Supprimer
+                                    </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                     {expandedPaymentId === payment.id && (
+                        <TableRow>
+                            <TableCell colSpan={7} className="p-0">
+                                <div className="p-4 bg-muted/50">
+                                    <h4 className="font-semibold mb-2">Historique des versements</h4>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead className="text-right">Montant</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                        {payment.history?.map((transaction, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
+                                                <TableCell className="text-right">{transaction.amount.toFixed(2)} DH</TableCell>
+                                            </TableRow>
+                                        ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </React.Fragment>
             ))}
           </TableBody>
         </Table>
@@ -650,3 +706,4 @@ export default function PaymentsPage() {
     
 
     
+
