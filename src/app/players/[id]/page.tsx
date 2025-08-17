@@ -224,40 +224,6 @@ export default function PlayerDetailPage() {
                     </Card>
                 </div>
             </div>
-            
-            <Card className="no-print">
-              <CardHeader><CardTitle>Documents</CardTitle></CardHeader>
-              <CardContent>
-                {player.medicalCertificateUrl ? (
-                    isCertificateUrlValid ? (
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <a href={player.medicalCertificateUrl} target="_blank" rel="noopener noreferrer" className="block w-full max-w-xs sm:w-48 flex-shrink-0">
-                                <Image 
-                                    src={player.medicalCertificateUrl}
-                                    alt="Certificat Médical"
-                                    width={200}
-                                    height={282}
-                                    className="rounded-md border shadow-md w-full h-auto object-cover"
-                                    data-ai-hint="medical certificate document"
-                                />
-                            </a>
-                            <div className="flex-grow">
-                                <h4 className="font-semibold">Certificat Médical</h4>
-                                <p className="text-sm text-muted-foreground mb-4">Le certificat médical est disponible. Cliquez sur l'aperçu pour le visualiser ou l'imprimer.</p>
-                                <Button onClick={handlePrintCertificate}>
-                                    <Printer className="mr-2 h-4 w-4" />
-                                    Imprimer le certificat
-                                </Button>
-                            </div>
-                        </div>
-                    ) : (
-                         <p className="text-sm text-destructive text-center py-4">L'URL du certificat médical est invalide et ne peut pas être affichée. Veuillez la corriger.</p>
-                    )
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">Aucun certificat médical fourni.</p>
-                )}
-              </CardContent>
-            </Card>
       </div>
 
       <AddPlayerDialog
