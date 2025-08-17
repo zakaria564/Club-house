@@ -194,8 +194,8 @@ export default function Dashboard() {
         suspendedPlayers: { count: currentSuspendedPlayers.length, members: currentSuspendedPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, category: p.category })) },
         unavailablePlayers: { count: currentUnavailablePlayers.length, members: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, category: p.category })) },
         totalCoaches: currentTotalCoaches,
-        activeCoaches: { count: currentActiveCoaches.length, members: currentActiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
-        inactiveCoaches: { count: currentInactiveCoaches.length, members: currentInactiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
+        activeCoaches: { count: currentActiveCoaches.length, members: currentActiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}`, specialty: c.specialty })) },
+        inactiveCoaches: { count: currentInactiveCoaches.length, members: currentInactiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}`, specialty: c.specialty })) },
         upcomingEvents: currentUpcomingEvents,
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
@@ -291,7 +291,7 @@ export default function Dashboard() {
     )
 };
 
-const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType }: { title: string, data: { count: number, members: {id: string, name: string, category?: string}[] }, icon: React.ElementType, iconColor: string, description: string, memberType: 'player' | 'coach' }) => {
+const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType }: { title: string, data: { count: number, members: {id: string, name: string, category?: string, specialty?: string}[] }, icon: React.ElementType, iconColor: string, description: string, memberType: 'player' | 'coach' }) => {
   const router = useRouter();
 
   const handleMemberClick = (memberId: string) => {
@@ -325,7 +325,8 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                             onClick={() => handleMemberClick(member.id)}
                         >
                             <span className="font-medium mr-2">{member.name}</span>
-                            {member.category && <span className="text-xs text-muted-foreground">({member.category})</span>}
+                            {memberType === 'player' && member.category && <span className="text-xs text-muted-foreground">({member.category})</span>}
+                             {memberType === 'coach' && member.specialty && <span className="text-xs text-muted-foreground">({member.specialty})</span>}
                         </Button>
                     ))}
                 </div>
@@ -575,8 +576,3 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     </>
   );
 }
-
-
-
-
-
