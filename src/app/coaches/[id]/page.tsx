@@ -13,9 +13,11 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Image from 'next/image';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { doc, onSnapshot, Timestamp, updateDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
+import { useToast } from "@/hooks/use-toast"
 
 
 const PrintHeader = () => (
@@ -63,9 +65,12 @@ export default function CoachDetailPage() {
   const router = useRouter();
   const params = useParams();
   const coachId = params.id as string;
+  const { toast } = useToast();
 
   const [coach, setCoach] = React.useState<Coach | null>(null);
   const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
+  const coachStatuses: Coach['status'][] = ["Actif", "Inactif"];
+
 
   React.useEffect(() => {
     if (!coachId) return;
@@ -89,6 +94,25 @@ export default function CoachDetailPage() {
     document.title = "Fiche d'identification de l'entraîneur";
     window.print();
     document.title = originalTitle;
+  };
+
+  const handleStatusChange = async (newStatus: Coach['status']) => {
+    if (!coach) return;
+    const coachDocRef = doc(db, "coaches", coach.id);
+    try {
+      await updateDoc(coachDocRef, { status: newStatus });
+      toast({
+        title: "Statut mis à jour",
+        description: `Le statut de ${coach.firstName} ${coach.lastName} est maintenant "${newStatus}".`,
+      });
+    } catch (error) {
+       console.error("Error updating status: ", error);
+       toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de mettre à jour le statut.",
+       });
+    }
   };
 
   const statusBadgeVariant = (status?: Coach['status']) => {
@@ -137,7 +161,26 @@ export default function CoachDetailPage() {
                     </a>
                     <h2 className="text-2xl font-bold font-headline mt-4">{coach.firstName} {coach.lastName}</h2>
                     <div className="mt-2 flex items-center gap-2">
-                        <Badge className={cn("text-base", statusBadgeVariant(coach.status))}>{coach.status}</Badge>
+                         <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                 <Button 
+                                    variant="outline"
+                                    className={cn("whitespace-nowrap h-auto py-1 px-3 text-base border-dashed", statusBadgeVariant(coach.status))}
+                                 >
+                                    {coach.status}
+                                 </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                 <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                                 <DropdownMenuRadioGroup value={coach.status} onValueChange={(newStatus) => handleStatusChange(newStatus as Coach['status'])}>
+                                    {coachStatuses.map(status => (
+                                       <DropdownMenuRadioItem key={status} value={status}>
+                                          {status}
+                                       </DropdownMenuRadioItem>
+                                    ))}
+                                 </DropdownMenuRadioGroup>
+                              </DropdownMenuContent>
+                           </DropdownMenu>
                     </div>
                 </CardContent>
             </Card>
@@ -214,4 +257,5 @@ export default function CoachDetailPage() {
       />
     </>
   );
-}
+
+    
