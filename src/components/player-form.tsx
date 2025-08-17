@@ -29,7 +29,7 @@ import { useIsMobile } from "@/hooks/use-is-mobile"
 import { Label } from "./ui/label"
 import { Separator } from "./ui/separator"
 
-const playerFormSchema = z.object({
+const basePlayerFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
   lastName: z.string().min(2, "Le nom de famille doit comporter au moins 2 caractères."),
   gender: z.enum(["Homme", "Femme"], { required_error: "Veuillez sélectionner un genre." }),
@@ -50,20 +50,22 @@ const playerFormSchema = z.object({
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
+});
+
+const newPlayerFormSchema = basePlayerFormSchema.extend({
   initialTotalAmount: z.coerce.number({ required_error: "Le montant total est requis." }).positive("Le montant doit être positif."),
   initialAdvanceAmount: z.coerce.number({ required_error: "L'avance est requise." }).min(0, "L'avance ne peut être négative."),
 }).refine(data => {
-    if (data.initialAdvanceAmount !== undefined && data.initialTotalAmount !== undefined) {
-        return data.initialAdvanceAmount <= data.initialTotalAmount;
-    }
-    return true;
+    return data.initialAdvanceAmount <= data.initialTotalAmount;
 }, {
     message: "L'avance ne peut pas dépasser le montant total.",
     path: ["initialAdvanceAmount"],
 });
 
+const editPlayerFormSchema = basePlayerFormSchema;
 
-type PlayerFormValues = z.infer<typeof playerFormSchema>
+type PlayerFormValues = z.infer<typeof newPlayerFormSchema>;
+
 
 interface PlayerFormProps {
   onFinished: () => void;
@@ -113,11 +115,8 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
 
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
-  // Define a separate schema for editing to make payment fields optional
-  const editPlayerFormSchema = playerFormSchema.omit({ initialTotalAmount: true, initialAdvanceAmount: true });
-
   const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(player ? editPlayerFormSchema : playerFormSchema),
+    resolver: zodResolver(player ? editPlayerFormSchema : newPlayerFormSchema),
     defaultValues: {
       firstName: player?.firstName || '',
       lastName: player?.lastName || '',
@@ -140,7 +139,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       coachId: player?.coachId || undefined,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
       initialTotalAmount: 300,
-      initialAdvanceAmount: undefined,
+      initialAdvanceAmount: 0,
     },
     mode: "onChange",
   });
