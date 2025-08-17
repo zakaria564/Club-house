@@ -192,7 +192,7 @@ export default function CoachDetailPage() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                            <InfoRow icon={User} label="Âge" value={`${coach.age} ans`} />
                            <InfoRow icon={User} label="Genre" value={coach.gender} />
                            <InfoRow icon={MapPin} label="Adresse" value={`${coach.city}, ${coach.country}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
@@ -200,7 +200,7 @@ export default function CoachDetailPage() {
                     </div>
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Contact & Club</h3>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <InfoRow icon={Mail} label="Email" value={coach.email} href={`mailto:${coach.email}`} />
                             <InfoRow icon={Phone} label="Téléphone" value={coach.phone} href={`tel:${coach.phone}`} />
                             <InfoRow icon={Calendar} label="Date d'entrée" value={isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
@@ -349,3 +349,5 @@ export default function CoachDetailPage() {
     </>
   );
 }
+
+    
