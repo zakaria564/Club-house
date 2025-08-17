@@ -1,16 +1,16 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck, Printer, FileText } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck, Printer, FileText, Check } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { collection, onSnapshot, doc, deleteDoc, query, where, getDocs, writeBatch } from "firebase/firestore"
+import { collection, onSnapshot, doc, deleteDoc, query, where, getDocs, writeBatch, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 import { PageHeader } from "@/components/page-header"
 import type { Player, Coach } from "@/types"
 import { Input } from "@/components/ui/input"
@@ -41,6 +41,7 @@ export default function PlayersPage() {
   const [selectedPlayer, setSelectedPlayer] = React.useState<Player | null>(null);
   const [playerToDelete, setPlayerToDelete] = React.useState<string | null>(null);
   const [activeCategories, setActiveCategories] = React.useState<string[]>([]);
+  const playerStatuses: Player['status'][] = ["En forme", "Blessé", "Suspendu", "Indisponible"];
 
 
   React.useEffect(() => {
@@ -125,6 +126,25 @@ export default function PlayersPage() {
   const handleViewPayments = (playerId: string) => {
     router.push(`/payments?memberId=${playerId}`);
   }
+  
+  const handleStatusChange = async (playerId: string, newStatus: Player['status']) => {
+    const playerDocRef = doc(db, "players", playerId);
+    try {
+      await updateDoc(playerDocRef, { status: newStatus });
+      toast({
+        title: "Statut mis à jour",
+        description: `Le statut du joueur a été mis à jour avec succès.`,
+      });
+    } catch (error) {
+       console.error("Error updating status: ", error);
+       toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de mettre à jour le statut.",
+       });
+    }
+  };
+
 
   const handlePrintBlankForm = () => {
     const url = `/players/registration-form`;
@@ -240,10 +260,9 @@ export default function PlayersPage() {
                             return (
                                 <Card 
                                 key={player.id} 
-                                className="flex flex-col cursor-pointer transition-all hover:shadow-md"
-                                onClick={() => handleViewPlayer(player.id)}
+                                className="flex flex-col transition-all"
                                 >
-                                <CardHeader className="flex-row items-center justify-between p-4">
+                                <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewPlayer(player.id)}>
                                     <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
                                     <div onClick={(e) => e.stopPropagation()}>
                                         <DropdownMenu>
@@ -278,10 +297,30 @@ export default function PlayersPage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-4 pt-0 flex-grow space-y-2">
-                                    <div className="text-sm text-muted-foreground">{player.position}</div>
+                                    <div className="text-sm text-muted-foreground cursor-pointer hover:underline" onClick={() => handleViewPlayer(player.id)}>{player.position}</div>
                                     <div className="flex items-center justify-between">
-                                      <span className="text-xs text-muted-foreground">#{player.playerNumber}</span>
-                                      <Badge className={cn("whitespace-nowrap", statusBadgeVariant(player.status))}>{player.status}</Badge>
+                                      <span className="text-xs text-muted-foreground cursor-pointer hover:underline" onClick={() => handleViewPlayer(player.id)}>#{player.playerNumber}</span>
+                                      
+                                       <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                             <Button 
+                                                variant="outline"
+                                                className={cn("whitespace-nowrap h-auto py-0.5 px-2.5 text-xs border-dashed", statusBadgeVariant(player.status))}
+                                             >
+                                                {player.status}
+                                             </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                             <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                                             <DropdownMenuRadioGroup value={player.status} onValueChange={(newStatus) => handleStatusChange(player.id, newStatus as Player['status'])}>
+                                                {playerStatuses.map(status => (
+                                                   <DropdownMenuRadioItem key={status} value={status}>
+                                                      {status}
+                                                   </DropdownMenuRadioItem>
+                                                ))}
+                                             </DropdownMenuRadioGroup>
+                                          </DropdownMenuContent>
+                                       </DropdownMenu>
                                     </div>
                                     {coachName && (
                                     <div className="text-xs text-muted-foreground flex items-center gap-1 truncate pt-2">
@@ -330,5 +369,7 @@ export default function PlayersPage() {
     </>
   )
 }
+
+    
 
     
