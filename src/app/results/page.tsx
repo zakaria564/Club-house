@@ -20,9 +20,6 @@ import { collection, onSnapshot, query, where, Timestamp } from "firebase/firest
 import { db } from "@/lib/firebase"
 
 
-const LOCAL_STORAGE_EVENTS_KEY = 'clubhouse-events';
-const LOCAL_STORAGE_PLAYERS_KEY = 'clubhouse-players';
-
 const PrintHeader = ({ date }: { date?: Date }) => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
         <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club CAOS 2011 Logo" width={96} height={96} className="h-24 w-auto" data-ai-hint="club logo" />
@@ -65,28 +62,27 @@ type CombinedStat = {
 
 const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] => {
     const combined = new Map<string, CombinedStat>();
+    const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
 
     players.forEach(player => {
-        combined.set(`${player.firstName} ${player.lastName}`, { name: `${player.firstName} ${player.lastName}`, goals: 0, assists: 0 });
+        combined.set(player.id, { name: `${player.firstName} ${player.lastName}`, goals: 0, assists: 0 });
     });
 
     events.forEach(event => {
         if (Array.isArray(event.scorers)) {
             event.scorers.forEach(scorer => {
-                const player = players.find(p => p.id === scorer.playerId);
-                if (player) {
-                    const playerName = `${player.firstName} ${player.lastName}`;
-                    const current = combined.get(playerName)!;
+                const playerName = playerMap.get(scorer.playerId);
+                if (playerName) {
+                    const current = combined.get(scorer.playerId)!;
                     current.goals += scorer.count;
                 }
             });
         }
         if (Array.isArray(event.assists)) {
             event.assists.forEach(assist => {
-                const player = players.find(p => p.id === assist.playerId);
-                if (player) {
-                    const playerName = `${player.firstName} ${player.lastName}`;
-                    const current = combined.get(playerName)!;
+                 const playerName = playerMap.get(assist.playerId);
+                if (playerName) {
+                    const current = combined.get(assist.playerId)!;
                     current.assists += assist.count;
                 }
             });

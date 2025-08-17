@@ -5,6 +5,8 @@ import * as React from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { CalendarIcon, Clock, MapPin, Tag, Edit, Trash2, PlusCircle, User, Shield, Info, Trophy, Footprints, Goal } from "lucide-react"
+import { collection, onSnapshot, query, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 import {
   Sheet,
@@ -18,7 +20,6 @@ import { ClubEvent, Player, StatEvent } from "@/types"
 import { Separator } from "./ui/separator"
 import { ScrollArea } from "./ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { players as initialPlayers } from "@/lib/mock-data"
 
 
 interface DayEventsSheetProps {
@@ -47,12 +48,17 @@ const eventTypeColors: Record<ClubEvent['type'], string> = {
   'Autre': 'text-gray-500',
 }
 
-const parsePlayerDates = (player: any): Player => ({
-    ...player,
-    dateOfBirth: new Date(player.dateOfBirth),
-    clubEntryDate: new Date(player.clubEntryDate),
-    clubExitDate: player.clubExitDate ? new Date(player.clubExitDate) : undefined,
-});
+const parsePlayerDoc = (doc: any): Player => {
+  const data = doc.data();
+  return {
+    ...data,
+    id: doc.id,
+    dateOfBirth: (data.dateOfBirth as Timestamp)?.toDate(),
+    clubEntryDate: (data.clubEntryDate as Timestamp)?.toDate(),
+    clubExitDate: (data.clubExitDate as Timestamp)?.toDate(),
+  } as Player;
+};
+
 
 const formatStatString = (stats: StatEvent[] | undefined, players: Player[]): string => {
     if (!stats || !Array.isArray(stats) || stats.length === 0) return "N/A";
@@ -68,10 +74,11 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
   const [players, setPlayers] = React.useState<Player[]>([]);
 
    React.useEffect(() => {
-    // In a real app, you might fetch this from an API
-    const storedPlayersRaw = localStorage.getItem('clubhouse-players');
-    const storedPlayers = storedPlayersRaw ? JSON.parse(storedPlayersRaw).map(parsePlayerDates) : initialPlayers.map(parsePlayerDates);
-    setPlayers(storedPlayers);
+    const playersQuery = query(collection(db, "players"));
+    const unsubscribe = onSnapshot(playersQuery, (snapshot) => {
+        setPlayers(snapshot.docs.map(parsePlayerDoc));
+    });
+    return () => unsubscribe();
   }, []);
 
   if (!date) return null;
