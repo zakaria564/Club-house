@@ -142,9 +142,6 @@ export default function CoachDetailPage() {
                   <CardTitle className="text-3xl font-headline">
                       {coach.firstName} {coach.lastName}
                   </CardTitle>
-                  <CardDescription className="text-xl text-muted-foreground">
-                      {coach.specialty}
-                  </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="mt-6">

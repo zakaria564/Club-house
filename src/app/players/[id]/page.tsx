@@ -180,24 +180,21 @@ export default function PlayerDetailPage() {
                     <CardTitle className="text-3xl font-headline print:text-4xl">
                         {player.firstName} {player.lastName}
                     </CardTitle>
-                    <CardDescription className="text-xl text-muted-foreground print:text-2xl">
-                      {player.position}
-                    </CardDescription>
                   </div>
             </CardHeader>
             <CardContent className="mt-6 print:mt-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 print:grid-cols-1 print:gap-y-4">
                     <div className="print:mb-8">
-                        <div>
-                            <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
-                            <div className="space-y-3">
+                        <div className="space-y-4">
+                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
+                             <div className="space-y-3">
                                 <InfoRow icon={User} label="Genre" value={player.gender} />
                                 <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
                                 <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocaine' : 'Marocain') : player.country} />
                                 <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
                                 <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
                                 <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
-                            </div>
+                             </div>
                         </div>
                         <div className="mt-8">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
