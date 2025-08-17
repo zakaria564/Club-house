@@ -152,10 +152,14 @@ export default function Dashboard() {
     const currentActivePlayers = players.filter(p => !p.clubExitDate || isAfter(p.clubExitDate, startOfMonth(today)));
     
     const currentTotalPlayers = currentActivePlayers.length;
-    const currentInjuredPlayers = currentActivePlayers.filter(p => p.status === 'Blessé').length;
-    const currentSuspendedPlayers = currentActivePlayers.filter(p => p.status === 'Suspendu').length;
-    const currentUnavailablePlayers = currentActivePlayers.filter(p => p.status === 'Indisponible').length;
-
+    
+    const getPlayersByStatus = (status: Player['status']) => {
+        return currentActivePlayers.filter(p => p.status === status);
+    }
+    
+    const currentInjuredPlayers = getPlayersByStatus('Blessé');
+    const currentSuspendedPlayers = getPlayersByStatus('Suspendu');
+    const currentUnavailablePlayers = getPlayersByStatus('Indisponible');
     
     const currentPaidMemberships = payments.filter(p => 
         p.paymentType === 'membership' && 
@@ -175,9 +179,9 @@ export default function Dashboard() {
 
     return {
         totalPlayers: currentTotalPlayers,
-        injuredPlayers: currentInjuredPlayers,
-        suspendedPlayers: currentSuspendedPlayers,
-        unavailablePlayers: currentUnavailablePlayers,
+        injuredPlayers: { count: currentInjuredPlayers.length, names: currentInjuredPlayers.map(p => `${p.firstName} ${p.lastName}`) },
+        suspendedPlayers: { count: currentSuspendedPlayers.length, names: currentSuspendedPlayers.map(p => `${p.firstName} ${p.lastName}`) },
+        unavailablePlayers: { count: currentUnavailablePlayers.length, names: currentUnavailablePlayers.map(p => `${p.firstName} ${p.lastName}`) },
         upcomingEventsCount: currentUpcomingEvents.length,
         upcomingMatches: currentUpcomingMatches,
         upcomingTrainings: currentUpcomingTrainings,
@@ -274,6 +278,33 @@ export default function Dashboard() {
     )
 };
 
+const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardClick }: { title: string, data: { count: number, names: string[] }, icon: React.ElementType, iconColor: string, description: string, onCardClick: () => void }) => {
+  return (
+    <Popover>
+        <PopoverTrigger asChild>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onCardClick}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                    <Icon className={cn("h-4 w-4", data.count > 0 ? iconColor : "text-muted-foreground")} />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{data.count}</div>
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                </CardContent>
+            </Card>
+        </PopoverTrigger>
+        {data.count > 0 && (
+            <PopoverContent className="w-auto max-w-[300px]">
+                <div className="text-sm font-semibold mb-2">Liste des joueurs</div>
+                <div className="space-y-1">
+                    {data.names.map(name => <div key={name} className="text-xs text-muted-foreground">{name}</div>)}
+                </div>
+            </PopoverContent>
+        )}
+    </Popover>
+  );
+};
+
 
   return (
     <>
@@ -337,36 +368,30 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Blessés</CardTitle>
-            <AlertTriangle className={cn("h-4 w-4", injuredPlayers > 0 ? "text-destructive" : "text-muted-foreground")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{injuredPlayers}</div>
-            <p className="text-xs text-muted-foreground">à l'infirmerie</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Suspendus</CardTitle>
-            <Ban className={cn("h-4 w-4", suspendedPlayers > 0 ? "text-amber-500" : "text-muted-foreground")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{suspendedPlayers}</div>
-            <p className="text-xs text-muted-foreground">sous sanction</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Indisponibles</CardTitle>
-            <UserX className={cn("h-4 w-4", unavailablePlayers > 0 ? "text-slate-500" : "text-muted-foreground")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{unavailablePlayers}</div>
-            <p className="text-xs text-muted-foreground">pour autres raisons</p>
-          </CardContent>
-        </Card>
+        <StatusCard 
+            title="Blessés"
+            data={injuredPlayers}
+            icon={AlertTriangle}
+            iconColor="text-destructive"
+            description="à l'infirmerie"
+            onCardClick={() => router.push('/players')}
+        />
+        <StatusCard 
+            title="Suspendus"
+            data={suspendedPlayers}
+            icon={Ban}
+            iconColor="text-amber-500"
+            description="sous sanction"
+            onCardClick={() => router.push('/players')}
+        />
+        <StatusCard 
+            title="Indisponibles"
+            data={unavailablePlayers}
+            icon={UserX}
+            iconColor="text-slate-500"
+            description="pour autres raisons"
+            onCardClick={() => router.push('/players')}
+        />
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
@@ -456,6 +481,8 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
 
     
 
