@@ -160,13 +160,13 @@ export default function PlayerDetailPage() {
   const encodedAddress = encodeURIComponent(fullAddress);
   const isCertificateUrlValid = isValidUrl(player.medicalCertificateUrl);
 
-  const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
+const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
     const content = (
-        <div className="flex items-center gap-3 text-sm">
-            <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <div className="flex-grow flex items-center gap-2">
-                <span className="font-semibold text-gray-800 dark:text-gray-200 w-32">{label}:</span>
-                <span className="text-muted-foreground">{value}</span>
+        <div className="flex items-start gap-3 text-sm">
+            <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+            <div className="grid grid-cols-[auto,1fr] gap-x-2 flex-grow">
+                <span className="font-semibold text-gray-800 dark:text-gray-200">{label}:</span>
+                <span className="text-muted-foreground truncate">{value}</span>
             </div>
         </div>
     );
