@@ -190,12 +190,12 @@ export default function Dashboard() {
 
     return {
         totalPlayers: currentTotalPlayers,
-        injuredPlayers: { count: currentInjuredPlayers.length, players: currentInjuredPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
-        suspendedPlayers: { count: currentSuspendedPlayers.length, players: currentSuspendedPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
-        unavailablePlayers: { count: currentUnavailablePlayers.length, players: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
+        injuredPlayers: { count: currentInjuredPlayers.length, members: currentInjuredPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, category: p.category })) },
+        suspendedPlayers: { count: currentSuspendedPlayers.length, members: currentSuspendedPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, category: p.category })) },
+        unavailablePlayers: { count: currentUnavailablePlayers.length, members: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, category: p.category })) },
         totalCoaches: currentTotalCoaches,
-        activeCoaches: { count: currentActiveCoaches.length, coaches: currentActiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
-        inactiveCoaches: { count: currentInactiveCoaches.length, coaches: currentInactiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
+        activeCoaches: { count: currentActiveCoaches.length, members: currentActiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
+        inactiveCoaches: { count: currentInactiveCoaches.length, members: currentInactiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
         upcomingEvents: currentUpcomingEvents,
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
@@ -291,7 +291,7 @@ export default function Dashboard() {
     )
 };
 
-const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType }: { title: string, data: { count: number, members: {id: string, name: string}[] }, icon: React.ElementType, iconColor: string, description: string, memberType: 'player' | 'coach' }) => {
+const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType }: { title: string, data: { count: number, members: {id: string, name: string, category?: string}[] }, icon: React.ElementType, iconColor: string, description: string, memberType: 'player' | 'coach' }) => {
   const router = useRouter();
 
   const handleMemberClick = (memberId: string) => {
@@ -321,10 +321,11 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                         <Button 
                             key={member.id} 
                             variant="ghost" 
-                            className="w-full justify-start h-auto p-1.5 text-xs text-muted-foreground"
+                            className="w-full justify-start h-auto p-1.5 text-left"
                             onClick={() => handleMemberClick(member.id)}
                         >
-                            {member.name}
+                            <span className="font-medium mr-2">{member.name}</span>
+                            {member.category && <span className="text-xs text-muted-foreground">({member.category})</span>}
                         </Button>
                     ))}
                 </div>
@@ -400,7 +401,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             </Card>
             <StatusCard 
                 title="Blessés"
-                data={{ count: injuredPlayers.count, members: injuredPlayers.players }}
+                data={{ count: injuredPlayers.count, members: injuredPlayers.members }}
                 icon={AlertTriangle}
                 iconColor="text-destructive"
                 description="à l'infirmerie"
@@ -408,7 +409,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             />
             <StatusCard 
                 title="Suspendus"
-                data={{ count: suspendedPlayers.count, members: suspendedPlayers.players }}
+                data={{ count: suspendedPlayers.count, members: suspendedPlayers.members }}
                 icon={Ban}
                 iconColor="text-amber-500"
                 description="sous sanction"
@@ -416,7 +417,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             />
             <StatusCard 
                 title="Indisponibles"
-                data={{ count: unavailablePlayers.count, members: unavailablePlayers.players }}
+                data={{ count: unavailablePlayers.count, members: unavailablePlayers.members }}
                 icon={UserX}
                 iconColor={unavailablePlayers.count > 0 ? "text-destructive" : "text-green-500"}
                 description="pour autres raisons"
@@ -436,7 +437,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             </Card>
             <StatusCard 
                 title="Entraîneurs Actifs"
-                data={{ count: activeCoaches.count, members: activeCoaches.coaches }}
+                data={{ count: activeCoaches.count, members: activeCoaches.members }}
                 icon={UserCheck}
                 iconColor="text-green-500"
                 description="actuellement en poste"
@@ -444,7 +445,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             />
             <StatusCard 
                 title="Entraîneurs Inactifs"
-                data={{ count: inactiveCoaches.count, members: inactiveCoaches.coaches }}
+                data={{ count: inactiveCoaches.count, members: inactiveCoaches.members }}
                 icon={UserMinus}
                 iconColor="text-destructive"
                 description="hors du service actif"
@@ -574,6 +575,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     </>
   );
 }
+
 
 
 
