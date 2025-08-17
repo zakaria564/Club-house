@@ -403,7 +403,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
             title="Indisponibles"
             data={unavailablePlayers}
             icon={UserX}
-            iconColor="text-slate-500"
+            iconColor="text-destructive"
             description="pour autres raisons"
         />
       </div>
@@ -529,3 +529,4 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
     </>
   );
 }
+
