@@ -413,7 +413,10 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
                     <ul className="space-y-3">
                         {upcomingEvents.map(event => (
                             <li key={event.id}>
-                                <Link href="/schedule" className="block p-2 -m-2 rounded-md hover:bg-muted/50">
+                                <Link 
+                                    href={`/schedule?date=${format(event.date, 'yyyy-MM-dd')}`}
+                                    className="block p-2 -m-2 rounded-md hover:bg-muted/50"
+                                >
                                     <p className="font-semibold truncate">{event.title}</p>
                                     <p className="text-xs text-muted-foreground capitalize">
                                         {format(event.date, "eeee d MMMM", { locale: fr })} - {event.time}
@@ -515,6 +518,8 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
     
 
 
+
+    
 
     
 

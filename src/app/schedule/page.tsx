@@ -2,10 +2,10 @@
 "use client"
 
 import * as React from "react"
-import { format, addMonths, subMonths } from "date-fns"
+import { format, addMonths, subMonths, isValid, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Calendar as CalendarIcon, PlusCircle, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -33,10 +33,12 @@ const parseEventDoc = (doc: any): ClubEvent => {
   } as ClubEvent;
 }
 
-export default function SchedulePage() {
+function SchedulePageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [events, setEvents] = React.useState<ClubEvent[]>([])
   const [isEventDialogOpen, setEventDialogOpen] = React.useState(false);
@@ -55,6 +57,21 @@ export default function SchedulePage() {
     });
     return () => unsubscribe();
   }, []);
+
+  React.useEffect(() => {
+    const dateParam = searchParams.get('date');
+    if (dateParam) {
+        const parsedDate = parseISO(dateParam);
+        if (isValid(parsedDate)) {
+            setCurrentDate(parsedDate);
+            setSelectedDateForSheet(parsedDate);
+            setDaySheetOpen(true);
+            // Optional: remove the query param from URL after using it
+            // router.replace('/schedule', undefined); 
+        }
+    }
+  }, [searchParams, router]);
+
 
   const handleDeleteConfirm = async () => {
     if (eventToDelete) {
@@ -203,6 +220,14 @@ export default function SchedulePage() {
       </AlertDialog>
     </>
   )
+}
+
+export default function SchedulePage() {
+    return (
+        <React.Suspense fallback={<div>Chargement du calendrier...</div>}>
+            <SchedulePageContent />
+        </React.Suspense>
+    )
 }
 
     
