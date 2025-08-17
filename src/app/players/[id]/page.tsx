@@ -81,9 +81,9 @@ const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, 
     const content = (
         <div className="flex items-start text-sm">
             <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
-            <div className="ml-3 flex-grow">
+            <div className="ml-3 grid grid-cols-[auto,1fr] gap-x-2 w-full">
                 <span className="font-semibold text-gray-800 dark:text-gray-200">{label}:</span>
-                <span className="ml-2 text-muted-foreground">{value}</span>
+                <span className="text-muted-foreground break-words">{value}</span>
             </div>
         </div>
     );
@@ -228,25 +228,20 @@ export default function PlayerDetailPage() {
             </CardHeader>
             <CardContent className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div className="space-y-6">
-                        <div className="space-y-4">
+                    <div className="flex flex-col gap-y-6">
+                        <div className="space-y-3">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
-                            <div className="space-y-3">
-                               <InfoRow icon={User} label="Genre" value={player.gender} />
-                               <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
-                               <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
-                               <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
-                               <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
-                               <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
-                            </div>
+                            <InfoRow icon={User} label="Genre" value={player.gender} />
+                            <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
+                            <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
+                            <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
+                            <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
+                            <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
                         </div>
-                        <Separator />
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
-                            <div className="space-y-3">
-                                <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
-                                <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
-                            </div>
+                            <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
+                            <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
                         </div>
                     </div>
                      <div className="space-y-4">
