@@ -65,7 +65,7 @@ const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] =>
     const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
 
     players.forEach(player => {
-        combined.set(player.id, { name: `${player.firstName} ${p.lastName}`, goals: 0, assists: 0 });
+        combined.set(player.id, { name: `${player.firstName} ${player.lastName}`, goals: 0, assists: 0 });
     });
 
     events.forEach(event => {
@@ -418,4 +418,5 @@ function StatsTable({ title, stats }: StatsTableProps) {
 
     
 
+    
     
