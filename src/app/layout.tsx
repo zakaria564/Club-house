@@ -34,7 +34,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen font-body antialiased select-none md:select-auto",
+          "min-h-screen font-body antialiased select-none lg:select-auto",
            fontPoppins.variable,
            fontPTSans.variable
         )}
@@ -46,7 +46,7 @@ export default function RootLayout({
             </Sidebar>
             <SidebarInset>
               <MobileHeader />
-              <main className="p-4 sm:p-6 lg:p-8 pt-20 md:pt-6">
+              <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
                 {children}
               </main>
             </SidebarInset>
