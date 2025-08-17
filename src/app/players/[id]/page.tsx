@@ -228,21 +228,25 @@ export default function PlayerDetailPage() {
             </CardHeader>
             <CardContent className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
+                    <div className="space-y-6">
                         <div className="space-y-4">
-                            <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
-                            <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
+                            <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
+                            <div className="space-y-4">
+                               <InfoRow icon={User} label="Genre" value={player.gender} />
+                               <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
+                               <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
+                               <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
+                               <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
+                               <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
+                            </div>
                         </div>
-                        <Separator className="my-4"/>
-                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
+                        <Separator />
                         <div className="space-y-4">
-                            <InfoRow icon={User} label="Genre" value={player.gender} />
-                            <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
-                            <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
-                            <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
-                           <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
-                           <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
+                            <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
+                            <div className="space-y-4">
+                                <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
+                                <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
+                            </div>
                         </div>
                     </div>
                      <div className="space-y-4">
