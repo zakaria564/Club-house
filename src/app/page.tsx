@@ -136,9 +136,7 @@ export default function Dashboard() {
     injuredPlayers,
     suspendedPlayers,
     unavailablePlayers,
-    upcomingEventsCount,
-    upcomingMatches,
-    upcomingTrainings,
+    upcomingEvents,
     paidMemberships,
     activePlayers,
     monthString,
@@ -167,9 +165,11 @@ export default function Dashboard() {
         isSameMonth(p.date, today)
     ).length;
 
-    const currentUpcomingEvents = events.filter(e => isAfter(e.date, today) || isToday(e.date));
-    const currentUpcomingMatches = currentUpcomingEvents.filter(e => e.type === 'Match').length;
-    const currentUpcomingTrainings = currentUpcomingEvents.filter(e => e.type === 'Entraînement').length;
+    const currentUpcomingEvents = events
+        .filter(e => isAfter(e.date, today) || isToday(e.date))
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .slice(0, 5); // Take the next 5 events
+
     
     const currentPendingPayments = payments.filter(p => p.remaining > 0).sort((a,b) => b.remaining - a.remaining);
     const currentPendingPlayerPayments = currentPendingPayments.filter(p => p.paymentType === 'membership');
@@ -182,9 +182,7 @@ export default function Dashboard() {
         injuredPlayers: { count: currentInjuredPlayers.length, players: currentInjuredPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         suspendedPlayers: { count: currentSuspendedPlayers.length, players: currentSuspendedPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         unavailablePlayers: { count: currentUnavailablePlayers.length, players: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
-        upcomingEventsCount: currentUpcomingEvents.length,
-        upcomingMatches: currentUpcomingMatches,
-        upcomingTrainings: currentUpcomingTrainings,
+        upcomingEvents: currentUpcomingEvents,
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
         monthString: currentMonthString,
@@ -404,19 +402,35 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
             iconColor="text-slate-500"
             description="pour autres raisons"
         />
-        <Card className="md:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{upcomingEventsCount}</div>
-            <p className="text-xs text-muted-foreground">{upcomingMatches} m, {upcomingTrainings} e</p>
-          </CardContent>
-        </Card>
       </div>
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-7 gap-6">
-        <Card className="lg:col-span-5">
+       <div className="mt-6 grid grid-cols-1 lg:grid-cols-7 gap-6">
+        <Card className="lg:col-span-2">
+            <CardHeader>
+                <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {upcomingEvents.length > 0 ? (
+                    <ul className="space-y-3">
+                        {upcomingEvents.map(event => (
+                            <li key={event.id}>
+                                <Link href="/schedule" className="block p-2 -m-2 rounded-md hover:bg-muted/50">
+                                    <p className="font-semibold truncate">{event.title}</p>
+                                    <p className="text-xs text-muted-foreground capitalize">
+                                        {format(event.date, "eeee d MMMM", { locale: fr })} - {event.time}
+                                    </p>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <div className="text-sm text-center text-muted-foreground py-4">
+                        <Calendar className="mx-auto h-8 w-8 mb-2" />
+                        <p>Aucun événement à venir.</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+        <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
             <CardDescription>Nombre de joueurs par catégorie.</CardDescription>
@@ -501,5 +515,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
     
 
 
+
+    
 
     
