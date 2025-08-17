@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers, User, Calendar, Home, Shield, UserSquare } from 'lucide-react';
 import type { Player, Payment, Coach, ClubEvent } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -160,6 +160,24 @@ export default function PlayerDetailPage() {
   const encodedAddress = encodeURIComponent(fullAddress);
   const isCertificateUrlValid = isValidUrl(player.medicalCertificateUrl);
 
+  const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
+    const content = (
+        <div className="flex items-start gap-3 text-sm">
+            <Icon className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
+            <div className="flex-grow">
+                <p className="font-semibold text-gray-800 dark:text-gray-200">{label}</p>
+                <p className="text-muted-foreground">{value}</p>
+            </div>
+        </div>
+    );
+
+    if (href) {
+        return <a href={href} target="_blank" rel="noopener noreferrer" className="hover:bg-muted/50 p-2 rounded-md block">{content}</a>
+    }
+    return <div className="p-2">{content}</div>
+};
+
+
   return (
     <>
       <PageHeader title="Détails du Joueur" className="no-print">
@@ -181,7 +199,7 @@ export default function PlayerDetailPage() {
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg">
-             <CardHeader className="flex flex-row items-center gap-6">
+             <CardHeader className="flex flex-row items-center gap-6 border-b pb-4">
                  {player.photoUrl ? (
                     <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image" className="flex-shrink-0">
                         <Avatar className="w-32 h-32">
@@ -205,15 +223,12 @@ export default function PlayerDetailPage() {
                     <CardTitle className="text-3xl font-headline">
                         {player.firstName} {player.lastName}
                     </CardTitle>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                           <Layers className="h-4 w-4" />
-                           <span>{player.category}</span>
-                        </div>
-                         <div className="flex items-center gap-2">
-                           <Shirt className="h-4 w-4" />
-                           <span>#{player.playerNumber}</span>
-                        </div>
+                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Badge variant="secondary" className="text-base">{player.category}</Badge>
+                         <Badge variant="outline" className="text-base">N°{player.playerNumber}</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground pt-2">
+                        
                          <div className="flex items-center gap-2">
                            <Footprints className="h-4 w-4" />
                            <span>{player.position}</span>
@@ -226,42 +241,31 @@ export default function PlayerDetailPage() {
                   </div>
             </CardHeader>
             <CardContent className="mt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    {/* Colonne de gauche */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
-                        <div className="space-y-2 text-sm">
-                            <p><strong className="font-medium">Date de naissance:</strong> {isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</p>
-                            <p><strong className="font-medium">Genre:</strong> {player.gender}</p>
-                            <p><strong className="font-medium">Nationalité:</strong> {player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country}</p>
-                             <a href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 hover:underline">
-                                <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
-                                <div>
-                                    <strong className="font-medium block">Adresse:</strong>
-                                    <span>{`${player.address}, ${player.city}`}</span>
-                                </div>
-                            </a>
-                        </div>
+                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
+                        <InfoRow icon={User} label="Genre" value={player.gender} />
+                        <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
+                         <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
+                        <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
+                        <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
+                        <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
                     </div>
-                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold border-b pb-2">Contact</h3>
-                        <div className="space-y-2 text-sm">
-                             <a href={`tel:${player.phone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.phone}</a>
-                             <a href={`mailto:${player.email}`} className="truncate hover:underline flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{player.email}</a>
-                             <div className="pt-2">
-                                <strong className="font-medium block text-base">Tuteur Légal</strong>
-                                <p>{player.guardianName}</p>
-                                <a href={`tel:${player.guardianPhone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.guardianPhone}</a>
-                             </div>
-                        </div>
-                    </div>
-                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold border-b pb-2">Club</h3>
-                         <div className="space-y-2 text-sm">
-                            <p><strong className="font-medium">Date d'entrée:</strong> {isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</p>
-                            {player.clubExitDate && isValidDate(player.clubExitDate) && (
-                                <p><strong className="font-medium">Date de sortie:</strong> {format(player.clubExitDate, 'PPP', { locale: fr })}</p>
-                            )}
-                         </div>
+
+                    {/* Colonne de droite */}
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Club & Tuteur</h3>
+                        <InfoRow icon={Shield} label="ID Joueur" value={player.id} />
+                        <InfoRow icon={Calendar} label="Date d'entrée au club" value={isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
+                        {player.clubExitDate && isValidDate(player.clubExitDate) && (
+                           <InfoRow icon={Calendar} label="Date de sortie du club" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
+                        )}
+
+                        <Separator className="my-4" />
+
+                        <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
+                        <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
                     </div>
                 </div>
             </CardContent>
