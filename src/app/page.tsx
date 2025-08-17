@@ -184,7 +184,7 @@ export default function Dashboard() {
     const currentMonthString = format(today, "MMMM yyyy", { locale: fr });
     
     const currentTotalCoaches = coaches.length;
-    const currentActiveCoaches = coaches.filter(c => c.status === 'Actif').length;
+    const currentActiveCoaches = coaches.filter(c => c.status === 'Actif');
     const currentInactiveCoaches = coaches.filter(c => c.status === 'Inactif');
 
 
@@ -194,7 +194,7 @@ export default function Dashboard() {
         suspendedPlayers: { count: currentSuspendedPlayers.length, players: currentSuspendedPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         unavailablePlayers: { count: currentUnavailablePlayers.length, players: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         totalCoaches: currentTotalCoaches,
-        activeCoaches: currentActiveCoaches,
+        activeCoaches: { count: currentActiveCoaches.length, coaches: currentActiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
         inactiveCoaches: { count: currentInactiveCoaches.length, coaches: currentInactiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
         upcomingEvents: currentUpcomingEvents,
         paidMemberships: currentPaidMemberships,
@@ -434,16 +434,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                     <p className="text-xs text-muted-foreground">entraîneurs au total</p>
                 </CardContent>
             </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Entraîneurs Actifs</CardTitle>
-                    <UserCheck className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{activeCoaches}</div>
-                    <p className="text-xs text-muted-foreground">actuellement en poste</p>
-                </CardContent>
-            </Card>
+            <StatusCard 
+                title="Entraîneurs Actifs"
+                data={{ count: activeCoaches.count, members: activeCoaches.coaches }}
+                icon={UserCheck}
+                iconColor="text-green-500"
+                description="actuellement en poste"
+                memberType="coach"
+            />
             <StatusCard 
                 title="Entraîneurs Inactifs"
                 data={{ count: inactiveCoaches.count, members: inactiveCoaches.coaches }}
@@ -576,6 +574,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     </>
   );
 }
+
 
 
 
