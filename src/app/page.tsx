@@ -278,11 +278,11 @@ export default function Dashboard() {
     )
 };
 
-const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardClick }: { title: string, data: { count: number, names: string[] }, icon: React.ElementType, iconColor: string, description: string, onCardClick: () => void }) => {
+const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title: string, data: { count: number, names: string[] }, icon: React.ElementType, iconColor: string, description: string }) => {
   return (
     <Popover>
         <PopoverTrigger asChild>
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onCardClick}>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     <Icon className={cn("h-4 w-4", data.count > 0 ? iconColor : "text-muted-foreground")} />
@@ -374,7 +374,6 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardCli
             icon={AlertTriangle}
             iconColor="text-destructive"
             description="à l'infirmerie"
-            onCardClick={() => router.push('/players')}
         />
         <StatusCard 
             title="Suspendus"
@@ -382,7 +381,6 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardCli
             icon={Ban}
             iconColor="text-amber-500"
             description="sous sanction"
-            onCardClick={() => router.push('/players')}
         />
         <StatusCard 
             title="Indisponibles"
@@ -390,7 +388,6 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardCli
             icon={UserX}
             iconColor="text-slate-500"
             description="pour autres raisons"
-            onCardClick={() => router.push('/players')}
         />
         <Card className="md:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
