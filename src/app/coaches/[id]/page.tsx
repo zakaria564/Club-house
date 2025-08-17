@@ -40,9 +40,9 @@ const parseCoachDoc = (doc: any): Coach => {
 
 const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 
-const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
+const InfoRow = ({ icon: Icon, label, value, href, className }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string, className?: string }) => {
     const content = (
-         <div className="flex items-start text-sm">
+         <div className={cn("flex items-start text-sm", className)}>
             <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
             <div className="ml-3 flex-grow">
                 <div className="font-semibold text-gray-800 dark:text-gray-200">{label}</div>
@@ -135,9 +135,9 @@ export default function CoachDetailPage() {
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
                        <InfoRow icon={User} label="Genre" value={coach.gender} />
                        <InfoRow icon={Cake} label="Âge" value={`${coach.age} ans`} />
-                       <InfoRow icon={MapPin} label="Adresse" value={`${coach.city}, ${coach.country}`} href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${coach.city}, ${coach.country}`)}`} />
                        <InfoRow icon={Mail} label="Email" value={coach.email} href={`mailto:${coach.email}`} />
                        <InfoRow icon={Phone} label="Téléphone" value={coach.phone} href={`tel:${coach.phone}`} />
+                       <InfoRow icon={MapPin} label="Adresse" value={`${coach.city}, ${coach.country}`} href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${coach.city}, ${coach.country}`)}`} className="md:col-span-2"/>
                     </CardContent>
                 </Card>
                 <Card>
