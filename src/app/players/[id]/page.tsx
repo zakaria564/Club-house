@@ -223,21 +223,6 @@ export default function PlayerDetailPage() {
                     <CardTitle className="text-3xl font-headline">
                         {player.firstName} {player.lastName}
                     </CardTitle>
-                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="secondary" className="text-base">{player.category}</Badge>
-                         <Badge variant="outline" className="text-base">N°{player.playerNumber}</Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground pt-2">
-                        
-                         <div className="flex items-center gap-2">
-                           <Footprints className="h-4 w-4" />
-                           <span>{player.position}</span>
-                        </div>
-                         <div className="flex items-center gap-2">
-                           <UserCheck className="h-4 w-4" />
-                           <span>{coachName}</span>
-                        </div>
-                    </div>
                   </div>
             </CardHeader>
             <CardContent className="mt-6">
@@ -258,12 +243,18 @@ export default function PlayerDetailPage() {
                         <div className="space-y-4">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Club</h3>
                             <InfoRow icon={Shield} label="ID Joueur" value={player.id} />
+                            <InfoRow icon={Layers} label="Catégorie" value={player.category} />
+                            <InfoRow icon={Shirt} label="N° Joueur" value={`#${player.playerNumber}`} />
+                            <InfoRow icon={Footprints} label="Poste" value={player.position} />
+                            <InfoRow icon={UserCheck} label="Entraîneur" value={coachName} />
                             <InfoRow icon={Calendar} label="Date d'entrée au club" value={isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
                             {player.clubExitDate && isValidDate(player.clubExitDate) && (
                                <InfoRow icon={Calendar} label="Date de sortie du club" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
                             )}
                         </div>
                         
+                        <Separator />
+
                         <div className="space-y-4">
                              <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
                             <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
