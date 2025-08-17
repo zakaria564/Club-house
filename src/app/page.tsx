@@ -179,9 +179,9 @@ export default function Dashboard() {
 
     return {
         totalPlayers: currentTotalPlayers,
-        injuredPlayers: { count: currentInjuredPlayers.length, names: currentInjuredPlayers.map(p => `${p.firstName} ${p.lastName}`) },
-        suspendedPlayers: { count: currentSuspendedPlayers.length, names: currentSuspendedPlayers.map(p => `${p.firstName} ${p.lastName}`) },
-        unavailablePlayers: { count: currentUnavailablePlayers.length, names: currentUnavailablePlayers.map(p => `${p.firstName} ${p.lastName}`) },
+        injuredPlayers: { count: currentInjuredPlayers.length, players: currentInjuredPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
+        suspendedPlayers: { count: currentSuspendedPlayers.length, players: currentSuspendedPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
+        unavailablePlayers: { count: currentUnavailablePlayers.length, players: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         upcomingEventsCount: currentUpcomingEvents.length,
         upcomingMatches: currentUpcomingMatches,
         upcomingTrainings: currentUpcomingTrainings,
@@ -278,7 +278,13 @@ export default function Dashboard() {
     )
 };
 
-const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title: string, data: { count: number, names: string[] }, icon: React.ElementType, iconColor: string, description: string }) => {
+const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title: string, data: { count: number, players: {id: string, name: string}[] }, icon: React.ElementType, iconColor: string, description: string }) => {
+  const router = useRouter();
+
+  const handlePlayerClick = (playerId: string) => {
+    router.push(`/players/${playerId}`);
+  };
+
   return (
     <Popover>
         <PopoverTrigger asChild>
@@ -297,7 +303,16 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
             <PopoverContent className="w-auto max-w-[300px]">
                 <div className="text-sm font-semibold mb-2">Liste des joueurs</div>
                 <div className="space-y-1">
-                    {data.names.map(name => <div key={name} className="text-xs text-muted-foreground">{name}</div>)}
+                    {data.players.map(player => (
+                        <Button 
+                            key={player.id} 
+                            variant="ghost" 
+                            className="w-full justify-start h-auto p-1.5 text-xs text-muted-foreground"
+                            onClick={() => handlePlayerClick(player.id)}
+                        >
+                            {player.name}
+                        </Button>
+                    ))}
                 </div>
             </PopoverContent>
         )}
@@ -484,3 +499,4 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
     
 
     
+
