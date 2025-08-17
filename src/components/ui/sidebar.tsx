@@ -269,7 +269,7 @@ const SidebarTrigger = React.forwardRef<
       ref={ref}
       variant="ghost"
       size="icon"
-      className={cn("md:hidden", className)}
+      className={cn(className)}
       onClick={(e) => {
         toggleSidebar()
         if (onClick) {
