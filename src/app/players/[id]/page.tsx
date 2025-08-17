@@ -162,19 +162,19 @@ export default function PlayerDetailPage() {
 
   const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
     const content = (
-        <div className="flex items-start gap-3 text-sm">
-            <Icon className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
-            <div className="flex-grow">
-                <p className="font-semibold text-gray-800 dark:text-gray-200">{label}</p>
-                <p className="text-muted-foreground">{value}</p>
+        <div className="flex items-center gap-3 text-sm">
+            <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex-grow flex items-center gap-2">
+                <span className="font-semibold text-gray-800 dark:text-gray-200 w-32">{label}:</span>
+                <span className="text-muted-foreground">{value}</span>
             </div>
         </div>
     );
 
     if (href) {
-        return <a href={href} target="_blank" rel="noopener noreferrer" className="hover:bg-muted/50 p-2 rounded-md block">{content}</a>
+        return <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline">{content}</a>
     }
-    return <div className="p-2">{content}</div>
+    return content;
 };
 
 
@@ -230,35 +230,41 @@ export default function PlayerDetailPage() {
                     {/* Colonne de gauche */}
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
-                        <InfoRow icon={User} label="Genre" value={player.gender} />
-                        <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
-                         <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
-                        <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
-                        <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
-                        <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
+                        <div className="space-y-3">
+                            <InfoRow icon={User} label="Genre" value={player.gender} />
+                            <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
+                            <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
+                            <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
+                            <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
+                            <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
+                        </div>
                     </div>
 
                     {/* Colonne de droite */}
                     <div className="space-y-6">
                         <div className="space-y-4">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Club</h3>
-                            <InfoRow icon={Shield} label="ID Joueur" value={player.id} />
-                            <InfoRow icon={Layers} label="Catégorie" value={player.category} />
-                            <InfoRow icon={Shirt} label="N° Joueur" value={`#${player.playerNumber}`} />
-                            <InfoRow icon={Footprints} label="Poste" value={player.position} />
-                            <InfoRow icon={UserCheck} label="Entraîneur" value={coachName} />
-                            <InfoRow icon={Calendar} label="Date d'entrée au club" value={isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
-                            {player.clubExitDate && isValidDate(player.clubExitDate) && (
-                               <InfoRow icon={Calendar} label="Date de sortie du club" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
-                            )}
+                            <div className="space-y-3">
+                                <InfoRow icon={Shield} label="ID Joueur" value={player.id} />
+                                <InfoRow icon={Layers} label="Catégorie" value={player.category} />
+                                <InfoRow icon={Shirt} label="N° Joueur" value={`#${player.playerNumber}`} />
+                                <InfoRow icon={Footprints} label="Poste" value={player.position} />
+                                <InfoRow icon={UserCheck} label="Entraîneur" value={coachName} />
+                                <InfoRow icon={Calendar} label="Date d'entrée" value={isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
+                                {player.clubExitDate && isValidDate(player.clubExitDate) && (
+                                   <InfoRow icon={Calendar} label="Date de sortie" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
+                                )}
+                            </div>
                         </div>
                         
                         <Separator />
 
                         <div className="space-y-4">
                              <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
-                            <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
-                            <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
+                            <div className="space-y-3">
+                                <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
+                                <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
+                            </div>
                         </div>
                     </div>
                 </div>
