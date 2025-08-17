@@ -10,10 +10,10 @@ export function MobileHeader() {
         <div className="flex justify-start">
             <SidebarTrigger />
         </div>
-        <div className="flex justify-center">
+        <div />
+        <div className="flex justify-end">
             <ClubLogo className="h-8 w-auto" />
         </div>
-        <div />
     </header>
   );
 }
