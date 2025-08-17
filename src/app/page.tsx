@@ -303,12 +303,12 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     <Popover>
         <PopoverTrigger asChild disabled={data.count === 0}>
             <Card className={cn(data.count > 0 && "cursor-pointer hover:shadow-md transition-shadow")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     <Icon className={cn("h-4 w-4", data.count > 0 ? iconColor : "text-green-500")} />
                 </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{data.count}</div>
+                <CardContent className="p-3 sm:p-4 pt-0">
+                    <div className="text-xl sm:text-2xl font-bold">{data.count}</div>
                     <p className="text-xs text-muted-foreground">{description}</p>
                 </CardContent>
             </Card>
@@ -391,12 +391,12 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
                 <CardTitle className="text-sm font-medium">Effectif Joueurs</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{totalPlayers}</div>
+            <CardContent className="p-3 sm:p-4 pt-0">
+                <div className="text-xl sm:text-2xl font-bold">{totalPlayers}</div>
                 <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
             </CardContent>
             </Card>
@@ -427,12 +427,12 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
                     <CardTitle className="text-sm font-medium">Effectif Entraîneurs</CardTitle>
                     <Shield className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{totalCoaches}</div>
+                <CardContent className="p-3 sm:p-4 pt-0">
+                    <div className="text-xl sm:text-2xl font-bold">{totalCoaches}</div>
                     <p className="text-xs text-muted-foreground">entraîneurs au total</p>
                 </CardContent>
             </Card>
