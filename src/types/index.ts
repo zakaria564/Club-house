@@ -75,6 +75,7 @@ export type Coach = {
   age: number;
   clubEntryDate: Date;
   clubExitDate?: Date;
+  status: 'Actif' | 'Inactif';
 };
 
 export type PerformanceStats = {
@@ -82,5 +83,3 @@ export type PerformanceStats = {
   goalsScored: number;
   assistsMade: number;
 };
-
-    

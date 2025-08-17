@@ -2,7 +2,7 @@
 'use client';
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Edit, Printer, Mail, Phone, User, Calendar, MapPin, BadgeCheck, Cake } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, Mail, Phone, User, Calendar, MapPin, BadgeCheck, Cake, Power } from 'lucide-react';
 import type { Coach } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 
 const PrintHeader = () => (
@@ -90,6 +91,14 @@ export default function CoachDetailPage() {
     document.title = originalTitle;
   };
 
+  const statusBadgeVariant = (status?: Coach['status']) => {
+    switch(status) {
+        case 'Actif': return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800';
+        case 'Inactif': return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800';
+        default: return 'secondary';
+    }
+  }
+
   if (!coach) {
     return <div className="text-center">Chargement du profil de l'entraîneur...</div>;
   }
@@ -127,6 +136,9 @@ export default function CoachDetailPage() {
                       </Avatar>
                     </a>
                     <h2 className="text-2xl font-bold font-headline mt-4">{coach.firstName} {coach.lastName}</h2>
+                    <div className="mt-2 flex items-center gap-2">
+                        <Badge className={cn("text-base", statusBadgeVariant(coach.status))}>{coach.status}</Badge>
+                    </div>
                 </CardContent>
             </Card>
             <div className="lg:col-span-2 space-y-6">
@@ -165,6 +177,9 @@ export default function CoachDetailPage() {
                         </Avatar>
                     </a>
                     <h2 className="text-3xl font-bold font-headline mt-4">{coach.firstName} {coach.lastName}</h2>
+                     <div className="mt-2 flex items-center gap-2">
+                        <Badge className={cn("text-base", statusBadgeVariant(coach.status))}>{coach.status}</Badge>
+                    </div>
                 </div>
                 <div className="col-span-2 space-y-6">
                     <div className="space-y-4">

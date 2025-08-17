@@ -37,6 +37,7 @@ const coachFormSchema = z.object({
   age: z.coerce.number().min(18, "L'entraîneur doit être majeur."),
   country: z.string().min(2, "Le pays est requis."),
   city: z.string().min(2, "La ville est requise."),
+  status: z.enum(["Actif", "Inactif"], { required_error: "Veuillez sélectionner un statut." }),
   clubEntryDate: z.string({ required_error: "Une date d'entrée est requise." }),
   clubExitDate: z.string().optional().nullable(),
 })
@@ -108,6 +109,7 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       age: coach?.age || '' as any,
       country: coach?.country || '',
       city: coach?.city || '',
+      status: coach?.status || 'Actif' as const,
       clubEntryDate: dateToInputFormat(coach?.clubEntryDate),
       clubExitDate: dateToInputFormat(coach?.clubExitDate),
     }), [coach]);
@@ -357,6 +359,27 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
             <div className="space-y-4">
                 <h3 className="text-lg font-medium">Informations du Club</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Statut</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Définir le statut" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Actif">Actif</SelectItem>
+                                    <SelectItem value="Inactif">Inactif</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                     <FormField
                     control={form.control}
                     name="clubEntryDate"
@@ -409,5 +432,3 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
-
-    

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search, DollarSign } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { collection, onSnapshot, deleteDoc, doc, query, where, getDocs, writeBatch } from "firebase/firestore"
+import { collection, onSnapshot, deleteDoc, doc, query, where, getDocs, writeBatch, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 
@@ -25,8 +25,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
@@ -71,6 +72,7 @@ export default function CoachesPage() {
   const [selectedCoach, setSelectedCoach] = React.useState<Coach | null>(null);
   const [coachToDelete, setCoachToDelete] = React.useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const coachStatuses: Coach['status'][] = ["Actif", "Inactif"];
 
   React.useEffect(() => {
     const q = query(collection(db, "coaches"));
@@ -98,6 +100,24 @@ export default function CoachesPage() {
   const handleDeleteInitiate = (coachId: string) => {
     setCoachToDelete(coachId);
   }
+
+  const handleStatusChange = async (coachId: string, newStatus: Coach['status']) => {
+    const coachDocRef = doc(db, "coaches", coachId);
+    try {
+      await updateDoc(coachDocRef, { status: newStatus });
+      toast({
+        title: "Statut mis à jour",
+        description: `Le statut de l'entraîneur a été mis à jour avec succès.`,
+      });
+    } catch (error) {
+       console.error("Error updating status: ", error);
+       toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de mettre à jour le statut.",
+       });
+    }
+  };
 
   const handleDeleteConfirm = async () => {
     if (!coachToDelete) return;
@@ -160,6 +180,14 @@ export default function CoachesPage() {
     `${coach.firstName} ${coach.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     coach.specialty.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  const statusBadgeVariant = (status?: Coach['status']) => {
+    switch(status) {
+        case 'Actif': return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800';
+        case 'Inactif': return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800';
+        default: return 'secondary';
+    }
+  }
 
 
   return (
@@ -197,14 +225,13 @@ export default function CoachesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredCoaches.map(coach => (
               <Card 
                 key={coach.id} 
-                className="flex flex-col cursor-pointer transition-all hover:shadow-md"
-                onClick={() => handleViewCoach(coach.id)}
+                className="flex flex-col transition-all"
               >
-                <CardHeader className="flex-row items-center justify-between p-4">
+                <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewCoach(coach.id)}>
                     <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
                      <div onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
@@ -239,11 +266,33 @@ export default function CoachesPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 flex-grow space-y-2">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col cursor-pointer" onClick={() => handleViewCoach(coach.id)}>
                         <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium truncate hover:underline">{coach.email}</a>
                         <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:underline">{coach.phone}</a>
                     </div>
-                     <Badge variant="secondary">{coach.specialty}</Badge>
+                     <div className="flex items-center justify-between">
+                         <Badge variant="secondary" className="cursor-pointer" onClick={() => handleViewCoach(coach.id)}>{coach.specialty}</Badge>
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                 <Button 
+                                    variant="outline"
+                                    className={cn("whitespace-nowrap h-auto py-0.5 px-2.5 text-xs border-dashed", statusBadgeVariant(coach.status))}
+                                 >
+                                    {coach.status}
+                                 </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                 <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                                 <DropdownMenuRadioGroup value={coach.status} onValueChange={(newStatus) => handleStatusChange(coach.id, newStatus as Coach['status'])}>
+                                    {coachStatuses.map(status => (
+                                       <DropdownMenuRadioItem key={status} value={status}>
+                                          {status}
+                                       </DropdownMenuRadioItem>
+                                    ))}
+                                 </DropdownMenuRadioGroup>
+                              </DropdownMenuContent>
+                           </DropdownMenu>
+                    </div>
                 </CardContent>
               </Card>
             ))}
@@ -251,7 +300,7 @@ export default function CoachesPage() {
         </CardContent>
         <CardFooter>
             <div className="text-xs text-muted-foreground">
-                Affichage de <strong>1-{filteredCoaches.length}</strong> sur <strong>{coaches.length}</strong> entraîneurs
+                Affichage de <strong>{filteredCoaches.length}</strong> sur <strong>{coaches.length}</strong> entraîneurs
             </div>
         </CardFooter>
       </Card>
