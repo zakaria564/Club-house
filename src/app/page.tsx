@@ -357,7 +357,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardCli
             </Button>
         </div>
       </PageHeader>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Effectif Total</CardTitle>
@@ -392,7 +392,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardCli
             description="pour autres raisons"
             onCardClick={() => router.push('/players')}
         />
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
