@@ -113,11 +113,12 @@ export default function CoachDetailPage() {
         </div>
       </PageHeader>
       <div className="printable-area space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-1 print:col-span-full">
-                <CardContent className="pt-6 flex flex-col items-center text-center">
+          <PrintHeader />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:block">
+            <Card className="lg:col-span-1 print:border-none print:shadow-none">
+                <CardContent className="pt-6 flex flex-col items-center text-center print:pt-0">
                     <a href={coach.photoUrl || '#'} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image" className={cn(!coach.photoUrl && "pointer-events-none")}>
-                      <Avatar className="w-32 h-32 print:w-40 print:h-40 border-4 border-background ring-4 ring-primary">
+                      <Avatar className="w-32 h-32 print:w-40 print:h-40 border-4 border-background ring-4 ring-primary print:ring-primary print:border-white">
                           <AvatarImage src={coach.photoUrl || ''} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
                           <AvatarFallback className="text-4xl">
                               {coach.firstName?.[0]}
@@ -125,11 +126,10 @@ export default function CoachDetailPage() {
                           </AvatarFallback>
                       </Avatar>
                     </a>
-                    <h2 className="text-2xl font-bold font-headline mt-4">{coach.firstName} {coach.lastName}</h2>
-                    <p className="text-muted-foreground">{coach.specialty}</p>
+                    <h2 className="text-2xl font-bold font-headline mt-4 print:text-3xl">{coach.firstName} {coach.lastName}</h2>
                 </CardContent>
             </Card>
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-6 print:block print:space-y-4 print:mt-4">
                  <Card>
                     <CardHeader><CardTitle>Informations & Contact</CardTitle></CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
