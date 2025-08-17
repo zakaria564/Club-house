@@ -435,5 +435,3 @@ export default function PlayerDetailPage() {
     </>
   );
 }
-
-    
