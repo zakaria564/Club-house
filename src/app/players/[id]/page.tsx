@@ -181,7 +181,7 @@ export default function PlayerDetailPage() {
 
   return (
     <>
-      <PageHeader title="Détails du Joueur" className="no-print">
+      <PageHeader title="Données du joueur" className="no-print">
            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button variant="outline" onClick={() => router.back()}>
               <ArrowLeft className="mr-2 h-4 w-4" />
