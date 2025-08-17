@@ -42,25 +42,6 @@ const parsePlayerDoc = (doc: any): Player => {
   } as Player;
 };
 
-const parsePaymentDoc = (doc: any): Payment => {
-  const data = doc.data();
-  return {
-    ...data,
-    id: doc.id,
-    date: (data.date as Timestamp)?.toDate(),
-    history: Array.isArray(data.history) ? data.history.map((t: any) => ({ ...t, date: t.date.toDate() })) : [],
-  } as Payment;
-}
-
-const parseEventDoc = (doc: any): ClubEvent => {
-  const data = doc.data();
-  return {
-    ...data,
-    id: doc.id,
-    date: (data.date as Timestamp)?.toDate(),
-  } as ClubEvent;
-}
-
 const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 const isValidUrl = (url: string | null | undefined): boolean => {
     if (!url) return false;
@@ -70,12 +51,6 @@ const isValidUrl = (url: string | null | undefined): boolean => {
         return false;
     }
 }
-
-const statusTranslations: { [key in Payment['status']]: string } = {
-    'Paid': 'Payé',
-    'Pending': 'En attente',
-    'Overdue': 'En retard'
-};
 
 const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
     const content = (
@@ -101,10 +76,8 @@ export default function PlayerDetailPage() {
   const playerId = params.id as string;
 
   const [player, setPlayer] = React.useState<Player | null>(null);
-  const [payments, setPayments] = React.useState<Payment[]>([]);
   const [coach, setCoach] = React.useState<Coach | null>(null);
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false);
-  const [expandedPayment, setExpandedPayment] = React.useState<string | null>(null);
 
 
   React.useEffect(() => {
@@ -130,30 +103,12 @@ export default function PlayerDetailPage() {
         }
     });
 
-    const paymentsQuery = query(
-        collection(db, "payments"),
-        where("memberId", "==", playerId),
-        where("paymentType", "==", "membership")
-    );
-    const unsubscribePayments = onSnapshot(paymentsQuery, (querySnapshot) => {
-        setPayments(querySnapshot.docs.map(parsePaymentDoc).sort((a,b) => b.date.getTime() - a.date.getTime()));
-    });
-
     return () => {
         unsubscribePlayer();
-        unsubscribePayments();
     };
   }, [playerId]);
 
   const coachName = coach ? `${coach.firstName} ${coach.lastName}` : 'Non assigné';
-
-    const getAdvanceLabel = (index: number) => {
-        const labels = ['première avance', 'deuxième avance', 'troisième avance', 'quatrième avance', 'cinquième avance'];
-        if (index < labels.length) {
-            return `(${labels[index]})`;
-        }
-        return `(${index + 1}ème avance)`;
-    };
 
 
   const handlePrint = () => {
@@ -228,8 +183,8 @@ export default function PlayerDetailPage() {
             </CardHeader>
             <CardContent className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div className="flex flex-col space-y-8">
-                        <div>
+                    <div className="space-y-8">
+                       <div className="space-y-4">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
                             <div className="space-y-3">
                                 <InfoRow icon={User} label="Genre" value={player.gender} />
@@ -240,7 +195,7 @@ export default function PlayerDetailPage() {
                                 <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
                             </div>
                         </div>
-                        <div className="mt-8">
+                        <div className="space-y-4">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
                             <div className="space-y-3">
                                 <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
@@ -304,132 +259,7 @@ export default function PlayerDetailPage() {
             </Card>
         </div>
 
-        <div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Historique des paiements</CardTitle>
-                    <CardDescription>
-                        Liste de tous les paiements enregistrés pour ce joueur.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                     {/* Mobile view: list of cards */}
-                    <div className="sm:hidden space-y-3">
-                        {payments.length > 0 ? (
-                            payments.map(payment => (
-                                <div key={payment.id} className="border rounded-lg p-3 text-sm">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="font-semibold capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</span>
-                                        <Badge
-                                            className={cn({
-                                                'bg-green-100 text-green-800 border-green-200': payment.status === 'Paid',
-                                                'bg-yellow-100 text-yellow-800 border-yellow-200': payment.status === 'Pending',
-                                                'bg-red-100 text-red-800 border-red-200': payment.status === 'Overdue'
-                                            })}
-                                        >
-                                            {statusTranslations[payment.status]}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex justify-between border-t pt-2">
-                                        <span className="text-muted-foreground">Reste à payer</span>
-                                        <span className="font-medium">{payment.remaining.toFixed(2)} DH</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Avance</span>
-                                        <span>{payment.advance.toFixed(2)} DH</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Total</span>
-                                        <span className="font-semibold">{payment.totalAmount.toFixed(2)} DH</span>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center text-muted-foreground py-4">
-                                Aucun paiement trouvé pour ce joueur.
-                            </div>
-                        )}
-                    </div>
-                    {/* Desktop view: table */}
-                    <div className="hidden sm:block">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date du Paiement</TableHead>
-                                    <TableHead>Statut</TableHead>
-                                    <TableHead className="text-right">Total</TableHead>
-                                    <TableHead className="text-right">Avance</TableHead>
-                                    <TableHead className="text-right">Reste</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {payments.length > 0 ? (
-                                    payments.map(payment => (
-                                    <React.Fragment key={payment.id}>
-                                        <TableRow 
-                                            className="cursor-pointer"
-                                            onClick={() => setExpandedPayment(expandedPayment === payment.id ? null : payment.id)}
-                                        >
-                                            <TableCell className="capitalize">{isValidDate(payment.date) ? format(payment.date, "PPP", { locale: fr }) : "Date invalide"}</TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    className={cn({
-                                                        'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
-                                                        'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': payment.status === 'Pending',
-                                                        'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': payment.status === 'Overdue'
-                                                    })}
-                                                >
-                                                    {statusTranslations[payment.status]}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">{payment.totalAmount.toFixed(2)} DH</TableCell>
-                                            <TableCell className="text-right">{payment.advance.toFixed(2)} DH</TableCell>
-                                            <TableCell className="text-right font-medium">{payment.remaining.toFixed(2)} DH</TableCell>
-                                        </TableRow>
-                                        {expandedPayment === payment.id && (
-                                            <TableRow>
-                                                <TableCell colSpan={5} className="p-0">
-                                                    <div className="p-4 bg-muted/50">
-                                                        <h4 className="font-semibold mb-2">Historique des versements</h4>
-                                                        <Table>
-                                                            <TableHeader>
-                                                                <TableRow>
-                                                                    <TableHead>Date</TableHead>
-                                                                    <TableHead className="text-right">Avance</TableHead>
-                                                                </TableRow>
-                                                            </TableHeader>
-                                                            <TableBody>
-                                                            {payment.history?.map((transaction, index) => (
-                                                                <TableRow key={index}>
-                                                                    <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
-                                                                    <TableCell className="text-right">
-                                                                        {transaction.amount.toFixed(2)} DH
-                                                                        <span className="text-muted-foreground text-xs ml-2">{getAdvanceLabel(index)}</span>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                            </TableBody>
-                                                        </Table>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                        </React.Fragment>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center">
-                                            Aucun paiement trouvé pour ce joueur.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    </div>
+      </div>
       <AddPlayerDialog
         key={player?.id || 'new'}
         open={isPlayerDialogOpen}
