@@ -45,7 +45,7 @@ const playerFormSchema = z.object({
   guardianName: z.string().min(1, "Le nom du tuteur est requis."),
   guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
   position: z.string({ required_error: "Veuillez sélectionner un poste." }),
-  playerNumber: z.coerce.number().optional().nullable(),
+  playerNumber: z.union([z.coerce.number().positive().int(), z.nan(), z.literal("")]).optional().nullable(),
   clubEntryDate: z.string().min(1, "Une date d'entrée est requise."),
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
@@ -218,7 +218,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
 
       const newPlayerData = {
         ...playerData,
-        playerNumber: data.playerNumber || 0,
+        playerNumber: Number(data.playerNumber) || 0,
         photoUrl: data.photoUrl || null,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
@@ -552,7 +552,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                           <FormItem>
                             <FormLabel>N° Joueur</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.valueAsNumber)} value={field.value ?? ''} disabled={isSubmitting}/>
+                              <Input type="number" placeholder="10" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} disabled={isSubmitting}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
