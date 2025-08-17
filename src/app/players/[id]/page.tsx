@@ -57,8 +57,8 @@ const InfoRow = ({ icon: Icon, label, value, href, className }: { icon: React.El
         <div className={cn("flex items-start text-sm", className)}>
             <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
             <div className="ml-3 flex-grow">
-                <p className="font-semibold text-gray-800 dark:text-gray-200">{label}</p>
-                <p className="text-muted-foreground break-words">{value}</p>
+                <div className="font-semibold text-gray-800 dark:text-gray-200">{label}</div>
+                <div className="text-muted-foreground break-words">{value}</div>
             </div>
         </div>
     );
