@@ -196,8 +196,8 @@ export default function PlayersPage() {
                 Imprimer formulaire vierge
             </Button>
             <Button onClick={handleAddNewPlayer} className="w-full sm:w-auto">
-                <FileText className="mr-2 h-4 w-4" />
-                Nouvelle Inscription
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Ajouter un joueur
             </Button>
         </div>
       </PageHeader>
@@ -330,3 +330,5 @@ export default function PlayersPage() {
     </>
   )
 }
+
+    
