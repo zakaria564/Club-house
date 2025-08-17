@@ -358,7 +358,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, onCardCli
         </div>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <Card className="md:col-span-1 lg:col-span-2">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Effectif Total</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
