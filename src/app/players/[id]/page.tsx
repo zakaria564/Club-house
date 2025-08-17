@@ -174,12 +174,6 @@ export default function PlayerDetailPage() {
                             </Avatar>
                         </a>
                         <h2 className="text-2xl font-bold font-headline mt-4">{player.firstName} {player.lastName}</h2>
-                        <p className="text-muted-foreground">{player.position}</p>
-                        <div className="mt-4 flex items-center gap-2">
-                             <Badge className={cn("text-xs", statusBadgeVariant(player.status))}>{player.status}</Badge>
-                             <Badge variant="secondary">{player.category}</Badge>
-                             <Badge variant="outline">#{player.playerNumber}</Badge>
-                        </div>
                     </CardContent>
                 </Card>
                 <div className="lg:col-span-2 space-y-6">
@@ -194,22 +188,30 @@ export default function PlayerDetailPage() {
                             <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
                         </CardContent>
                     </Card>
+                     <Card>
+                        <CardHeader><CardTitle>Informations du Tuteur</CardTitle></CardHeader>
+                        <CardContent className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
+                            <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
+                            <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader><CardTitle>Informations du Tuteur</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                        <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
-                        <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
-                    </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 gap-6">
                 <Card>
                     <CardHeader><CardTitle>Informations du Club</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-6">
                         <InfoRow icon={Shield} label="ID Joueur" value={<span className="font-mono text-xs">{player.id}</span>} />
+                        <InfoRow icon={Layers} label="Catégorie" value={player.category} />
+                        <InfoRow icon={Footprints} label="Poste" value={player.position} />
+                        <InfoRow icon={Shirt} label="N° Joueur" value={`#${player.playerNumber}`} />
                         <InfoRow icon={UserCheck} label="Entraîneur" value={coachName} />
+                        <InfoRow 
+                           icon={BadgeCheck} 
+                           label="Statut" 
+                           value={<Badge className={cn("text-xs", statusBadgeVariant(player.status))}>{player.status}</Badge>}
+                        />
                         <InfoRow icon={Calendar} label="Date d'entrée" value={isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
                         {player.clubExitDate && isValidDate(player.clubExitDate) && (
                            <InfoRow icon={Calendar} label="Date de sortie" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
