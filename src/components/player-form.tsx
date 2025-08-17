@@ -25,7 +25,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach, Payment, Transaction } from "@/types"
 import { Loader2, Upload, Eye, EyeOff } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-is-mobile"
 import { Label } from "./ui/label"
 import { Separator } from "./ui/separator"
 
@@ -45,7 +45,7 @@ const playerFormSchema = z.object({
   guardianName: z.string().min(1, "Le nom du tuteur est requis."),
   guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
   position: z.string({ required_error: "Veuillez sélectionner un poste." }),
-  playerNumber: z.coerce.number().min(1, "Le numéro de joueur est requis."),
+  playerNumber: z.coerce.number().optional().nullable(),
   clubEntryDate: z.string().min(1, "Une date d'entrée est requise."),
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
@@ -124,7 +124,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       guardianName: player?.guardianName || '',
       guardianPhone: player?.guardianPhone || '',
       position: player?.position || '',
-      playerNumber: player?.playerNumber || '' as any,
+      playerNumber: player?.playerNumber || null,
       clubEntryDate: dateToInputFormat(player?.clubEntryDate),
       clubExitDate: dateToInputFormat(player?.clubExitDate),
       coachId: player?.coachId || null,
@@ -218,6 +218,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
 
       const newPlayerData = {
         ...playerData,
+        playerNumber: data.playerNumber || 0,
         photoUrl: data.photoUrl || null,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
@@ -551,7 +552,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                           <FormItem>
                             <FormLabel>N° Joueur</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} value={field.value ?? ''} disabled={isSubmitting}/>
+                              <Input type="number" placeholder="10" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.valueAsNumber)} value={field.value ?? ''} disabled={isSubmitting}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -734,3 +735,5 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       </Form>
   )
 }
+
+    
