@@ -8,12 +8,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode}) {
 
     React.useEffect(() => {
         // This effect runs only on the client, after the isMobile value is determined.
-        if (isMobile) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [isMobile]);
+        // The forced dark mode on mobile was causing layout issues.
+        // Removing this logic to allow consistent theme handling across devices.
+        document.documentElement.classList.remove('dark');
+    }, []);
 
     return <>{children}</>;
 }
