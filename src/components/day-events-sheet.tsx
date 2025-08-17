@@ -115,7 +115,7 @@ export function DayEventsSheet({ open, onOpenChange, date, events, onAddEvent, o
                                             </h3>
                                             <div className="flex items-center gap-4">
                                               <p className={cn("text-sm font-medium", eventTypeColors[event.type])}>{event.type}</p>
-                                              {event.type === 'Match' && event.result && (
+                                              {event.type === 'Match' && event.result && event.result.trim() !== '0' && (
                                                 <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-600">
                                                   <Trophy className="w-4 h-4" />
                                                   <span>{event.result}</span>
