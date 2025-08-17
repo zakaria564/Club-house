@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Cell } from "recharts"
 import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -15,7 +15,7 @@ import AddPlayerDialog from "@/components/add-player-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
-import { differenceInDays, isAfter, isSameMonth, isToday, startOfMonth, format } from 'date-fns';
+import { differenceInDays, isAfter, isSameMonth, isToday, startOfMonth, format, parseISO, isValid } from 'date-fns';
 import { fr } from "date-fns/locale"
 import { collection, onSnapshot, query, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -25,6 +25,9 @@ import { Badge } from "@/components/ui/badge"
 
 const chartConfig = {
   players: {
+    label: "Joueurs",
+  },
+  desktop: {
     label: "Joueurs",
     color: "hsl(var(--chart-1))",
   },
@@ -205,6 +208,7 @@ export default function Dashboard() {
         .map(category => ({
             category,
             players: categoryCounts[category] || 0,
+            fill: "hsl(var(--chart-1))",
         }))
         .filter(item => item.players > 0);
   }, [activePlayers]);
@@ -440,18 +444,33 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
-                    <CartesianGrid vertical={false} />
+                     <defs>
+                        <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-desktop)" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="var(--color-desktop)" stopOpacity={0.1}/>
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
                     <XAxis
                       dataKey="category"
                       tickLine={false}
                       tickMargin={10}
                       axisLine={false}
+                      stroke="hsl(var(--muted-foreground))"
                     />
-                    <YAxis allowDecimals={false} />
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                    <Bar dataKey="players" fill="var(--color-players)" radius={8} />
+                    <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))"/>
+                    <ChartTooltip 
+                        cursor={false} 
+                        content={
+                            <ChartTooltipContent 
+                                labelClassName="font-bold text-foreground" 
+                                className="border-border bg-background/80 backdrop-blur-sm"
+                            />
+                        } 
+                    />
+                    <Bar dataKey="players" radius={[8, 8, 0, 0]} fill="url(#fillPlayers)" />
                   </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -510,17 +529,3 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
     </>
   );
 }
-
-    
-
-    
-
-    
-
-
-
-    
-
-    
-
-    
