@@ -45,14 +45,22 @@ const playerFormSchema = z.object({
   guardianName: z.string().min(1, "Le nom du tuteur est requis."),
   guardianPhone: z.string().min(1, "Le téléphone du tuteur est requis."),
   position: z.string({ required_error: "Veuillez sélectionner un poste." }),
-  playerNumber: z.union([z.coerce.number().positive().int(), z.nan(), z.literal("")]).optional().nullable(),
+  playerNumber: z.union([z.coerce.number().positive().int().optional().nullable(), z.nan(), z.literal("")]),
   clubEntryDate: z.string().min(1, "Une date d'entrée est requise."),
   clubExitDate: z.string().optional().nullable(),
   coachId: z.string().optional().nullable(),
   medicalCertificateUrl: z.string().url("L'URL du certificat doit être valide.").optional().or(z.literal('')),
-  initialTotalAmount: z.coerce.number().optional(),
-  initialAdvanceAmount: z.coerce.number().optional(),
-})
+  initialTotalAmount: z.coerce.number({ required_error: "Le montant total est requis." }).positive("Le montant doit être positif."),
+  initialAdvanceAmount: z.coerce.number({ required_error: "L'avance est requise." }).min(0, "L'avance ne peut être négative."),
+}).refine(data => {
+    if (data.initialAdvanceAmount !== undefined && data.initialTotalAmount !== undefined) {
+        return data.initialAdvanceAmount <= data.initialTotalAmount;
+    }
+    return true;
+}, {
+    message: "L'avance ne peut pas dépasser le montant total.",
+    path: ["initialAdvanceAmount"],
+});
 
 
 type PlayerFormValues = z.infer<typeof playerFormSchema>
@@ -105,10 +113,12 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
 
   const [playerId] = React.useState(() => player?.id || doc(collection(db, "players")).id);
   
-  const dynamicPlayerFormSchema = playerFormSchema;
+  // Define a separate schema for editing to make payment fields optional
+  const editPlayerFormSchema = playerFormSchema.omit({ initialTotalAmount: true, initialAdvanceAmount: true });
 
-  
-  const defaultValues = React.useMemo(() => ({
+  const form = useForm<PlayerFormValues>({
+    resolver: zodResolver(player ? editPlayerFormSchema : playerFormSchema),
+    defaultValues: {
       firstName: player?.firstName || '',
       lastName: player?.lastName || '',
       gender: player?.gender || "Homme" as const,
@@ -124,24 +134,43 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       guardianName: player?.guardianName || '',
       guardianPhone: player?.guardianPhone || '',
       position: player?.position || '',
-      playerNumber: player?.playerNumber || null,
+      playerNumber: player?.playerNumber || undefined,
       clubEntryDate: dateToInputFormat(player?.clubEntryDate),
       clubExitDate: dateToInputFormat(player?.clubExitDate),
-      coachId: player?.coachId || null,
+      coachId: player?.coachId || undefined,
       medicalCertificateUrl: player?.medicalCertificateUrl || '',
       initialTotalAmount: 300,
-      initialAdvanceAmount: 0,
-  }), [player]);
-
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(dynamicPlayerFormSchema),
-    defaultValues,
+      initialAdvanceAmount: undefined,
+    },
     mode: "onChange",
   });
   
   React.useEffect(() => {
-      form.reset(defaultValues);
-  }, [defaultValues, form]);
+    if (player) {
+      form.reset({
+        firstName: player.firstName || '',
+        lastName: player.lastName || '',
+        gender: player.gender || "Homme" as const,
+        email: player.email || '',
+        dateOfBirth: dateToInputFormat(player.dateOfBirth),
+        category: player.category || '',
+        status: player.status || 'En forme' as const,
+        photoUrl: player.photoUrl || '',
+        address: player.address || '',
+        city: player.city || '',
+        country: player.country || '',
+        phone: player.phone || '',
+        guardianName: player.guardianName || '',
+        guardianPhone: player.guardianPhone || '',
+        position: player.position || '',
+        playerNumber: player.playerNumber || undefined,
+        clubEntryDate: dateToInputFormat(player.clubEntryDate),
+        clubExitDate: dateToInputFormat(player.clubExitDate),
+        coachId: player.coachId || undefined,
+        medicalCertificateUrl: player.medicalCertificateUrl || '',
+      });
+    }
+  }, [player, form]);
 
 
   React.useEffect(() => {
@@ -204,16 +233,6 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
           return;
       }
 
-      if (!player && (data.initialAdvanceAmount ?? 0) > (data.initialTotalAmount ?? 300)) {
-         toast({
-              variant: "destructive",
-              title: "Montant invalide",
-              description: "L'avance ne peut pas être supérieure au montant total.",
-          });
-          setIsSubmitting(false);
-          return;
-      }
-      
       const { initialTotalAmount, initialAdvanceAmount, ...playerData } = data;
 
       const newPlayerData = {
@@ -232,8 +251,8 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       batch.set(playerDocRef, newPlayerData, { merge: true });
       
       if (!player) {
-          const total = initialTotalAmount || 300;
-          const advance = initialAdvanceAmount || 0;
+          const total = initialTotalAmount as number;
+          const advance = initialAdvanceAmount as number;
           const remaining = total - advance;
           const status: Payment['status'] = remaining <= 0 ? 'Paid' : 'Pending';
 
@@ -552,7 +571,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                           <FormItem>
                             <FormLabel>N° Joueur</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} disabled={isSubmitting}/>
+                              <Input type="number" placeholder="10" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ''} disabled={isSubmitting}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -700,7 +719,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                                 <FormItem>
                                     <FormLabel>Montant total (DH)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.valueAsNumber)} value={field.value ?? ''} />
+                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -713,7 +732,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
                                 <FormItem>
                                     <FormLabel>Avance payée (DH)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.valueAsNumber)} value={field.value ?? ''} />
+                                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -735,5 +754,3 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       </Form>
   )
 }
-
-    
