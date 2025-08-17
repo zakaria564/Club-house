@@ -79,11 +79,11 @@ const statusTranslations: { [key in Payment['status']]: string } = {
 
 const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
     const content = (
-        <div className="flex items-start gap-3 text-sm">
-            <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-            <div className="grid grid-cols-[auto,1fr] gap-x-2 flex-grow">
+        <div className="flex items-start text-sm">
+            <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
+            <div className="ml-3 flex-grow">
                 <span className="font-semibold text-gray-800 dark:text-gray-200">{label}:</span>
-                <span className="text-muted-foreground truncate">{value}</span>
+                <span className="ml-2 text-muted-foreground">{value}</span>
             </div>
         </div>
     );
