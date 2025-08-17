@@ -53,8 +53,8 @@ const basePlayerFormSchema = z.object({
 });
 
 const newPlayerFormSchema = basePlayerFormSchema.extend({
-  initialTotalAmount: z.coerce.number({ required_error: "Le montant total est requis." }).positive("Le montant doit être positif."),
-  initialAdvanceAmount: z.coerce.number({ required_error: "L'avance est requise." }).min(0, "L'avance ne peut être négative."),
+  initialTotalAmount: z.coerce.number({ required_error: "Le montant total est requis." }).positive("Le montant total doit être positif."),
+  initialAdvanceAmount: z.coerce.number({ required_error: "L'avance est requise." }).positive("L'avance doit être supérieure à 0."),
 }).refine(data => {
     return data.initialAdvanceAmount <= data.initialTotalAmount;
 }, {
