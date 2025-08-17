@@ -228,7 +228,7 @@ export default function PlayerDetailPage() {
             </CardHeader>
             <CardContent className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col space-y-8">
                         <div>
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
                             <div className="space-y-3">
@@ -240,7 +240,7 @@ export default function PlayerDetailPage() {
                                 <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
                             </div>
                         </div>
-                        <div className="mt-8">
+                        <div>
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
                             <div className="space-y-3">
                                 <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
