@@ -185,7 +185,7 @@ export default function Dashboard() {
     
     const currentTotalCoaches = coaches.length;
     const currentActiveCoaches = coaches.filter(c => c.status === 'Actif').length;
-    const currentInactiveCoaches = coaches.filter(c => c.status === 'Inactif').length;
+    const currentInactiveCoaches = coaches.filter(c => c.status === 'Inactif');
 
 
     return {
@@ -195,7 +195,7 @@ export default function Dashboard() {
         unavailablePlayers: { count: currentUnavailablePlayers.length, players: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         totalCoaches: currentTotalCoaches,
         activeCoaches: currentActiveCoaches,
-        inactiveCoaches: currentInactiveCoaches,
+        inactiveCoaches: { count: currentInactiveCoaches.length, coaches: currentInactiveCoaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })) },
         upcomingEvents: currentUpcomingEvents,
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
@@ -291,17 +291,18 @@ export default function Dashboard() {
     )
 };
 
-const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title: string, data: { count: number, players: {id: string, name: string}[] }, icon: React.ElementType, iconColor: string, description: string }) => {
+const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType }: { title: string, data: { count: number, members: {id: string, name: string}[] }, icon: React.ElementType, iconColor: string, description: string, memberType: 'player' | 'coach' }) => {
   const router = useRouter();
 
-  const handlePlayerClick = (playerId: string) => {
-    router.push(`/players/${playerId}`);
+  const handleMemberClick = (memberId: string) => {
+    const path = memberType === 'player' ? 'players' : 'coaches';
+    router.push(`/${path}/${memberId}`);
   };
 
   return (
     <Popover>
-        <PopoverTrigger asChild>
-            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <PopoverTrigger asChild disabled={data.count === 0}>
+            <Card className={cn(data.count > 0 && "cursor-pointer hover:shadow-md transition-shadow")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     <Icon className={cn("h-4 w-4", data.count > 0 ? iconColor : "text-green-500")} />
@@ -314,16 +315,16 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
         </PopoverTrigger>
         {data.count > 0 && (
             <PopoverContent className="w-auto max-w-[300px]">
-                <div className="text-sm font-semibold mb-2">Liste des joueurs</div>
+                <div className="text-sm font-semibold mb-2">Liste</div>
                 <div className="space-y-1">
-                    {data.players.map(player => (
+                    {data.members.map(member => (
                         <Button 
-                            key={player.id} 
+                            key={member.id} 
                             variant="ghost" 
                             className="w-full justify-start h-auto p-1.5 text-xs text-muted-foreground"
-                            onClick={() => handlePlayerClick(player.id)}
+                            onClick={() => handleMemberClick(member.id)}
                         >
-                            {player.name}
+                            {member.name}
                         </Button>
                     ))}
                 </div>
@@ -399,24 +400,27 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
             </Card>
             <StatusCard 
                 title="Blessés"
-                data={injuredPlayers}
+                data={{ count: injuredPlayers.count, members: injuredPlayers.players }}
                 icon={AlertTriangle}
                 iconColor="text-destructive"
                 description="à l'infirmerie"
+                memberType="player"
             />
             <StatusCard 
                 title="Suspendus"
-                data={suspendedPlayers}
+                data={{ count: suspendedPlayers.count, members: suspendedPlayers.players }}
                 icon={Ban}
                 iconColor="text-amber-500"
                 description="sous sanction"
+                memberType="player"
             />
             <StatusCard 
                 title="Indisponibles"
-                data={unavailablePlayers}
+                data={{ count: unavailablePlayers.count, members: unavailablePlayers.players }}
                 icon={UserX}
                 iconColor={unavailablePlayers.count > 0 ? "text-destructive" : "text-green-500"}
                 description="pour autres raisons"
+                memberType="player"
             />
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -440,16 +444,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
                     <p className="text-xs text-muted-foreground">actuellement en poste</p>
                 </CardContent>
             </Card>
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Entraîneurs Inactifs</CardTitle>
-                    <UserMinus className={cn("h-4 w-4", inactiveCoaches > 0 ? 'text-destructive' : 'text-muted-foreground')} />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{inactiveCoaches}</div>
-                    <p className="text-xs text-muted-foreground">hors du service actif</p>
-                </CardContent>
-            </Card>
+            <StatusCard 
+                title="Entraîneurs Inactifs"
+                data={{ count: inactiveCoaches.count, members: inactiveCoaches.coaches }}
+                icon={UserMinus}
+                iconColor="text-destructive"
+                description="hors du service actif"
+                memberType="coach"
+            />
         </div>
       </div>
        <div className="mt-6 grid grid-cols-1 lg:grid-cols-7 gap-6">
@@ -574,5 +576,6 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
     </>
   );
 }
+
 
 
