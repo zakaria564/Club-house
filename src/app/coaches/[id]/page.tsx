@@ -159,9 +159,9 @@ export default function CoachDetailPage() {
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg">
-            <CardHeader className="flex flex-row items-center gap-6 border-b pb-4">
+            <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center">
               {coach.photoUrl ? (
-                <a href={coach.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image" className="flex-shrink-0">
+                <a href={coach.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
                   <Avatar className="w-32 h-32">
                       <AvatarImage src={coach.photoUrl} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
                       <AvatarFallback className="text-4xl">
@@ -171,7 +171,7 @@ export default function CoachDetailPage() {
                   </Avatar>
                 </a>
               ) : (
-                  <Avatar className="w-32 h-32 flex-shrink-0">
+                  <Avatar className="w-32 h-32">
                       <AvatarImage src={undefined} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
                       <AvatarFallback className="text-4xl">
                           {coach.firstName?.[0]}
@@ -179,11 +179,11 @@ export default function CoachDetailPage() {
                       </AvatarFallback>
                   </Avatar>
               )}
-              <div className="flex-grow">
+              <div className="space-y-1">
                   <CardTitle className="text-3xl font-headline">
                       {coach.firstName} {coach.lastName}
                   </CardTitle>
-                  <CardDescription className="text-xl text-muted-foreground mt-1">
+                  <CardDescription className="text-xl text-muted-foreground">
                       {coach.specialty}
                   </CardDescription>
               </div>

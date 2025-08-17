@@ -200,9 +200,9 @@ export default function PlayerDetailPage() {
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg">
-             <CardHeader className="flex flex-row items-center gap-6 border-b pb-4">
+             <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center">
                  {player.photoUrl ? (
-                    <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image" className="flex-shrink-0">
+                    <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
                         <Avatar className="w-32 h-32">
                             <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
                             <AvatarFallback className="text-4xl">
@@ -212,7 +212,7 @@ export default function PlayerDetailPage() {
                         </Avatar>
                     </a>
                   ) : (
-                    <Avatar className="w-32 h-32 flex-shrink-0">
+                    <Avatar className="w-32 h-32">
                         <AvatarImage src={undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
                         <AvatarFallback className="text-4xl">
                         {player.firstName?.[0]}
@@ -220,7 +220,7 @@ export default function PlayerDetailPage() {
                         </AvatarFallback>
                     </Avatar>
                   )}
-                  <div className="flex-grow space-y-2">
+                  <div className="space-y-1">
                     <CardTitle className="text-3xl font-headline">
                         {player.firstName} {player.lastName}
                     </CardTitle>
@@ -240,7 +240,7 @@ export default function PlayerDetailPage() {
                                 <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
                             </div>
                         </div>
-                        <div>
+                        <div className="mt-8">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
                             <div className="space-y-3">
                                 <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
