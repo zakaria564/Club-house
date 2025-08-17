@@ -181,109 +181,89 @@ export default function PlayerDetailPage() {
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg">
-            <CardHeader className="flex flex-col items-center text-center">
-              {player.photoUrl ? (
-                <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
-                    <Avatar className="w-32 h-32 mb-4">
-                        <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
+             <CardHeader className="flex flex-row items-center gap-6">
+                 {player.photoUrl ? (
+                    <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image" className="flex-shrink-0">
+                        <Avatar className="w-32 h-32">
+                            <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
+                            <AvatarFallback className="text-4xl">
+                            {player.firstName?.[0]}
+                            {player.lastName?.[0]}
+                            </AvatarFallback>
+                        </Avatar>
+                    </a>
+                  ) : (
+                    <Avatar className="w-32 h-32 flex-shrink-0">
+                        <AvatarImage src={undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
                         <AvatarFallback className="text-4xl">
                         {player.firstName?.[0]}
                         {player.lastName?.[0]}
                         </AvatarFallback>
                     </Avatar>
-                </a>
-              ) : (
-                <Avatar className="w-32 h-32 mb-4">
-                    <AvatarImage src={undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
-                    <AvatarFallback className="text-4xl">
-                    {player.firstName?.[0]}
-                    {player.lastName?.[0]}
-                    </AvatarFallback>
-                </Avatar>
-              )}
-              <CardTitle className="text-3xl font-headline">
-                {player.firstName} {player.lastName}
-              </CardTitle>
+                  )}
+                  <div className="flex-grow space-y-2">
+                    <CardTitle className="text-3xl font-headline">
+                        {player.firstName} {player.lastName}
+                    </CardTitle>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                           <Layers className="h-4 w-4" />
+                           <span>{player.category}</span>
+                        </div>
+                         <div className="flex items-center gap-2">
+                           <Shirt className="h-4 w-4" />
+                           <span>#{player.playerNumber}</span>
+                        </div>
+                         <div className="flex items-center gap-2">
+                           <Footprints className="h-4 w-4" />
+                           <span>{player.position}</span>
+                        </div>
+                         <div className="flex items-center gap-2">
+                           <UserCheck className="h-4 w-4" />
+                           <span>{coachName}</span>
+                        </div>
+                    </div>
+                  </div>
             </CardHeader>
             <CardContent className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
-                  <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
-                    <span className="font-medium">Date de naissance:</span>
-                    <span>{isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</span>
-                    <span className="font-medium">Genre:</span>
-                    <span>{player.gender}</span>
-                    <span className="font-medium">Nationalité:</span>
-                    <span>{player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country}</span>
-                    <span className="font-medium">Adresse:</span>
-                     <a href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 hover:underline">
-                      <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
-                      <span>{`${player.address}, ${player.city}`}</span>
-                    </a>
-                    <span className="font-medium">Téléphone:</span>
-                    <a href={`tel:${player.phone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.phone}</a>
-                    <span className="font-medium">Email:</span>
-                    <a href={`mailto:${player.email}`} className="truncate hover:underline flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{player.email}</a>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2">Informations du Tuteur</h3>
-                  <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
-                    <span className="font-medium">Nom du tuteur:</span>
-                    <span>{player.guardianName}</span>
-                    <span className="font-medium">Téléphone du tuteur:</span>
-                    <a href={`tel:${player.guardianPhone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.guardianPhone}</a>
-                  </div>
-                </div>
-              </div>
-              
-              <Separator className="my-6" />
-
-              <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2">Informations du Club</h3>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                      <div className="flex items-center gap-3">
-                        <Layers className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                            <span className="font-medium">Catégorie:</span>
-                            <p>{player.category}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold border-b pb-2">Informations Personnelles</h3>
+                        <div className="space-y-2 text-sm">
+                            <p><strong className="font-medium">Date de naissance:</strong> {isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'PPP', { locale: fr }) : 'Date invalide'}</p>
+                            <p><strong className="font-medium">Genre:</strong> {player.gender}</p>
+                            <p><strong className="font-medium">Nationalité:</strong> {player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country}</p>
+                             <a href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 hover:underline">
+                                <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+                                <div>
+                                    <strong className="font-medium block">Adresse:</strong>
+                                    <span>{`${player.address}, ${player.city}`}</span>
+                                </div>
+                            </a>
                         </div>
-                      </div>
-                       <div className="flex items-center gap-3">
-                        <Shirt className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                            <span className="font-medium">N° Joueur:</span>
-                            <p>#{player.playerNumber}</p>
+                    </div>
+                     <div className="space-y-4">
+                        <h3 className="text-lg font-semibold border-b pb-2">Contact</h3>
+                        <div className="space-y-2 text-sm">
+                             <a href={`tel:${player.phone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.phone}</a>
+                             <a href={`mailto:${player.email}`} className="truncate hover:underline flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{player.email}</a>
+                             <div className="pt-2">
+                                <strong className="font-medium block text-base">Tuteur Légal</strong>
+                                <p>{player.guardianName}</p>
+                                <a href={`tel:${player.guardianPhone}`} className="hover:underline flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{player.guardianPhone}</a>
+                             </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Footprints className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                            <span className="font-medium">Poste:</span>
-                            <p>{player.position}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                         <UserCheck className="h-4 w-4 text-muted-foreground" />
-                         <div>
-                            <span className="font-medium">Entraîneur:</span>
-                            <p>{coachName}</p>
+                    </div>
+                     <div className="space-y-4">
+                        <h3 className="text-lg font-semibold border-b pb-2">Club</h3>
+                         <div className="space-y-2 text-sm">
+                            <p><strong className="font-medium">Date d'entrée:</strong> {isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</p>
+                            {player.clubExitDate && isValidDate(player.clubExitDate) && (
+                                <p><strong className="font-medium">Date de sortie:</strong> {format(player.clubExitDate, 'PPP', { locale: fr })}</p>
+                            )}
                          </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium">Date d'entrée:</span>
-                        <span>{isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'}</span>
-                      </div>
-                      {player.clubExitDate && isValidDate(player.clubExitDate) && (
-                        <div className="flex items-center gap-3">
-                            <span className="font-medium">Date de sortie:</span>
-                            <span>{format(player.clubExitDate, 'PPP', { locale: fr })}</span>
-                        </div>
-                       )}
-                   </div>
+                    </div>
                 </div>
-
             </CardContent>
           </Card>
       </div>
