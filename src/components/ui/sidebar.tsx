@@ -263,7 +263,25 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  return null;
+  const { toggleSidebar } = useSidebar()
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      className={cn("md:hidden", className)}
+      onClick={(e) => {
+        toggleSidebar()
+        if (onClick) {
+          onClick(e)
+        }
+      }}
+      {...props}
+    >
+      <PanelLeft />
+      <span className="sr-only">Toggle Sidebar</span>
+    </Button>
+  )
 })
 SidebarTrigger.displayName = "SidebarTrigger"
 
@@ -720,5 +738,6 @@ export {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarProvider,
+  SidebarTrigger,
   useSidebar,
 }
