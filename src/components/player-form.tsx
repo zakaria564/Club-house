@@ -204,7 +204,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
           return;
       }
 
-      if (!player && (data.initialAdvanceAmount ?? 0) > (data.initialTotalAmount ?? 0)) {
+      if (!player && (data.initialAdvanceAmount ?? 0) > (data.initialTotalAmount ?? 300)) {
          toast({
               variant: "destructive",
               title: "Montant invalide",
@@ -734,5 +734,3 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       </Form>
   )
 }
-
-    
