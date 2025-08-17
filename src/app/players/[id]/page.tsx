@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers, User, Calendar, Home, Shield, UserSquare } from 'lucide-react';
-import type { Player, Payment, Coach, ClubEvent } from '@/types';
+import type { Player, Coach, Payment, ClubEvent } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,6 +26,7 @@ const PrintHeader = () => (
         <div className="text-center mt-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
             <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
+            <p className="text-2xl font-semibold mt-4 text-gray-800">Fiche d'identification du joueur</p>
         </div>
         <hr className="w-full mt-4 border-t-2 border-primary" />
     </div>
@@ -56,7 +57,7 @@ const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, 
     const content = (
         <div className="flex items-start text-sm">
             <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
-            <div className="ml-3 grid grid-cols-[auto,1fr] gap-x-2 w-full">
+            <div className="ml-3 grid grid-cols-[150px,1fr] gap-x-2 w-full print:grid-cols-[200px,1fr]">
                 <span className="font-semibold text-gray-800 dark:text-gray-200">{label}:</span>
                 <span className="text-muted-foreground break-words">{value}</span>
             </div>
@@ -113,7 +114,7 @@ export default function PlayerDetailPage() {
 
   const handlePrint = () => {
     const originalTitle = document.title;
-    document.title = "Fiche d'identification du joueur";
+    document.title = `Fiche - ${player?.firstName} ${player?.lastName}`;
     window.print();
     document.title = originalTitle;
   };
@@ -155,10 +156,10 @@ export default function PlayerDetailPage() {
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg">
-             <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center">
+             <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center print:flex-row print:text-left print:items-end">
                  {player.photoUrl ? (
                     <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
-                        <Avatar className="w-32 h-32">
+                        <Avatar className="w-32 h-32 print:w-40 print:h-40">
                             <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
                             <AvatarFallback className="text-4xl">
                             {player.firstName?.[0]}
@@ -167,7 +168,7 @@ export default function PlayerDetailPage() {
                         </Avatar>
                     </a>
                   ) : (
-                    <Avatar className="w-32 h-32">
+                    <Avatar className="w-32 h-32 print:w-40 print:h-40">
                         <AvatarImage src={undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
                         <AvatarFallback className="text-4xl">
                         {player.firstName?.[0]}
@@ -175,16 +176,19 @@ export default function PlayerDetailPage() {
                         </AvatarFallback>
                     </Avatar>
                   )}
-                  <div className="space-y-1">
-                    <CardTitle className="text-3xl font-headline">
+                  <div className="space-y-1 print:ml-6">
+                    <CardTitle className="text-3xl font-headline print:text-4xl">
                         {player.firstName} {player.lastName}
                     </CardTitle>
+                    <CardDescription className="text-xl text-muted-foreground print:text-2xl">
+                      {player.position}
+                    </CardDescription>
                   </div>
             </CardHeader>
-            <CardContent className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <CardContent className="mt-6 print:mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 print:grid-cols-1 print:gap-y-8">
                     <div className="space-y-8">
-                       <div className="space-y-4">
+                        <div className="space-y-4">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
                             <div className="space-y-3">
                                 <InfoRow icon={User} label="Genre" value={player.gender} />
