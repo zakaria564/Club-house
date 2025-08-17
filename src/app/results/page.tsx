@@ -65,7 +65,7 @@ const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] =>
     const playerMap = new Map(players.map(p => [p.id, `${p.firstName} ${p.lastName}`]));
 
     players.forEach(player => {
-        combined.set(player.id, { name: `${player.firstName} ${player.lastName}`, goals: 0, assists: 0 });
+        combined.set(player.id, { name: `${player.firstName} ${p.lastName}`, goals: 0, assists: 0 });
     });
 
     events.forEach(event => {
@@ -264,8 +264,8 @@ export default function ResultsPage() {
                                                 <div className="font-semibold text-lg">{match.title}</div>
                                                 <div className="text-2xl font-bold text-primary">{match.result}</div>
                                             </div>
-                                            <div className={cn("text-sm mt-1 capitalize text-muted-foreground")}>
-                                                {format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })}
+                                            <div className="text-sm mt-1 capitalize text-muted-foreground">
+                                                {`${format(new Date(match.date), "eeee d MMMM yyyy", { locale: fr })} à ${match.time}`}
                                             </div>
                                             {(Array.isArray(match.scorers) && match.scorers.length > 0) || (Array.isArray(match.assists) && match.assists.length > 0) ? (
                                                 <>
@@ -415,5 +415,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
         </div>
     )
 }
+
+    
 
     
