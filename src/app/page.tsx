@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield, Ban, UserX } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield, Ban, UserX, UserCheck, UserMinus } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -139,6 +139,9 @@ export default function Dashboard() {
     injuredPlayers,
     suspendedPlayers,
     unavailablePlayers,
+    totalCoaches,
+    activeCoaches,
+    inactiveCoaches,
     upcomingEvents,
     paidMemberships,
     activePlayers,
@@ -179,12 +182,20 @@ export default function Dashboard() {
     const currentPendingCoachPayments = currentPendingPayments.filter(p => p.paymentType === 'salary');
     
     const currentMonthString = format(today, "MMMM yyyy", { locale: fr });
+    
+    const currentTotalCoaches = coaches.length;
+    const currentActiveCoaches = coaches.filter(c => c.status === 'Actif').length;
+    const currentInactiveCoaches = coaches.filter(c => c.status === 'Inactif').length;
+
 
     return {
         totalPlayers: currentTotalPlayers,
         injuredPlayers: { count: currentInjuredPlayers.length, players: currentInjuredPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         suspendedPlayers: { count: currentSuspendedPlayers.length, players: currentSuspendedPlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
         unavailablePlayers: { count: currentUnavailablePlayers.length, players: currentUnavailablePlayers.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })) },
+        totalCoaches: currentTotalCoaches,
+        activeCoaches: currentActiveCoaches,
+        inactiveCoaches: currentInactiveCoaches,
         upcomingEvents: currentUpcomingEvents,
         paidMemberships: currentPaidMemberships,
         activePlayers: currentActivePlayers,
@@ -193,7 +204,7 @@ export default function Dashboard() {
         pendingPlayerPayments: currentPendingPlayerPayments,
         pendingCoachPayments: currentPendingCoachPayments
     };
-  }, [players, payments, events]);
+  }, [players, coaches, payments, events]);
 
   
   const chartData = React.useMemo(() => {
@@ -374,38 +385,72 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
             </Button>
         </div>
       </PageHeader>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Effectif Total</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
-          </CardContent>
-        </Card>
-        <StatusCard 
-            title="Blessés"
-            data={injuredPlayers}
-            icon={AlertTriangle}
-            iconColor="text-destructive"
-            description="à l'infirmerie"
-        />
-        <StatusCard 
-            title="Suspendus"
-            data={suspendedPlayers}
-            icon={Ban}
-            iconColor="text-amber-500"
-            description="sous sanction"
-        />
-        <StatusCard 
-            title="Indisponibles"
-            data={unavailablePlayers}
-            icon={UserX}
-            iconColor="text-destructive"
-            description="pour autres raisons"
-        />
+      <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Effectif Joueurs</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{totalPlayers}</div>
+                <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
+            </CardContent>
+            </Card>
+            <StatusCard 
+                title="Blessés"
+                data={injuredPlayers}
+                icon={AlertTriangle}
+                iconColor="text-destructive"
+                description="à l'infirmerie"
+            />
+            <StatusCard 
+                title="Suspendus"
+                data={suspendedPlayers}
+                icon={Ban}
+                iconColor="text-amber-500"
+                description="sous sanction"
+            />
+            <StatusCard 
+                title="Indisponibles"
+                data={unavailablePlayers}
+                icon={UserX}
+                iconColor={unavailablePlayers.count > 0 ? "text-destructive" : "text-green-500"}
+                description="pour autres raisons"
+            />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Effectif Entraîneurs</CardTitle>
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{totalCoaches}</div>
+                    <p className="text-xs text-muted-foreground">entraîneurs au total</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Entraîneurs Actifs</CardTitle>
+                    <UserCheck className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{activeCoaches}</div>
+                    <p className="text-xs text-muted-foreground">actuellement en poste</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Entraîneurs Inactifs</CardTitle>
+                    <UserMinus className={cn("h-4 w-4", inactiveCoaches > 0 ? 'text-destructive' : 'text-muted-foreground')} />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{inactiveCoaches}</div>
+                    <p className="text-xs text-muted-foreground">hors du service actif</p>
+                </CardContent>
+            </Card>
+        </div>
       </div>
        <div className="mt-6 grid grid-cols-1 lg:grid-cols-7 gap-6">
         <Card className="lg:col-span-2">
@@ -529,4 +574,5 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description }: { title
     </>
   );
 }
+
 
