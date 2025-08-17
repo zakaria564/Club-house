@@ -227,10 +227,10 @@ export default function PlayerDetailPage() {
                   </div>
             </CardHeader>
             <CardContent className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <InfoRow icon={User} label="Genre" value={player.gender} />
                             <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
                             <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
@@ -241,7 +241,7 @@ export default function PlayerDetailPage() {
                     </div>
                      <div className="space-y-4">
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Club</h3>
-                         <div className="space-y-3">
+                         <div className="space-y-4">
                             <InfoRow icon={Shield} label="ID Joueur" value={player.id} />
                             <InfoRow icon={Layers} label="Catégorie" value={player.category} />
                             <InfoRow icon={Shirt} label="N° Joueur" value={`#${player.playerNumber}`} />
@@ -254,7 +254,7 @@ export default function PlayerDetailPage() {
                          </div>
                         <Separator className="my-4"/>
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
                             <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
                         </div>
