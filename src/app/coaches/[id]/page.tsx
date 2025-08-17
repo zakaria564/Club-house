@@ -2,10 +2,10 @@
 'use client';
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Edit, Printer, Mail, Phone, User, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, Edit, Printer, Mail, Phone, User, Calendar, MapPin, BadgeCheck, Cake } from 'lucide-react';
 import type { Coach } from '@/types';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import AddCoachDialog from '@/components/add-coach-dialog';
@@ -13,7 +13,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Image from 'next/image';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, Timestamp, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
 
 
 const PrintHeader = () => (
@@ -41,19 +42,19 @@ const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime
 
 const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
     const content = (
-        <div className="flex items-start text-sm">
+         <div className="flex items-start text-sm">
             <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
             <div className="ml-3 flex-grow">
-                <span className="font-semibold text-gray-800 dark:text-gray-200">{label}:</span>
-                <span className="ml-2 text-muted-foreground">{value}</span>
+                <p className="font-semibold text-gray-800 dark:text-gray-200">{label}</p>
+                <p className="text-muted-foreground break-words">{value as string}</p>
             </div>
         </div>
     );
 
     if (href) {
-        return <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline">{content}</a>
+        return <a href={href} target="_blank" rel="noopener noreferrer" className="group/inforow block rounded-md -m-2 p-2 hover:bg-muted/50">{content}</a>
     }
-    return content;
+    return <div className="rounded-md -m-2 p-2">{content}</div>;
 };
 
 
@@ -74,7 +75,6 @@ export default function CoachDetailPage() {
             setCoach(parseCoachDoc(doc));
         } else {
             console.error("No such coach!");
-            // Optionally redirect or show a not found message
         }
     });
 
@@ -91,11 +91,8 @@ export default function CoachDetailPage() {
   };
 
   if (!coach) {
-    return <div>Chargement du profil de l'entraîneur...</div>;
+    return <div className="text-center">Chargement du profil de l'entraîneur...</div>;
   }
-
-  const fullAddress = `${coach.city}, ${coach.country}`;
-  const encodedAddress = encodeURIComponent(fullAddress);
   
   return (
     <>
@@ -115,59 +112,46 @@ export default function CoachDetailPage() {
           </Button>
         </div>
       </PageHeader>
-      <div className="printable-area">
-          <PrintHeader />
-          <Card className="shadow-none border-0 print:border print:shadow-lg">
-            <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center">
-              {coach.photoUrl ? (
-                <a href={coach.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
-                  <Avatar className="w-32 h-32">
-                      <AvatarImage src={coach.photoUrl} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
-                      <AvatarFallback className="text-4xl">
-                          {coach.firstName?.[0]}
-                          {coach.lastName?.[0]}
-                      </AvatarFallback>
-                  </Avatar>
-                </a>
-              ) : (
-                  <Avatar className="w-32 h-32">
-                      <AvatarImage src={undefined} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
-                      <AvatarFallback className="text-4xl">
-                          {coach.firstName?.[0]}
-                          {coach.lastName?.[0]}
-                      </AvatarFallback>
-                  </Avatar>
-              )}
-              <div className="space-y-1">
-                  <CardTitle className="text-3xl font-headline">
-                      {coach.firstName} {coach.lastName}
-                  </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="mt-6">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
-                        <div className="space-y-3">
-                           <InfoRow icon={User} label="Âge" value={`${coach.age} ans`} />
-                           <InfoRow icon={User} label="Genre" value={coach.gender} />
-                           <InfoRow icon={MapPin} label="Adresse" value={`${coach.city}, ${coach.country}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
-                        </div>
-                    </div>
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Contact & Club</h3>
-                        <div className="space-y-3">
-                            <InfoRow icon={Mail} label="Email" value={coach.email} href={`mailto:${coach.email}`} />
-                            <InfoRow icon={Phone} label="Téléphone" value={coach.phone} href={`tel:${coach.phone}`} />
-                            <InfoRow icon={Calendar} label="Date d'entrée" value={isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
-                            {coach.clubExitDate && isValidDate(coach.clubExitDate) && (
-                               <InfoRow icon={Calendar} label="Date de sortie" value={format(coach.clubExitDate, 'PPP', { locale: fr })} />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </CardContent>
-          </Card>
+      <div className="printable-area space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-1 print:col-span-full">
+                <CardContent className="pt-6 flex flex-col items-center text-center">
+                    <a href={coach.photoUrl || '#'} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image" className={cn(!coach.photoUrl && "pointer-events-none")}>
+                      <Avatar className="w-32 h-32 print:w-40 print:h-40 border-4 border-background ring-4 ring-primary">
+                          <AvatarImage src={coach.photoUrl || ''} alt={`${coach.firstName} ${coach.lastName}`} data-ai-hint="coach profile" />
+                          <AvatarFallback className="text-4xl">
+                              {coach.firstName?.[0]}
+                              {coach.lastName?.[0]}
+                          </AvatarFallback>
+                      </Avatar>
+                    </a>
+                    <h2 className="text-2xl font-bold font-headline mt-4">{coach.firstName} {coach.lastName}</h2>
+                    <p className="text-muted-foreground">{coach.specialty}</p>
+                </CardContent>
+            </Card>
+            <div className="lg:col-span-2 space-y-6">
+                 <Card>
+                    <CardHeader><CardTitle>Informations & Contact</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
+                       <InfoRow icon={User} label="Genre" value={coach.gender} />
+                       <InfoRow icon={Cake} label="Âge" value={`${coach.age} ans`} />
+                       <InfoRow icon={MapPin} label="Adresse" value={`${coach.city}, ${coach.country}`} href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${coach.city}, ${coach.country}`)}`} />
+                       <InfoRow icon={Mail} label="Email" value={coach.email} href={`mailto:${coach.email}`} />
+                       <InfoRow icon={Phone} label="Téléphone" value={coach.phone} href={`tel:${coach.phone}`} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>Informations du Club</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
+                        <InfoRow icon={BadgeCheck} label="Spécialité" value={coach.specialty} />
+                        <InfoRow icon={Calendar} label="Date d'entrée" value={isValidDate(coach.clubEntryDate) ? format(coach.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
+                        {coach.clubExitDate && isValidDate(coach.clubExitDate) && (
+                           <InfoRow icon={Calendar} label="Date de sortie" value={format(coach.clubExitDate, 'PPP', { locale: fr })} />
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
       </div>
 
       <AddCoachDialog

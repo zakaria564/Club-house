@@ -4,20 +4,19 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers, User, Calendar, Home, Shield, UserSquare } from 'lucide-react';
-import type { Player, Coach, Payment, ClubEvent } from '@/types';
+import { ArrowLeft, Edit, Printer, UserCheck, MapPin, FileText, Phone, Mail, Shirt, Footprints, Layers, User, Calendar, Home, Shield, UserSquare, Cake, VenetianMask, BadgeCheck } from 'lucide-react';
+import type { Player, Coach } from '@/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import AddPlayerDialog from '@/components/add-player-dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
 
 
 const PrintHeader = () => (
@@ -53,21 +52,21 @@ const isValidUrl = (url: string | null | undefined): boolean => {
     }
 }
 
-const InfoRow = ({ icon: Icon, label, value, href }: { icon: React.ElementType, label: string, value: string | React.ReactNode, href?: string }) => {
+const InfoRow = ({ icon: Icon, label, value, href, className }: { icon: React.ElementType, label: string, value: React.ReactNode, href?: string, className?: string }) => {
     const content = (
-        <div className="flex items-start text-sm">
+        <div className={cn("flex items-start text-sm", className)}>
             <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
-            <div className="ml-3 grid grid-cols-[150px,1fr] gap-x-2 w-full print:grid-cols-[200px,1fr]">
-                <span className="font-semibold text-gray-800 dark:text-gray-200">{label}:</span>
-                <span className="text-muted-foreground break-words">{value}</span>
+            <div className="ml-3 flex-grow">
+                <p className="font-semibold text-gray-800 dark:text-gray-200">{label}</p>
+                <p className="text-muted-foreground break-words">{value}</p>
             </div>
         </div>
     );
 
     if (href) {
-        return <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline">{content}</a>
+        return <a href={href} target="_blank" rel="noopener noreferrer" className="group/inforow block rounded-md -m-2 p-2 hover:bg-muted/50">{content}</a>
     }
-    return content;
+    return <div className="rounded-md -m-2 p-2">{content}</div>;
 };
 
 
@@ -127,11 +126,19 @@ export default function PlayerDetailPage() {
   };
 
   if (!player) {
-    return <div>Chargement du profil du joueur...</div>;
+    return <div className="text-center">Chargement du profil du joueur...</div>;
+  }
+  
+  const statusBadgeVariant = (status: Player['status']) => {
+    switch(status) {
+        case 'En forme': return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800';
+        case 'Blessé': return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800';
+        case 'Suspendu': return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800';
+        case 'Indisponible': return 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100/80 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
+        default: return 'secondary';
+    }
   }
 
-  const fullAddress = `${player.address}, ${player.city}, ${player.country}`;
-  const encodedAddress = encodeURIComponent(fullAddress);
   const isCertificateUrlValid = isValidUrl(player.medicalCertificateUrl);
 
 
@@ -153,81 +160,67 @@ export default function PlayerDetailPage() {
             </Button>
           </div>
         </PageHeader>
-      <div className="printable-area">
-          <PrintHeader />
-          <Card className="shadow-none border-0 print:border print:shadow-lg">
-             <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center">
-                 {player.photoUrl ? (
-                    <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
-                        <Avatar className="w-32 h-32 print:w-40 print:h-40">
-                            <AvatarImage src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
-                            <AvatarFallback className="text-4xl">
-                            {player.firstName?.[0]}
-                            {player.lastName?.[0]}
-                            </AvatarFallback>
-                        </Avatar>
-                    </a>
-                  ) : (
-                    <Avatar className="w-32 h-32 print:w-40 print:h-40">
-                        <AvatarImage src={undefined} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
-                        <AvatarFallback className="text-4xl">
-                        {player.firstName?.[0]}
-                        {player.lastName?.[0]}
-                        </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div className="space-y-1 print:ml-6">
-                    <CardTitle className="text-3xl font-headline print:text-4xl">
-                        {player.firstName} {player.lastName}
-                    </CardTitle>
-                  </div>
-            </CardHeader>
-            <CardContent className="mt-6 print:mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 print:grid-cols-1 print:gap-y-4">
-                    <div className="print:mb-8">
-                        <div className="space-y-4">
-                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
-                             <div className="space-y-3">
-                                <InfoRow icon={User} label="Genre" value={player.gender} />
-                                <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
-                                <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocaine' : 'Marocain') : player.country} />
-                                <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
-                                <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
-                                <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
-                             </div>
+      <div className="printable-area space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-1 print:col-span-full">
+                    <CardContent className="pt-6 flex flex-col items-center text-center">
+                         <a href={player.photoUrl || '#'} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image" className={cn(!player.photoUrl && "pointer-events-none")}>
+                            <Avatar className="w-32 h-32 print:w-40 print:h-40 border-4 border-background ring-4 ring-primary">
+                                <AvatarImage src={player.photoUrl || ''} alt={`${player.firstName} ${player.lastName}`} data-ai-hint="player profile" />
+                                <AvatarFallback className="text-4xl">
+                                {player.firstName?.[0]}
+                                {player.lastName?.[0]}
+                                </AvatarFallback>
+                            </Avatar>
+                        </a>
+                        <h2 className="text-2xl font-bold font-headline mt-4">{player.firstName} {player.lastName}</h2>
+                        <p className="text-muted-foreground">{player.position}</p>
+                        <div className="mt-4 flex items-center gap-2">
+                             <Badge className={cn("text-xs", statusBadgeVariant(player.status))}>{player.status}</Badge>
+                             <Badge variant="secondary">{player.category}</Badge>
+                             <Badge variant="outline">#{player.playerNumber}</Badge>
                         </div>
-                        <div className="mt-8">
-                            <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
-                            <div className="space-y-3">
-                                <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
-                                <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
-                            </div>
-                        </div>
-                    </div>
-                     <div className="space-y-4">
-                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Club</h3>
-                         <div className="space-y-3">
-                            <InfoRow icon={Shield} label="ID Joueur" value={player.id} />
-                            <InfoRow icon={Layers} label="Catégorie" value={player.category} />
-                            <InfoRow icon={Shirt} label="N° Joueur" value={`#${player.playerNumber}`} />
-                            <InfoRow icon={Footprints} label="Poste" value={player.position} />
-                            <InfoRow icon={UserCheck} label="Entraîneur" value={coachName} />
-                            <InfoRow icon={Calendar} label="Date d'entrée" value={isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
-                            {player.clubExitDate && isValidDate(player.clubExitDate) && (
-                               <InfoRow icon={Calendar} label="Date de sortie" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
-                            )}
-                         </div>
-                    </div>
+                    </CardContent>
+                </Card>
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader><CardTitle>Informations Personnelles</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
+                            <InfoRow icon={VenetianMask} label="Genre" value={player.gender} />
+                            <InfoRow icon={Cake} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
+                            <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocaine' : 'Marocain') : player.country} />
+                            <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${player.address}, ${player.city}, ${player.country}`)}`} />
+                            <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
+                            <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
+                        </CardContent>
+                    </Card>
                 </div>
-            </CardContent>
-          </Card>
-      </div>
+            </div>
 
-      <div className="no-print space-y-8 mt-8">
-        <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Documents</h3>
-            <Card>
-              <CardContent className="pt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader><CardTitle>Informations du Tuteur</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
+                        <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>Informations du Club</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <InfoRow icon={Shield} label="ID Joueur" value={<span className="font-mono text-xs">{player.id}</span>} />
+                        <InfoRow icon={UserCheck} label="Entraîneur" value={coachName} />
+                        <InfoRow icon={Calendar} label="Date d'entrée" value={isValidDate(player.clubEntryDate) ? format(player.clubEntryDate, 'PPP', { locale: fr }) : 'Date invalide'} />
+                        {player.clubExitDate && isValidDate(player.clubExitDate) && (
+                           <InfoRow icon={Calendar} label="Date de sortie" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+            
+            <Card className="no-print">
+              <CardHeader><CardTitle>Documents</CardTitle></CardHeader>
+              <CardContent>
                 {player.medicalCertificateUrl ? (
                     isCertificateUrlValid ? (
                         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -258,9 +251,8 @@ export default function PlayerDetailPage() {
                 )}
               </CardContent>
             </Card>
-        </div>
-
       </div>
+
       <AddPlayerDialog
         key={player?.id || 'new'}
         open={isPlayerDialogOpen}
