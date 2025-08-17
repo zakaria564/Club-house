@@ -229,6 +229,12 @@ export default function PlayerDetailPage() {
             <CardContent className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-4">
+                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
+                        <div className="space-y-4">
+                            <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
+                            <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
+                        </div>
+                        <Separator className="my-4"/>
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
                         <div className="space-y-4">
                             <InfoRow icon={User} label="Genre" value={player.gender} />
@@ -252,12 +258,6 @@ export default function PlayerDetailPage() {
                                <InfoRow icon={Calendar} label="Date de sortie" value={format(player.clubExitDate, 'PPP', { locale: fr })} />
                             )}
                          </div>
-                        <Separator className="my-4"/>
-                        <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
-                        <div className="space-y-4">
-                            <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
-                            <InfoRow icon={Phone} label="Téléphone Tuteur" value={player.guardianPhone} href={`tel:${player.guardianPhone}`} />
-                        </div>
                     </div>
                 </div>
             </CardContent>
