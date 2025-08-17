@@ -190,7 +190,6 @@ export default function CoachDetailPage() {
             </CardHeader>
             <CardContent className="mt-6">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {/* Colonne de gauche */}
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
                         <div className="space-y-3">
@@ -199,7 +198,6 @@ export default function CoachDetailPage() {
                            <InfoRow icon={MapPin} label="Adresse" value={`${coach.city}, ${coach.country}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
                         </div>
                     </div>
-                     {/* Colonne de droite */}
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold border-b pb-2 mb-4">Contact & Club</h3>
                         <div className="space-y-3">
