@@ -156,7 +156,7 @@ export default function PlayerDetailPage() {
       <div className="printable-area">
           <PrintHeader />
           <Card className="shadow-none border-0 print:border print:shadow-lg">
-             <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center print:flex-row print:text-left print:items-end">
+             <CardHeader className="flex flex-col items-center gap-4 border-b pb-6 text-center">
                  {player.photoUrl ? (
                     <a href={player.photoUrl} target="_blank" rel="noopener noreferrer" title="Afficher et télécharger l'image">
                         <Avatar className="w-32 h-32 print:w-40 print:h-40">
@@ -186,20 +186,20 @@ export default function PlayerDetailPage() {
                   </div>
             </CardHeader>
             <CardContent className="mt-6 print:mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 print:grid-cols-1 print:gap-y-8">
-                    <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 print:grid-cols-1 print:gap-y-4">
+                    <div className="print:mb-8">
                         <div className="space-y-4">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations Personnelles</h3>
                             <div className="space-y-3">
                                 <InfoRow icon={User} label="Genre" value={player.gender} />
                                 <InfoRow icon={Calendar} label="Date de naissance" value={isValidDate(player.dateOfBirth) ? format(player.dateOfBirth, 'd MMMM yyyy', { locale: fr }) : 'Date invalide'} />
-                                <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocain' : 'Marocaine') : player.country} />
+                                <InfoRow icon={Home} label="Nationalité" value={player.country === 'Maroc' ? (player.gender === 'Homme' ? 'Marocaine' : 'Marocain') : player.country} />
                                 <InfoRow icon={MapPin} label="Adresse" value={`${player.address}, ${player.city}`} href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} />
                                 <InfoRow icon={Mail} label="Email" value={player.email} href={`mailto:${player.email}`} />
                                 <InfoRow icon={Phone} label="Téléphone" value={player.phone} href={`tel:${player.phone}`} />
                             </div>
                         </div>
-                        <div className="space-y-4">
+                        <div className="space-y-4 mt-8">
                             <h3 className="text-xl font-semibold border-b pb-2 mb-4">Informations du Tuteur</h3>
                             <div className="space-y-3">
                                 <InfoRow icon={UserSquare} label="Tuteur Légal" value={player.guardianName} />
