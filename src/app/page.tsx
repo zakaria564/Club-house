@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield, Ban, UserX } from "lucide-react"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -134,6 +134,8 @@ export default function Dashboard() {
   const {
     totalPlayers,
     injuredPlayers,
+    suspendedPlayers,
+    unavailablePlayers,
     upcomingEventsCount,
     upcomingMatches,
     upcomingTrainings,
@@ -151,6 +153,9 @@ export default function Dashboard() {
     
     const currentTotalPlayers = currentActivePlayers.length;
     const currentInjuredPlayers = currentActivePlayers.filter(p => p.status === 'Blessé').length;
+    const currentSuspendedPlayers = currentActivePlayers.filter(p => p.status === 'Suspendu').length;
+    const currentUnavailablePlayers = currentActivePlayers.filter(p => p.status === 'Indisponible').length;
+
     
     const currentPaidMemberships = payments.filter(p => 
         p.paymentType === 'membership' && 
@@ -171,6 +176,8 @@ export default function Dashboard() {
     return {
         totalPlayers: currentTotalPlayers,
         injuredPlayers: currentInjuredPlayers,
+        suspendedPlayers: currentSuspendedPlayers,
+        unavailablePlayers: currentUnavailablePlayers,
         upcomingEventsCount: currentUpcomingEvents.length,
         upcomingMatches: currentUpcomingMatches,
         upcomingTrainings: currentUpcomingTrainings,
@@ -319,25 +326,45 @@ export default function Dashboard() {
             </Button>
         </div>
       </PageHeader>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <Card className="md:col-span-1 lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nombre total de joueurs</CardTitle>
+            <CardTitle className="text-sm font-medium">Effectif Total</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPlayers}</div>
-            <p className="text-xs text-muted-foreground">joueurs actifs</p>
+            <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Joueurs blessés</CardTitle>
-            <AlertTriangle className={cn("h-4 w-4", injuredPlayers > 0 ? "text-destructive" : "text-green-500")} />
+            <CardTitle className="text-sm font-medium">Blessés</CardTitle>
+            <AlertTriangle className={cn("h-4 w-4", injuredPlayers > 0 ? "text-destructive" : "text-muted-foreground")} />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{injuredPlayers}</div>
-            <p className="text-xs text-muted-foreground">joueurs actuellement à l'infirmerie</p>
+            <p className="text-xs text-muted-foreground">à l'infirmerie</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Suspendus</CardTitle>
+            <Ban className={cn("h-4 w-4", suspendedPlayers > 0 ? "text-amber-500" : "text-muted-foreground")} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{suspendedPlayers}</div>
+            <p className="text-xs text-muted-foreground">sous sanction</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Indisponibles</CardTitle>
+            <UserX className={cn("h-4 w-4", unavailablePlayers > 0 ? "text-slate-500" : "text-muted-foreground")} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{unavailablePlayers}</div>
+            <p className="text-xs text-muted-foreground">pour autres raisons</p>
           </CardContent>
         </Card>
         <Card>
@@ -347,17 +374,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{upcomingEventsCount}</div>
-            <p className="text-xs text-muted-foreground">{upcomingMatches} matchs, {upcomingTrainings} entraînements</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Adhésions Payées</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{paidMemberships} / {totalPlayers}</div>
-            <p className="text-xs text-muted-foreground capitalize">paiements ce mois-ci ({monthString})</p>
+            <p className="text-xs text-muted-foreground">{upcomingMatches} m, {upcomingTrainings} e</p>
           </CardContent>
         </Card>
       </div>
@@ -439,5 +456,7 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
 
     
