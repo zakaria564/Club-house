@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck, Printer, FileText, Check } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, DollarSign, UserCheck, Printer } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { collection, onSnapshot, doc, deleteDoc, query, where, getDocs, writeBatch, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -369,7 +369,3 @@ export default function PlayersPage() {
     </>
   )
 }
-
-    
-
-    
