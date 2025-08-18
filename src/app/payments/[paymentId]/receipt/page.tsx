@@ -154,7 +154,7 @@ const ReceiptPage = () => {
           <div className="text-right flex-shrink-0">
             <h2 className="text-3xl font-bold text-gray-800 whitespace-nowrap">{isSalaryPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>
             <p className="text-gray-500">Référence #: {payment.id}</p>
-            <p className="text-gray-500">Date: {format(new Date(payment.date), 'd MMMM yyyy', { locale: fr })}</p>
+            <p className="text-gray-500 capitalize">Date: {format(new Date(payment.date), "eeee d MMMM yyyy 'à' HH:mm", { locale: fr })}</p>
           </div>
         </header>
 
@@ -239,5 +239,3 @@ export default function ReceiptPageWrapper() {
     </React.Suspense>
   )
 }
-
-    
