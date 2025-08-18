@@ -248,7 +248,7 @@ export default function Dashboard() {
     )
 };
 
-const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType, children }: { title: string, data?: { count: number, members: {id: string, name: string, category?: string, specialty?: string}[] }, icon: React.ElementType, iconColor?: string, description: string, memberType?: 'player' | 'coach', children?: React.ReactNode }) => {
+const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType, children, bgColor }: { title: string, data?: { count: number, members: {id: string, name: string, category?: string, specialty?: string}[] }, icon: React.ElementType, iconColor?: string, description: string, memberType?: 'player' | 'coach', children?: React.ReactNode, bgColor?: string }) => {
   const router = useRouter();
 
   const handleMemberClick = (memberId: string) => {
@@ -263,7 +263,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
   return (
     <Popover>
         <PopoverTrigger asChild disabled={count === 0 && !children}>
-            <Card className={cn("flex flex-col bg-secondary/50", (count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
+            <Card className={cn("flex flex-col", bgColor, (count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     <Icon className={cn("h-4 w-4", count > 0 ? iconColor : "text-muted-foreground")} />
@@ -357,6 +357,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 data={{ count: totalPlayers, members: [] }}
                 icon={Users}
                 description="joueurs actifs"
+                bgColor="bg-blue-50 dark:bg-blue-900/30"
             />
             <StatusCard 
                 title="Blessés"
@@ -365,6 +366,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 iconColor="text-destructive"
                 description="à l'infirmerie"
                 memberType="player"
+                bgColor="bg-blue-50 dark:bg-blue-900/30"
             />
             <StatusCard 
                 title="Suspendus"
@@ -373,6 +375,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 iconColor="text-amber-500"
                 description="sous sanction"
                 memberType="player"
+                bgColor="bg-blue-50 dark:bg-blue-900/30"
             />
             <StatusCard 
                 title="Indisponibles"
@@ -381,12 +384,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 iconColor={unavailablePlayers.count > 0 ? "text-destructive" : "text-green-500"}
                 description="pour autres raisons"
                 memberType="player"
+                bgColor="bg-blue-50 dark:bg-blue-900/30"
             />
              <StatusCard 
                 title="Effectif Entraîneurs"
                 data={{ count: totalCoaches, members: [] }}
                 icon={Shield}
                 description="entraîneurs au total"
+                bgColor="bg-green-50 dark:bg-green-900/30"
             />
             <StatusCard 
                 title="Entraîneurs Actifs"
@@ -395,6 +400,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 iconColor="text-green-500"
                 description="actuellement en poste"
                 memberType="coach"
+                bgColor="bg-green-50 dark:bg-green-900/30"
             />
             <StatusCard 
                 title="Entraîneurs Inactifs"
@@ -403,12 +409,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 iconColor="text-destructive"
                 description="hors du service actif"
                 memberType="coach"
+                bgColor="bg-green-50 dark:bg-green-900/30"
             />
             <StatusCard
                 title="Événements à venir"
                 icon={Calendar}
                 data={{count: upcomingEvents.length, members: []}}
                 description={upcomingEvents.length > 0 ? "prochains événements" : "aucun événement"}
+                bgColor="bg-secondary/50"
             >
                 {upcomingEvents.length > 0 ? (
                     <div className="space-y-2">
@@ -437,6 +445,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 data={{ count: pendingPayments.length, members: [] }}
                 iconColor="text-destructive"
                 description={pendingPayments.length > 0 ? `${pendingPayments.length} membre(s) concerné(s)` : "Tous les paiements sont à jour"}
+                bgColor="bg-secondary/50"
             >
                 {pendingPayments.length > 0 ? (
                     <div className="space-y-4">
@@ -471,11 +480,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 icon={Wallet}
                 data={{count: paidMemberships, members: []}}
                 iconColor="text-green-500"
+                bgColor="bg-secondary/50"
             />
       </div>
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} />
     </>
   );
 }
+
+    
 
     
