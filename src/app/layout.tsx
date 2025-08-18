@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins, PT_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,11 @@ const fontPTSans = PT_Sans({
 export const metadata: Metadata = {
   title: "Clubhouse Hub",
   description: "Gérez votre club de sport en toute simplicité.",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#3F51B5",
 };
 
 export default function RootLayout({
@@ -49,11 +54,4 @@ export default function RootLayout({
               <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
                 {children}
               </main>
-            </SidebarInset>
-          </SidebarProvider>
-          <Toaster />
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-}
+            </Sidebar
