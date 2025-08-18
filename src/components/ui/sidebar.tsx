@@ -250,7 +250,7 @@ const SidebarTrigger = React.forwardRef<
       ref={ref}
       variant="ghost"
       size="icon"
-      className={cn(className, "lg:hidden")}
+      className={cn(className)}
       onClick={(e) => {
         toggleSidebar()
         if (onClick) {
@@ -270,7 +270,27 @@ const SidebarRail = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button">
 >(({ className, ...props }, ref) => {
-  return null;
+  const { isMobile, toggleSidebar, state } = useSidebar()
+
+  if (isMobile) return null
+
+  return (
+    <button
+      ref={ref}
+      data-state={state}
+      onClick={toggleSidebar}
+      className={cn(
+        "group/rail absolute z-10 flex h-8 w-1.5 cursor-pointer items-center justify-center rounded-full bg-transparent outline-none ring-sidebar-ring transition-all focus-visible:ring-2",
+        "right-0 translate-x-1/2 data-[state=expanded]:bg-transparent",
+        "data-[state=collapsed]:right-1/2 data-[state=collapsed]:bg-transparent",
+        "hover:w-2 hover:bg-sidebar-primary/20 data-[state=expanded]:hover:bg-sidebar-primary/20",
+        className
+      )}
+      {...props}
+    >
+      <div className="h-4 w-0.5 rounded-full bg-sidebar-primary transition-all group-hover/rail:bg-sidebar-primary" />
+    </button>
+  )
 })
 SidebarRail.displayName = "SidebarRail"
 
@@ -719,6 +739,7 @@ export {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarProvider,
+  SidebarRail,
   SidebarTrigger,
   useSidebar,
 }
