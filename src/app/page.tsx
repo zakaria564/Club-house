@@ -262,44 +262,50 @@ export default function Dashboard() {
     )
 };
 
-const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType }: { title: string, data: { count: number, members: {id: string, name: string, category?: string, specialty?: string}[] }, icon: React.ElementType, iconColor: string, description: string, memberType: 'player' | 'coach' }) => {
+const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberType, children }: { title: string, data?: { count: number, members: {id: string, name: string, category?: string, specialty?: string}[] }, icon: React.ElementType, iconColor?: string, description: string, memberType?: 'player' | 'coach', children?: React.ReactNode }) => {
   const router = useRouter();
 
   const handleMemberClick = (memberId: string) => {
+    if (!memberType) return;
     const path = memberType === 'player' ? 'players' : 'coaches';
     router.push(`/${path}/${memberId}`);
   };
+  
+  const count = data ? data.count : 0;
+  const members = data ? data.members : [];
 
   return (
     <Popover>
-        <PopoverTrigger asChild disabled={data.count === 0}>
-            <Card className={cn(data.count > 0 && "cursor-pointer hover:shadow-md transition-shadow")}>
+        <PopoverTrigger asChild disabled={count === 0 && !children}>
+            <Card className={cn((count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                    <Icon className={cn("h-4 w-4", data.count > 0 ? iconColor : "text-green-500")} />
+                    <Icon className={cn("h-4 w-4", count > 0 ? iconColor : "text-muted-foreground")} />
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
-                    <div className="text-xl font-bold">{data.count}</div>
+                    <div className="text-xl font-bold">{count}</div>
                     <p className="text-xs text-muted-foreground">{description}</p>
                 </CardContent>
             </Card>
         </PopoverTrigger>
-        {data.count > 0 && (
+        {(count > 0 || children) && (
             <PopoverContent className="w-auto max-w-[300px]">
                 <div className="text-sm font-semibold mb-2">Liste</div>
                 <div className="space-y-1">
-                    {data.members.map(member => (
-                        <Button 
-                            key={member.id} 
-                            variant="ghost" 
-                            className="w-full justify-start h-auto p-1.5 text-left"
-                            onClick={() => handleMemberClick(member.id)}
-                        >
-                            <span className="font-medium mr-2">{member.name}</span>
-                            {memberType === 'player' && member.category && <span className="text-xs text-muted-foreground">({member.category})</span>}
-                             {memberType === 'coach' && member.specialty && <span className="text-xs text-muted-foreground">({member.specialty})</span>}
-                        </Button>
-                    ))}
+                    {children ? children : (
+                        members.map(member => (
+                            <Button 
+                                key={member.id} 
+                                variant="ghost" 
+                                className="w-full justify-start h-auto p-1.5 text-left"
+                                onClick={() => handleMemberClick(member.id)}
+                            >
+                                <span className="font-medium mr-2">{member.name}</span>
+                                {memberType === 'player' && member.category && <span className="text-xs text-muted-foreground">({member.category})</span>}
+                                {memberType === 'coach' && member.specialty && <span className="text-xs text-muted-foreground">({member.specialty})</span>}
+                            </Button>
+                        ))
+                    )}
                 </div>
             </PopoverContent>
         )}
@@ -361,16 +367,12 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
       </PageHeader>
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
-                <CardTitle className="text-sm font-medium">Effectif Joueurs</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-                <div className="text-xl font-bold">{totalPlayers}</div>
-                <p className="text-xs text-muted-foreground">joueurs actifs dans le club</p>
-            </CardContent>
-            </Card>
+            <StatusCard 
+                title="Effectif Joueurs"
+                data={{ count: totalPlayers, members: [] }}
+                icon={Users}
+                description="joueurs actifs"
+            />
             <StatusCard 
                 title="Blessés"
                 data={{ count: injuredPlayers.count, members: injuredPlayers.members }}
@@ -395,16 +397,12 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 description="pour autres raisons"
                 memberType="player"
             />
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
-                    <CardTitle className="text-sm font-medium">Effectif Entraîneurs</CardTitle>
-                    <Shield className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                    <div className="text-xl font-bold">{totalCoaches}</div>
-                    <p className="text-xs text-muted-foreground">entraîneurs au total</p>
-                </CardContent>
-            </Card>
+             <StatusCard 
+                title="Effectif Entraîneurs"
+                data={{ count: totalCoaches, members: [] }}
+                icon={Shield}
+                description="entraîneurs au total"
+            />
             <StatusCard 
                 title="Entraîneurs Actifs"
                 data={{ count: activeCoaches.count, members: activeCoaches.members }}
@@ -421,35 +419,33 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 description="hors du service actif"
                 memberType="coach"
             />
-            <Card className="col-span-2 lg:col-span-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
-                    <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                    {upcomingEvents.length > 0 ? (
-                        <div className="space-y-2">
-                            {upcomingEvents.slice(0,2).map(event => (
-                                <div key={event.id}>
-                                    <Link 
-                                        href={`/schedule?date=${format(event.date, 'yyyy-MM-dd')}`}
-                                        className="block p-1 -m-1 rounded-md hover:bg-muted/50 text-xs"
-                                    >
-                                        <p className="font-semibold truncate">{event.title}</p>
-                                        <p className="text-muted-foreground capitalize">
-                                            {format(event.date, "eee d MMM", { locale: fr })} - {event.time}
-                                        </p>
-                                    </Link>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-xs text-center text-muted-foreground py-2">
-                            <p>Aucun événement.</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            <StatusCard
+                title="Événements à venir"
+                icon={Calendar}
+                data={{count: upcomingEvents.length, members: []}}
+                description={upcomingEvents.length > 0 ? "prochains événements" : "aucun événement"}
+            >
+                {upcomingEvents.length > 0 ? (
+                    <div className="space-y-2">
+                        {upcomingEvents.slice(0,5).map(event => (
+                            <Link 
+                                key={event.id}
+                                href={`/schedule?date=${format(event.date, 'yyyy-MM-dd')}`}
+                                className="block p-1.5 -m-1.5 rounded-md hover:bg-muted/50 text-xs"
+                            >
+                                <p className="font-semibold truncate">{event.title}</p>
+                                <p className="text-muted-foreground capitalize">
+                                    {format(event.date, "eee d MMM", { locale: fr })} - {event.time}
+                                </p>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                     <div className="text-xs text-center text-muted-foreground py-2">
+                        <p>Aucun événement.</p>
+                    </div>
+                )}
+            </StatusCard>
         </div>
         <Card>
             <CardHeader>
@@ -510,3 +506,4 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     
 
     
+
