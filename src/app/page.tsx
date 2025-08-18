@@ -452,8 +452,8 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             />
         </div>
       </div>
-       <div className="mt-6 grid grid-cols-1 lg:grid-cols-6 gap-6">
-        <Card className="lg:col-span-6 xl:col-span-2">
+       <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
             <CardHeader>
                 <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
             </CardHeader>
@@ -482,46 +482,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 )}
             </CardContent>
         </Card>
-        <Card className="lg:col-span-6 xl:col-span-2">
-          <CardHeader>
-            <CardTitle>Répartition des joueurs</CardTitle>
-            <CardDescription>Nombre de joueurs par catégorie.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
-               <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
-                     <defs>
-                        <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-desktop)" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="var(--color-desktop)" stopOpacity={0.1}/>
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      stroke="hsl(var(--muted-foreground))"
-                    />
-                    <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))"/>
-                    <ChartTooltip 
-                        cursor={false} 
-                        content={
-                            <ChartTooltipContent 
-                                labelClassName="font-bold text-foreground" 
-                                className="border-border bg-background/80 backdrop-blur-sm"
-                            />
-                        } 
-                    />
-                    <Bar dataKey="players" radius={[8, 8, 0, 0]} fill="url(#fillPlayers)" />
-                  </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-6 xl:col-span-2">
+        <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     {pendingPayments.length > 0 ? (
