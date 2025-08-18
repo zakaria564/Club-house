@@ -151,7 +151,7 @@ export default function PlayersPage() {
 
   const filteredPlayers = players.filter(player => {
     const searchLower = searchQuery.toLowerCase();
-    const nameMatch = `${player.firstName} ${player.lastName}`.toLowerCase().includes(searchLower);
+    const nameMatch = `${player.firstName} ${player.lastName}`.toLowerCase().startsWith(searchLower);
     const categoryMatch = selectedCategory ? player.category === selectedCategory : true;
     const positionMatch = selectedPosition ? player.position === selectedPosition : true;
     
