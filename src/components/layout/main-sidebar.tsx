@@ -94,9 +94,9 @@ export function MainSidebar() {
             <ClubLogo className="w-10 h-10" />
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold font-headline">
-              clubcaos2011
+              Clubhouse Hub
             </h2>
-            <p className="text-sm text-muted-foreground">ligue du grand Casablanca de football</p>
+            <p className="text-sm text-sidebar-primary-foreground/80">Gestion de club</p>
           </div>
         </div>
       </SidebarHeader>
@@ -198,10 +198,10 @@ export function MainSidebar() {
                     <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-sm font-medium truncate">Mon Compte</span>
+                    <span className="text-sm font-medium truncate">{user?.email ?? 'Mon Compte'}</span>
                   </div>
                 </div>
-                <MoreHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                <MoreHorizontal className="w-5 h-5 text-sidebar-primary-foreground/70 flex-shrink-0" />
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 mb-2 ml-2">
