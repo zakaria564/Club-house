@@ -80,7 +80,6 @@ export default function Dashboard() {
   
   const [openCombobox, setOpenCombobox] = React.useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = React.useState<string | null>(null)
-  const [visiblePaymentId, setVisiblePaymentId] = React.useState<string | null>(null);
 
 
   React.useEffect(() => {
@@ -212,15 +211,6 @@ export default function Dashboard() {
     };
     return <Badge className={cn("text-xs", variants[status])}>{translations[status]}</Badge>
   }
-
-  const handleStatusClick = (e: React.MouseEvent, paymentId: string) => {
-    e.stopPropagation(); // Prevents the navigation from firing
-    if (visiblePaymentId === paymentId) {
-        setVisiblePaymentId(null); // Hide if already visible
-    } else {
-        setVisiblePaymentId(paymentId); // Show if hidden
-    }
-  };
   
   const PaymentList = ({ payments, type }: { payments: Payment[], type: 'player' | 'coach' }) => {
     const playerMap = new Map(players.map(p => [p.id, p]));
@@ -243,14 +233,10 @@ export default function Dashboard() {
                                 {player && <span className="text-xs text-muted-foreground">{player.category}</span>}
                                 {coach && <span className="text-xs text-muted-foreground">{coach.specialty}</span>}
                             </div>
-                            <div 
-                                className="text-right flex-shrink-0 ml-2"
-                                onClick={(e) => handleStatusClick(e, payment.id)}
-                            >
-                                {visiblePaymentId === payment.id ? (
-                                    <div className="font-semibold text-destructive">{payment.remaining.toFixed(2)} DH</div>
-                                ) : (
-                                    statusBadge(payment.status)
+                            <div className="text-right flex-shrink-0 ml-2 text-sm">
+                                {statusBadge(payment.status)}
+                                {payment.remaining > 0 && (
+                                     <span className="font-semibold text-destructive ml-2">{payment.remaining.toFixed(2)} DH</span>
                                 )}
                             </div>
                         </div>
@@ -277,12 +263,12 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
   return (
     <Popover>
         <PopoverTrigger asChild disabled={count === 0 && !children}>
-            <Card className={cn((count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
+            <Card className={cn("flex flex-col", (count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     <Icon className={cn("h-4 w-4", count > 0 ? iconColor : "text-muted-foreground")} />
                 </CardHeader>
-                <CardContent className="p-3 pt-0">
+                <CardContent className="p-3 pt-0 flex-grow">
                     <div className="text-xl font-bold">{count}</div>
                     <p className="text-xs text-muted-foreground">{description}</p>
                 </CardContent>
@@ -366,7 +352,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
         </div>
       </PageHeader>
       <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-5">
             <StatusCard 
                 title="Effectif Joueurs"
                 data={{ count: totalPlayers, members: [] }}
@@ -486,3 +472,4 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     </>
   );
 }
+
