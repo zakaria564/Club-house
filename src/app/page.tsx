@@ -359,7 +359,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             </Button>
         </div>
       </PageHeader>
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
@@ -421,38 +421,36 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 description="hors du service actif"
                 memberType="coach"
             />
+            <Card className="col-span-2 lg:col-span-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
+                    <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent className="p-3 pt-0">
+                    {upcomingEvents.length > 0 ? (
+                        <div className="space-y-2">
+                            {upcomingEvents.slice(0,2).map(event => (
+                                <div key={event.id}>
+                                    <Link 
+                                        href={`/schedule?date=${format(event.date, 'yyyy-MM-dd')}`}
+                                        className="block p-1 -m-1 rounded-md hover:bg-muted/50 text-xs"
+                                    >
+                                        <p className="font-semibold truncate">{event.title}</p>
+                                        <p className="text-muted-foreground capitalize">
+                                            {format(event.date, "eee d MMM", { locale: fr })} - {event.time}
+                                        </p>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-xs text-center text-muted-foreground py-2">
+                            <p>Aucun événement.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </div>
-      </div>
-       <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {upcomingEvents.length > 0 ? (
-                    <ul className="space-y-3">
-                        {upcomingEvents.map(event => (
-                            <li key={event.id}>
-                                <Link 
-                                    href={`/schedule?date=${format(event.date, 'yyyy-MM-dd')}`}
-                                    className="block p-2 -m-2 rounded-md hover:bg-muted/50"
-                                >
-                                    <p className="font-semibold truncate">{event.title}</p>
-                                    <p className="text-xs text-muted-foreground capitalize">
-                                        {format(event.date, "eeee d MMMM", { locale: fr })} - {event.time}
-                                    </p>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <div className="text-sm text-center text-muted-foreground py-4">
-                        <Calendar className="mx-auto h-8 w-8 mb-2" />
-                        <p>Aucun événement à venir.</p>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
