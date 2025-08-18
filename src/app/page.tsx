@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield, Ban, UserX, UserCheck, UserMinus } from "lucide-react"
+import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield, Ban, UserX, UserCheck, UserMinus, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Player, Payment, ClubEvent, Coach } from '@/types'
@@ -351,8 +351,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             </Button>
         </div>
       </PageHeader>
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <StatusCard 
                 title="Effectif Joueurs"
                 data={{ count: totalPlayers, members: [] }}
@@ -466,10 +465,15 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                     </div>
                 )}
             </StatusCard>
-        </div>
+            <StatusCard
+                title="Paiements du mois"
+                description={`pour ${monthString}`}
+                icon={Wallet}
+                data={{count: paidMemberships, members: []}}
+                iconColor="text-green-500"
+            />
       </div>
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} />
     </>
   );
 }
-

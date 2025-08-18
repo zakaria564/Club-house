@@ -1,10 +1,11 @@
+
 {
   "name": "Clubhouse Hub",
-  "short_name": "Clubhouse Hub",
+  "short_name": "ClubhouseHub",
   "description": "Gérez votre club de sport en toute simplicité.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#E8EAF6",
+  "background_color": "#FFFFFF",
   "theme_color": "#3F51B5",
   "icons": [
     {

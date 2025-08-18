@@ -32,5 +32,8 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'liguefootcasa.ma',
       },
-      {
-        protocol
+    ],
+  },
+};
+
+export default pwaConfig(nextConfig);
