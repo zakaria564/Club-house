@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 
 
 const categoryOrder: Player['category'][] = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"];
@@ -157,6 +158,23 @@ export default function PlayersPage() {
     return nameMatch && categoryMatch && positionMatch;
   });
   
+  const groupedPlayers = React.useMemo(() => {
+    return filteredPlayers.reduce((acc, player) => {
+      const category = player.category;
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(player);
+      return acc;
+    }, {} as Record<string, Player[]>);
+  }, [filteredPlayers]);
+  
+  const sortedCategories = Object.keys(groupedPlayers).sort((a, b) => {
+    const indexA = categoryOrder.indexOf(a as Player['category']);
+    const indexB = categoryOrder.indexOf(b as Player['category']);
+    return indexA - indexB;
+  });
+  
   const coachMap = new Map(coaches.map(c => [c.id, `${c.firstName} ${c.lastName}`]));
 
   const statusBadgeVariant = (status: Player['status']) => {
@@ -248,85 +266,95 @@ export default function PlayersPage() {
         </CardHeader>
         <CardContent>
            {filteredPlayers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {filteredPlayers.map(player => {
-                        const coachName = player.coachId ? coachMap.get(player.coachId) : null;
-                        return (
-                            <Card 
-                            key={player.id} 
-                            className="flex flex-col transition-all"
-                            >
-                            <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewPlayer(player.id)}>
-                                <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
-                                <div onClick={(e) => e.stopPropagation()}>
-                                    <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                        aria-haspopup="true"
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-8 w-8"
-                                        >
-                                        <MoreHorizontal className="h-4 w-4" />
-                                        <span className="sr-only">Ouvrir le menu</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => handleEditPlayer(player)}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        Modifier
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>
-                                        <DollarSign className="mr-2 h-4 w-4" />
-                                        Voir les paiements
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(player.id)}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            Supprimer
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-4 pt-0 flex-grow space-y-2">
-                                <div className="text-sm text-muted-foreground cursor-pointer hover:underline" onClick={() => handleViewPlayer(player.id)}>#{player.playerNumber} - {player.position}</div>
-                                <div className="flex items-center justify-between">
-                                  <Badge variant="secondary">{player.category}</Badge>
-                                  
-                                   <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                         <Button 
-                                            variant="outline"
-                                            className={cn("whitespace-nowrap h-auto py-0.5 px-2.5 text-xs border-dashed", statusBadgeVariant(player.status))}
-                                         >
-                                            {player.status}
-                                         </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                         <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
-                                         <DropdownMenuRadioGroup value={player.status} onValueChange={(newStatus) => handleStatusChange(player.id, newStatus as Player['status'])}>
-                                            {playerStatuses.map(status => (
-                                               <DropdownMenuRadioItem key={status} value={status}>
-                                                  {status}
-                                               </DropdownMenuRadioItem>
-                                            ))}
-                                         </DropdownMenuRadioGroup>
-                                      </DropdownMenuContent>
-                                   </DropdownMenu>
-                                </div>
-                                {coachName && (
-                                <div className="text-xs text-muted-foreground flex items-center gap-1 truncate pt-2">
-                                    <UserCheck className="h-3 w-3 shrink-0" />
-                                    <span className="truncate">Entraîneur: {coachName}</span>
-                                </div>
-                                )}
-                            </CardContent>
-                            </Card>
-                        )
-                        })}
-                  </div>
+                <div className="space-y-6">
+                  {sortedCategories.map(category => (
+                      <div key={category}>
+                          <div className="flex items-center gap-4 mb-4">
+                            <h3 className="text-xl font-semibold font-headline text-primary">{category}</h3>
+                            <Separator className="flex-1" />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                              {groupedPlayers[category].map(player => {
+                                  const coachName = player.coachId ? coachMap.get(player.coachId) : null;
+                                  return (
+                                      <Card 
+                                      key={player.id} 
+                                      className="flex flex-col transition-all"
+                                      >
+                                      <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewPlayer(player.id)}>
+                                          <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
+                                          <div onClick={(e) => e.stopPropagation()}>
+                                              <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                  <Button
+                                                  aria-haspopup="true"
+                                                  size="icon"
+                                                  variant="ghost"
+                                                  className="h-8 w-8"
+                                                  >
+                                                  <MoreHorizontal className="h-4 w-4" />
+                                                  <span className="sr-only">Ouvrir le menu</span>
+                                                  </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end">
+                                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                  <DropdownMenuItem onClick={() => handleEditPlayer(player)}>
+                                                  <Edit className="mr-2 h-4 w-4" />
+                                                  Modifier
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuItem onClick={() => handleViewPayments(player.id)}>
+                                                  <DollarSign className="mr-2 h-4 w-4" />
+                                                  Voir les paiements
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuSeparator />
+                                                  <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(player.id)}>
+                                                      <Trash2 className="mr-2 h-4 w-4" />
+                                                      Supprimer
+                                                  </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                              </DropdownMenu>
+                                          </div>
+                                      </CardHeader>
+                                      <CardContent className="p-4 pt-0 flex-grow space-y-2">
+                                          <div className="text-sm text-muted-foreground cursor-pointer hover:underline" onClick={() => handleViewPlayer(player.id)}>#{player.playerNumber} - {player.position}</div>
+                                          <div className="flex items-center justify-between">
+                                            <Badge variant="secondary">{player.category}</Badge>
+                                            
+                                             <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                   <Button 
+                                                      variant="outline"
+                                                      className={cn("whitespace-nowrap h-auto py-0.5 px-2.5 text-xs border-dashed", statusBadgeVariant(player.status))}
+                                                   >
+                                                      {player.status}
+                                                   </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                   <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                                                   <DropdownMenuRadioGroup value={player.status} onValueChange={(newStatus) => handleStatusChange(player.id, newStatus as Player['status'])}>
+                                                      {playerStatuses.map(status => (
+                                                         <DropdownMenuRadioItem key={status} value={status}>
+                                                            {status}
+                                                         </DropdownMenuRadioItem>
+                                                      ))}
+                                                   </DropdownMenuRadioGroup>
+                                                </DropdownMenuContent>
+                                             </DropdownMenu>
+                                          </div>
+                                          {coachName && (
+                                          <div className="text-xs text-muted-foreground flex items-center gap-1 truncate pt-2">
+                                              <UserCheck className="h-3 w-3 shrink-0" />
+                                              <span className="truncate">Entraîneur: {coachName}</span>
+                                          </div>
+                                          )}
+                                      </CardContent>
+                                      </Card>
+                                  )
+                                  })}
+                            </div>
+                      </div>
+                  ))}
+                </div>
            ) : (
                 <div className="text-center py-10 text-muted-foreground">
                     <p>Aucun joueur ne correspond à vos critères de recherche.</p>
@@ -359,5 +387,4 @@ export default function PlayersPage() {
     </>
   )
 }
-
     
