@@ -1,13 +1,11 @@
 
 "use client"
 import * as React from "react"
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Cell } from "recharts"
 import Link from 'next/link'
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
 import { Activity, Calendar, DollarSign, Users, Search, PlusCircle, ChevronsUpDown, Check, AlertTriangle, Shield, Ban, UserX, UserCheck, UserMinus } from "lucide-react"
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Player, Payment, ClubEvent, Coach } from '@/types'
@@ -22,16 +20,6 @@ import { db } from "@/lib/firebase"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 
-
-const chartConfig = {
-  players: {
-    label: "Joueurs",
-  },
-  desktop: {
-    label: "Joueurs",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig
 
 const parsePlayerDoc = (doc: any): Player => {
   const data = doc.data();
@@ -207,23 +195,6 @@ export default function Dashboard() {
   }, [players, coaches, payments, events]);
 
   
-  const chartData = React.useMemo(() => {
-    const categoryCounts: { [key: string]: number } = {};
-    activePlayers.forEach(player => {
-        categoryCounts[player.category] = (categoryCounts[player.category] || 0) + 1;
-    });
-
-    const categoriesOrder: Player['category'][] = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"];
-    
-    return categoriesOrder
-        .map(category => ({
-            category,
-            players: categoryCounts[category] || 0,
-            fill: "hsl(var(--chart-1))",
-        }))
-        .filter(item => item.players > 0);
-  }, [activePlayers]);
-
   const navigateToPayment = (payment: Payment) => {
     router.push(`/payments?memberId=${payment.memberId}`);
   };
@@ -536,3 +507,8 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
   );
 }
 
+
+
+    
+
+    
