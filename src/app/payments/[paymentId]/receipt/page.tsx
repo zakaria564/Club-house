@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Image from 'next/image';
 
-import type { Payment, Player, Coach } from '@/types';
+import type { Payment, Player, Coach, Transaction } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 
@@ -38,6 +38,7 @@ const parsePaymentDoc = (doc: any): Payment => {
     ...data,
     id: doc.id,
     date: (data.date as Timestamp)?.toDate(),
+    history: Array.isArray(data.history) ? data.history.map((t: any) => ({ ...t, date: t.date.toDate() })) : [],
   } as Payment;
 }
 
@@ -199,6 +200,30 @@ const ReceiptPage = () => {
             </tbody>
           </table>
         </section>
+
+        {/* History Section */}
+        {payment.history && payment.history.length > 1 && (
+             <section className="my-8">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">Historique des versements</h3>
+                <table className="w-full text-left">
+                    <thead>
+                    <tr className="bg-gray-100">
+                        <th className="p-3 font-semibold text-gray-600">Date du versement</th>
+                        <th className="p-3 font-semibold text-gray-600 text-right">Montant versé</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {payment.history.map((transaction, index) => (
+                        <tr key={index} className="border-b border-gray-200">
+                            <td className="p-3">{format(transaction.date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}</td>
+                            <td className="p-3 text-right">{transaction.amount.toFixed(2)} DH</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </section>
+        )}
+
 
         {/* Totals */}
         <section className="flex justify-end mt-8">
