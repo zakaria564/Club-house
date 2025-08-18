@@ -10,8 +10,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import type { Payment, Player, Coach, Transaction } from "@/types"
@@ -19,7 +17,6 @@ import AddPaymentDialog from "@/components/add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { PaymentMobileCard } from "@/components/payment-mobile-card"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +30,7 @@ import {
 import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, Timestamp, runTransaction, arrayUnion } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import AddPartialPaymentDialog from "@/components/add-partial-payment-dialog"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 
 const parsePlayerDoc = (doc: any): Player => {
@@ -108,6 +106,13 @@ const downloadCSV = (csvStr: string, fileName: string) => {
   }
 }
 
+type GroupedPayments = {
+    [memberId: string]: {
+        memberName: string;
+        payments: Payment[];
+    }
+}
+
 function PaymentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams()
@@ -124,10 +129,19 @@ function PaymentsPageContent() {
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [payments, setPayments] = React.useState<Payment[]>([]);
 
-  const [openCombobox, setOpenCombobox] = React.useState(false);
-  const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(initialMemberId);
   const [expandedPaymentId, setExpandedPaymentId] = React.useState<string | null>(null);
   
+  React.useEffect(() => {
+    const memberId = searchParams.get('memberId');
+    if (memberId) {
+      setInitialMemberId(memberId);
+      // Automatically expand the accordion for the selected member
+      setExpandedAccordionItems([memberId]);
+    }
+  }, [searchParams]);
+
+  const [expandedAccordionItems, setExpandedAccordionItems] = React.useState<string[]>(initialMemberId ? [initialMemberId] : []);
+
 
   React.useEffect(() => {
     const unsubscribePlayers = onSnapshot(query(collection(db, "players")), (snapshot) => {
@@ -139,7 +153,8 @@ function PaymentsPageContent() {
     });
 
     const unsubscribePayments = onSnapshot(query(collection(db, "payments")), (snapshot) => {
-        setPayments(snapshot.docs.map(parsePaymentDoc));
+        const paymentData = snapshot.docs.map(parsePaymentDoc);
+        setPayments(paymentData);
     });
 
     return () => {
@@ -149,60 +164,47 @@ function PaymentsPageContent() {
     };
   }, []);
 
-  const allMembers = React.useMemo(() => [
-    ...players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, type: 'player' })),
-    ...coaches.map(c => ({ id: c.id, name: `${c.firstName} ${c.lastName}`, type: 'coach' })),
-  ], [players, coaches]);
-  
-  const handleMemberSelect = (memberId: string) => {
-    setSelectedMemberId(memberId);
-    setOpenCombobox(false);
-    // remove memberId from URL to avoid confusion
-    if (initialMemberId) {
-        router.replace('/payments', undefined);
-        setInitialMemberId(null);
-    }
-  }
-
-  const handleResetFilter = () => {
-    setSelectedMemberId(null);
-    if (initialMemberId) {
-        router.replace('/payments', undefined);
-        setInitialMemberId(null);
-    }
-  }
-  
-  const commandFilter = (value: string, search: string) => {
-      const normalizedValue = normalizeString(value);
-      const normalizedSearch = normalizeString(search);
-      return normalizedValue.includes(normalizedSearch) ? 1 : 0;
-  }
-
   const statusTranslations: { [key in Payment['status']]: string } = {
     'Paid': 'Payé',
     'Pending': 'En attente',
     'Overdue': 'En retard'
   }
 
-  const basePlayerPayments = payments.filter(p => p.paymentType === 'membership');
-  const baseCoachPayments = payments.filter(p => p.paymentType === 'salary');
+  const groupAndFilterPayments = (baseList: Payment[]): GroupedPayments => {
+    let filteredList = baseList;
 
-  const filterPayments = (baseList: Payment[]) => {
-    let list = baseList;
-    if (selectedMemberId) {
-      list = list.filter(p => p.memberId === selectedMemberId);
-    }
     if (searchQuery) {
-      list = list.filter(p => normalizeString(p.memberName).includes(normalizeString(searchQuery)));
+        filteredList = filteredList.filter(p => normalizeString(p.memberName).includes(normalizeString(searchQuery)));
     }
-    return list;
+
+    const grouped = filteredList.reduce((acc, payment) => {
+        if (!acc[payment.memberId]) {
+            acc[payment.memberId] = {
+                memberName: payment.memberName,
+                payments: []
+            };
+        }
+        acc[payment.memberId].payments.push(payment);
+        return acc;
+    }, {} as GroupedPayments);
+    
+    // Sort payments within each group by date
+    for(const memberId in grouped){
+        grouped[memberId].payments.sort((a,b) => b.date.getTime() - a.date.getTime());
+    }
+
+    return grouped;
   }
 
-  const filteredPlayerPayments = filterPayments(basePlayerPayments);
-  const filteredCoachPayments = filterPayments(baseCoachPayments);
+  const basePlayerPayments = payments.filter(p => p.paymentType === 'membership');
+  const baseCoachPayments = payments.filter(p => p.paymentType === 'salary');
+  
+  const groupedPlayerPayments = groupAndFilterPayments(basePlayerPayments);
+  const groupedCoachPayments = groupAndFilterPayments(baseCoachPayments);
+
 
   const handleExport = (type: 'membership' | 'salary') => {
-    const dataToExport = type === 'membership' ? filteredPlayerPayments : filteredCoachPayments;
+    const dataToExport = type === 'membership' ? basePlayerPayments : baseCoachPayments;
     const fileNameType = type === 'membership' ? 'cotisations' : 'salaires';
     if (dataToExport.length > 0) {
       const csvData = convertToCSV(dataToExport.map(({ id, ...rest }) => ({ ...rest, date: rest.date.toISOString().split('T')[0] })));
@@ -333,10 +335,15 @@ function PaymentsPageContent() {
     <>
       <PageHeader title="Paiements">
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour
-            </Button>
+            <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Rechercher par nom..."
+                    className="pl-8 w-full sm:w-64"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
             <Button onClick={() => setAddPaymentOpen(true)} className="w-full sm:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
             Ajouter un paiement
@@ -352,8 +359,9 @@ function PaymentsPageContent() {
                 <PaymentCategoryContent
                     title="Historique des cotisations des joueurs"
                     description="Suivez et gérez les cotisations des joueurs."
-                    payments={filteredPlayerPayments}
-                    basePayments={basePlayerPayments}
+                    groupedPayments={groupedPlayerPayments}
+                    totalMembers={Object.keys(groupedPlayerPayments).length}
+                    baseTotalMembers={Object.keys(groupAndFilterPayments(basePlayerPayments)).length}
                     statusTranslations={statusTranslations}
                     onMarkAsPaid={handleMarkAsPaid}
                     onAddPartialPayment={setPaymentToUpdate}
@@ -363,14 +371,17 @@ function PaymentsPageContent() {
                     expandedPaymentId={expandedPaymentId}
                     onToggleExpand={handleToggleExpand}
                     onExport={() => handleExport('membership')}
+                    accordionState={expandedAccordionItems}
+                    onAccordionChange={setExpandedAccordionItems}
                 />
             </TabsContent>
             <TabsContent value="coaches">
                 <PaymentCategoryContent
                     title="Historique des salaires des entraîneurs"
                     description="Suivez et gérez les salaires des entraîneurs."
-                    payments={filteredCoachPayments}
-                    basePayments={baseCoachPayments}
+                    groupedPayments={groupedCoachPayments}
+                    totalMembers={Object.keys(groupedCoachPayments).length}
+                    baseTotalMembers={Object.keys(groupAndFilterPayments(baseCoachPayments)).length}
                     statusTranslations={statusTranslations}
                     onMarkAsPaid={handleMarkAsPaid}
                     onAddPartialPayment={setPaymentToUpdate}
@@ -380,6 +391,8 @@ function PaymentsPageContent() {
                     expandedPaymentId={expandedPaymentId}
                     onToggleExpand={handleToggleExpand}
                     onExport={() => handleExport('salary')}
+                    accordionState={expandedAccordionItems}
+                    onAccordionChange={setExpandedAccordionItems}
                 />
             </TabsContent>
         </Tabs>
@@ -415,8 +428,9 @@ function PaymentsPageContent() {
 interface PaymentCategoryContentProps {
     title: string;
     description: string;
-    payments: Payment[];
-    basePayments: Payment[];
+    groupedPayments: GroupedPayments;
+    totalMembers: number;
+    baseTotalMembers: number;
     statusTranslations: { [key in Payment['status']]: string };
     onMarkAsPaid: (paymentId: string) => void;
     onAddPartialPayment: (payment: Payment) => void;
@@ -426,13 +440,16 @@ interface PaymentCategoryContentProps {
     expandedPaymentId: string | null;
     onToggleExpand: (id: string) => void;
     onExport: () => void;
+    accordionState: string[];
+    onAccordionChange: (value: string[]) => void;
 }
 
 function PaymentCategoryContent({
     title,
     description,
-    payments,
-    basePayments,
+    groupedPayments,
+    totalMembers,
+    baseTotalMembers,
     statusTranslations,
     onMarkAsPaid,
     onAddPartialPayment,
@@ -441,8 +458,12 @@ function PaymentCategoryContent({
     onDelete,
     expandedPaymentId,
     onToggleExpand,
-    onExport
+    onExport,
+    accordionState,
+    onAccordionChange
 }: PaymentCategoryContentProps) {
+    const memberIds = Object.keys(groupedPayments);
+    
     return (
         <Card>
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -455,71 +476,47 @@ function PaymentCategoryContent({
                     Exporter la liste
                 </Button>
             </CardHeader>
-            <CardContent className="p-0 sm:p-6 sm:pt-0">
-                <Tabs defaultValue="all-status">
-                    <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-sm sm:w-auto mb-4 px-2 sm:px-0">
-                        <TabsTrigger value="all-status">Tous</TabsTrigger>
-                        <TabsTrigger value="paid">Payé</TabsTrigger>
-                        <TabsTrigger value="pending">En attente</TabsTrigger>
-                        <TabsTrigger value="overdue">En retard</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="all-status">
-                        <PaymentTable 
-                            payments={payments} 
-                            statusTranslations={statusTranslations} 
-                            onMarkAsPaid={onMarkAsPaid} 
-                            onAddPartialPayment={onAddPartialPayment}
-                            onViewMember={onViewMember}
-                            onPrintReceipt={onPrintReceipt}
-                            onDelete={onDelete}
-                            expandedPaymentId={expandedPaymentId}
-                            onToggleExpand={onToggleExpand}
-                        />
-                    </TabsContent>
-                    <TabsContent value="paid">
-                        <PaymentTable 
-                            payments={payments.filter(p => p.status === 'Paid')} 
-                            statusTranslations={statusTranslations}
-                            onMarkAsPaid={onMarkAsPaid} 
-                            onAddPartialPayment={onAddPartialPayment}
-                            onViewMember={onViewMember}
-                            onPrintReceipt={onPrintReceipt}
-                            onDelete={onDelete}
-                            expandedPaymentId={expandedPaymentId}
-                            onToggleExpand={onToggleExpand}
-                        />
-                    </TabsContent>
-                    <TabsContent value="pending">
-                        <PaymentTable 
-                            payments={payments.filter(p => p.status === 'Pending')} 
-                            statusTranslations={statusTranslations}
-                            onMarkAsPaid={onMarkAsPaid} 
-                            onAddPartialPayment={onAddPartialPayment}
-                            onViewMember={onViewMember}
-                            onPrintReceipt={onPrintReceipt}
-                            onDelete={onDelete}
-                            expandedPaymentId={expandedPaymentId}
-                            onToggleExpand={onToggleExpand}
-                        />
-                    </TabsContent>
-                    <TabsContent value="overdue">
-                        <PaymentTable 
-                            payments={payments.filter(p => p.status === 'Overdue')} 
-                            statusTranslations={statusTranslations} 
-                            onMarkAsPaid={onMarkAsPaid} 
-                            onAddPartialPayment={onAddPartialPayment}
-                            onViewMember={onViewMember}
-                            onPrintReceipt={onPrintReceipt}
-                            onDelete={onDelete}
-                            expandedPaymentId={expandedPaymentId}
-                            onToggleExpand={onToggleExpand}
-                        />
-                    </TabsContent>
-                </Tabs>
+            <CardContent>
+                <Accordion type="multiple" value={accordionState} onValueChange={onAccordionChange} className="w-full">
+                    {memberIds.length > 0 ? (
+                        memberIds.map(memberId => {
+                            const { memberName, payments } = groupedPayments[memberId];
+                            const memberHasOverdue = payments.some(p => p.status === 'Overdue');
+                            
+                            return (
+                                <AccordionItem value={memberId} key={memberId}>
+                                    <AccordionTrigger className="hover:no-underline px-4 -mx-4 rounded-md hover:bg-muted/50">
+                                        <div className="flex items-center gap-4">
+                                            <span className={cn("font-semibold text-base", memberHasOverdue && "text-destructive")}>{memberName}</span>
+                                            <Badge variant="secondary">{payments.length} paiement(s)</Badge>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <PaymentTable
+                                            payments={payments}
+                                            statusTranslations={statusTranslations}
+                                            onMarkAsPaid={onMarkAsPaid}
+                                            onAddPartialPayment={onAddPartialPayment}
+                                            onViewMember={onViewMember}
+                                            onPrintReceipt={onPrintReceipt}
+                                            onDelete={onDelete}
+                                            expandedPaymentId={expandedPaymentId}
+                                            onToggleExpand={onToggleExpand}
+                                        />
+                                    </AccordionContent>
+                                </AccordionItem>
+                            )
+                        })
+                    ) : (
+                        <div className="text-center py-10 text-muted-foreground">
+                            <p>Aucun paiement trouvé pour la recherche actuelle.</p>
+                        </div>
+                    )}
+                </Accordion>
             </CardContent>
             <CardFooter>
                 <div className="text-xs text-muted-foreground">
-                    Affichage de <strong>{payments.length}</strong> sur <strong>{basePayments.length}</strong> paiements
+                    Affichage de <strong>{totalMembers}</strong> sur <strong>{baseTotalMembers}</strong> membres
                 </div>
             </CardFooter>
         </Card>
@@ -560,35 +557,15 @@ function PaymentTable({
     };
   
   return (
-    <>
-      {/* Mobile View */}
-      <div className="sm:hidden space-y-2 p-2">
-        {payments.map(payment => (
-          <PaymentMobileCard
-            key={payment.id}
-            payment={payment}
-            statusTranslations={statusTranslations}
-            onMarkAsPaid={onMarkAsPaid}
-            onAddPartialPayment={onAddPartialPayment}
-            onViewMember={onViewMember}
-            onPrintReceipt={onPrintReceipt}
-            onDelete={onDelete}
-            expanded={expandedPaymentId === payment.id}
-            onToggleExpand={() => onToggleExpand(payment.id)}
-          />
-        ))}
-      </div>
-      {/* Desktop View */}
-      <div className="hidden sm:block">
+      <div className="border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Membre</TableHead>
-              <TableHead className="hidden sm:table-cell">Statut</TableHead>
-              <TableHead className="hidden lg:table-cell">Date du paiement</TableHead>
+              <TableHead>Date du paiement</TableHead>
+              <TableHead>Statut</TableHead>
               <TableHead className="text-right">Total</TableHead>
-              <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
-              <TableHead className="hidden md:table-cell text-right">Reste</TableHead>
+              <TableHead className="text-right">Avance</TableHead>
+              <TableHead className="text-right">Reste</TableHead>
               <TableHead className="w-[50px]">
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -598,11 +575,10 @@ function PaymentTable({
             {payments.map(payment => (
                 <React.Fragment key={payment.id}>
                     <TableRow onClick={() => onToggleExpand(payment.id)} className="cursor-pointer">
-                        <TableCell>
-                        <div className="font-medium">{payment.memberName}</div>
-                        <div className="text-sm text-muted-foreground capitalize">{payment.paymentType === 'membership' ? 'Joueur' : 'Entraîneur'}</div>
+                        <TableCell className="font-medium capitalize">
+                            {format(payment.date, 'PPP', { locale: fr })}
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell">
+                        <TableCell>
                         <Badge 
                             className={cn({
                             'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': payment.status === 'Paid',
@@ -613,16 +589,13 @@ function PaymentTable({
                             {statusTranslations[payment.status]}
                         </Badge>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell capitalize">
-                        {format(payment.date, 'PPP', { locale: fr })}
-                        </TableCell>
                         <TableCell className="text-right">
                         {payment.totalAmount.toFixed(2)} DH
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-right">
+                        <TableCell className="text-right">
                         {payment.advance.toFixed(2)} DH
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-right">
+                        <TableCell className="text-right">
                         {payment.remaining > 0 ? (
                             <div
                             className="cursor-pointer hover:underline font-semibold text-destructive"
@@ -710,7 +683,6 @@ function PaymentTable({
           </TableBody>
         </Table>
       </div>
-    </>
   )
 }
 
