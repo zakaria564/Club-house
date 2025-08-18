@@ -41,7 +41,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SidebarProvider>
-            <Sidebar className="no-print">
+            <Sidebar>
               <MainSidebar />
             </Sidebar>
             <SidebarInset>
