@@ -31,6 +31,7 @@ import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, Timestamp, ru
 import { db } from "@/lib/firebase"
 import AddPartialPaymentDialog from "@/components/add-partial-payment-dialog"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Input } from "@/components/ui/input"
 
 
 const parsePlayerDoc = (doc: any): Player => {
