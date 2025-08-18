@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from "next";
 import { Poppins, PT_Sans } from "next/font/google";
 import "./globals.css";
@@ -54,4 +55,11 @@ export default function RootLayout({
               <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
                 {children}
               </main>
-            </Sidebar
+              <Toaster />
+            </SidebarInset>
+          </SidebarProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
