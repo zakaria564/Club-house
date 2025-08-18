@@ -452,8 +452,8 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             />
         </div>
       </div>
-       <div className="mt-6 grid grid-cols-1 lg:grid-cols-7 gap-6">
-        <Card className="lg:col-span-2">
+       <div className="mt-6 grid grid-cols-1 lg:grid-cols-6 gap-6">
+        <Card className="lg:col-span-6 xl:col-span-2">
             <CardHeader>
                 <CardTitle className="text-sm font-medium">Événements à venir</CardTitle>
             </CardHeader>
@@ -482,7 +482,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 )}
             </CardContent>
         </Card>
-        <Card className="lg:col-span-3">
+        <Card className="lg:col-span-6 xl:col-span-2">
           <CardHeader>
             <CardTitle>Répartition des joueurs</CardTitle>
             <CardDescription>Nombre de joueurs par catégorie.</CardDescription>
@@ -521,7 +521,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-6 xl:col-span-2">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     {pendingPayments.length > 0 ? (
@@ -574,3 +574,4 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     </>
   );
 }
+
