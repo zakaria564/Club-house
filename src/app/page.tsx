@@ -263,7 +263,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
   return (
     <Popover>
         <PopoverTrigger asChild disabled={count === 0 && !children}>
-            <Card className={cn("flex flex-col", (count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
+            <Card className={cn("flex flex-col bg-secondary/50", (count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     <Icon className={cn("h-4 w-4", count > 0 ? iconColor : "text-muted-foreground")} />
@@ -477,3 +477,5 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     </>
   );
 }
+
+    
