@@ -279,7 +279,7 @@ export default function PlayersPage() {
                                   return (
                                       <Card 
                                       key={player.id} 
-                                      className="flex flex-col transition-all"
+                                      className="flex flex-col transition-all bg-blue-50 dark:bg-blue-900/30"
                                       >
                                       <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewPlayer(player.id)}>
                                           <div className="font-medium truncate">{player.firstName} {player.lastName}</div>
