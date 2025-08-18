@@ -446,31 +446,18 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                     </div>
                 )}
             </StatusCard>
-        </div>
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    {pendingPayments.length > 0 ? (
-                        <AlertTriangle className="h-5 w-5 text-destructive" />
-                    ) : (
-                        <Check className="h-5 w-5 text-green-500" />
-                    )}
-                    <span>
-                        {pendingPayments.length > 0 ? `${pendingPayments.length} Paiement(s) à suivre` : "Paiements à jour"}
-                    </span>
-                </CardTitle>
-                <CardDescription>
-                    {pendingPayments.length > 0
-                        ? "Liste des cotisations et salaires non réglés."
-                        : "Tous les paiements sont en ordre. Bravo !"}
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <StatusCard
+                title="Paiements à suivre"
+                icon={DollarSign}
+                data={{ count: pendingPayments.length, members: [] }}
+                iconColor="text-destructive"
+                description={pendingPayments.length > 0 ? `${pendingPayments.length} membre(s) concerné(s)` : "Tous les paiements sont à jour"}
+            >
                 {pendingPayments.length > 0 ? (
-                    <div className="space-y-6">
-                         {pendingPlayerPayments.length > 0 && (
+                    <div className="space-y-4">
+                        {pendingPlayerPayments.length > 0 && (
                             <div>
-                                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                <h3 className="text-xs font-semibold mb-2 flex items-center gap-2">
                                     <Users className="h-4 w-4 text-muted-foreground" />
                                     Joueurs ({pendingPlayerPayments.length})
                                 </h3>
@@ -479,7 +466,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                          )}
                          {pendingCoachPayments.length > 0 && (
                             <div>
-                                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                <h3 className="text-xs font-semibold mb-2 flex items-center gap-2">
                                     <Shield className="h-4 w-4 text-muted-foreground" />
                                     Entraîneurs ({pendingCoachPayments.length})
                                 </h3>
@@ -488,22 +475,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                          )}
                     </div>
                 ) : (
-                    <div className="text-sm text-center text-muted-foreground py-8">
-                        <Check className="mx-auto h-8 w-8 text-green-500 mb-2" />
-                        Excellent travail !
+                     <div className="text-xs text-center text-muted-foreground py-2">
+                        <p>Aucun paiement en attente.</p>
                     </div>
                 )}
-            </CardContent>
-        </Card>
+            </StatusCard>
+        </div>
       </div>
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen} />
     </>
   );
 }
-
-
-
-    
-
-    
-
