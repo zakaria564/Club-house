@@ -229,7 +229,7 @@ export default function CoachesPage() {
             {filteredCoaches.map(coach => (
               <Card 
                 key={coach.id} 
-                className="flex flex-col transition-all"
+                className="flex flex-col transition-all bg-green-50 dark:bg-green-900/30"
               >
                 <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewCoach(coach.id)}>
                     <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
