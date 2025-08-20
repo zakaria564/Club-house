@@ -36,7 +36,8 @@ export function MatchStatsForm({ title, stats, onStatsChange, players }: MatchSt
         if (field === 'count') {
             newStats[index] = { ...newStats[index], [field]: Math.max(1, Number(value)) };
         } else {
-             newStats[index] = { ...newStats[index], [field]: value };
+            newStats[index] = { ...newStats[index], [field]: String(value) };
+
         }
         onStatsChange(newStats);
     }

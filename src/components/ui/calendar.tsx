@@ -1,9 +1,8 @@
-
 "use client"
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, DropdownProps } from "react-day-picker"
+import { DayPicker, DropdownProps as OriginalDropdownProps } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -11,6 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { ScrollArea } from "./scroll-area"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
+
+// نوع DropdownProps جديد موسع
+type DropdownProps = OriginalDropdownProps & {
+  fromYear?: number
+  toYear?: number
+  fromMonth?: number
+  toMonth?: number
+  fromDate?: Date
+  toDate?: Date
+}
 
 function Calendar({
   className,
@@ -65,8 +74,9 @@ function Calendar({
           <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
         Dropdown: (props: DropdownProps) => {
-          const { fromYear, toYear, fromMonth, toMonth, fromDate, toDate } = props
-          const options: { label: string, value: string }[] = []
+          const { fromYear, toYear } = props
+          const options: { label: string; value: string }[] = []
+
           if (props.name === "months") {
             options.push(
               ...Array.from({ length: 12 }, (_, i) => ({
@@ -75,12 +85,10 @@ function Calendar({
               }))
             )
           } else if (props.name === "years") {
-            const earliestYear = fromYear || fromDate?.getFullYear() || new Date().getFullYear() - 100
-            const latestYear = toYear || toDate?.getFullYear() || new Date().getFullYear()
-            if (earliestYear && latestYear) {
-              for (let i = latestYear; i >= earliestYear; i--) {
-                options.push({ label: i.toString(), value: i.toString() })
-              }
+            const earliestYear = fromYear || new Date().getFullYear() - 100
+            const latestYear = toYear || new Date().getFullYear() + 10
+            for (let i = latestYear; i >= earliestYear; i--) {
+              options.push({ label: i.toString(), value: i.toString() })
             }
           }
 
@@ -98,9 +106,12 @@ function Calendar({
               value={value?.toString()}
             >
               <SelectTrigger className="h-7 w-20 text-xs">
-                <SelectValue placeholder={name === 'years' ? 'Année' : 'Mois'}>
-                  {name === 'months'
-                    ? format(new Date(new Date().getFullYear(), Number(value), 1), 'MMMM')
+                <SelectValue placeholder={name === "years" ? "Année" : "Mois"}>
+                  {name === "months"
+                    ? format(
+                        new Date(new Date().getFullYear(), Number(value), 1),
+                        "MMMM"
+                      )
                     : value}
                 </SelectValue>
               </SelectTrigger>
@@ -126,11 +137,8 @@ function Calendar({
 }
 Calendar.displayName = "Calendar"
 
-// Helper function to format month name, assuming locale is already loaded
 function format(date: Date, fmt: string) {
-  return date.toLocaleString('fr-FR', { month: 'long' })
+  return date.toLocaleString("fr-FR", { month: "long" })
 }
 
 export { Calendar }
-
-    
