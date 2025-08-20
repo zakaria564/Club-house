@@ -22,6 +22,9 @@ import { DayEventsSheet } from "@/components/day-events-sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { collection, onSnapshot, query, doc, deleteDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 
 const parseEventDoc = (doc: any): ClubEvent => {
@@ -222,7 +225,7 @@ function SchedulePageContent() {
   )
 }
 
-export default function SchedulePage() {
+function SchedulePageWrapper() {
     return (
         <React.Suspense fallback={<div>Chargement du calendrier...</div>}>
             <SchedulePageContent />
@@ -230,4 +233,18 @@ export default function SchedulePage() {
     )
 }
 
-    
+export default function SchedulePage() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <SchedulePageWrapper />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    )
+}

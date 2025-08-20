@@ -32,6 +32,9 @@ import { db } from "@/lib/firebase"
 import AddPartialPaymentDialog from "@/components/add-partial-payment-dialog"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 
 const parsePlayerDoc = (doc: any): Player => {
@@ -685,11 +688,26 @@ function PaymentTable({
   )
 }
 
-// Wrapping the component that uses useSearchParams in a Suspense boundary
-export default function PaymentsPage() {
+function PaymentsPageWrapper() {
   return (
     <React.Suspense fallback={<div>Chargement...</div>}>
       <PaymentsPageContent />
     </React.Suspense>
   )
+}
+
+export default function PaymentsPage() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <PaymentsPageWrapper />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    )
 }

@@ -18,6 +18,9 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
 import { Separator } from '@/components/ui/separator';
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 
 const PrintHeader = () => (
@@ -71,7 +74,7 @@ const InfoRow = ({ icon: Icon, label, value, href, className }: { icon: React.El
 };
 
 
-export default function PlayerDetailPage() {
+function PlayerDetailContent() {
   const router = useRouter();
   const params = useParams();
   const playerId = params.id as string;
@@ -284,4 +287,19 @@ export default function PlayerDetailPage() {
     </>
   );
 }
- 
+
+export default function PlayerDetailPage() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <PlayerDetailContent />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    )
+}

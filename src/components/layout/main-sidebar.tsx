@@ -44,24 +44,24 @@ export function MainSidebar() {
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
   const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        // User is signed out
-        setUser(null);
-        // Optional: redirect to login if not on an auth page
-        if (pathname !== '/login' && pathname !== '/signup') {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+        const isAuthPage = pathname === '/login' || pathname === '/signup';
+        if (!isAuthPage) {
             router.push('/login');
         }
-      }
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [router, pathname]);
+    }
+  }, [user, loading, pathname, router]);
 
 
   const isActive = (path: string) => {
@@ -85,6 +85,28 @@ export function MainSidebar() {
   const getInitials = (email: string | null | undefined) => {
     if (!email) return '..';
     return email.substring(0, 2).toUpperCase();
+  }
+  
+  if (loading) {
+    return (
+        <>
+            <SidebarHeader>
+                 <div className="flex items-center gap-2">
+                    <ClubLogo className="w-10 h-10" />
+                  <div className="flex flex-col">
+                    <h2 className="text-lg font-semibold font-headline">
+                      Clubhouse Hub
+                    </h2>
+                    <p className="text-sm text-sidebar-primary-foreground/80">Gestion de club</p>
+                  </div>
+                </div>
+            </SidebarHeader>
+             <SidebarContent className="p-2 flex items-center justify-center">
+                {/* You can add a spinner here if you like */}
+             </SidebarContent>
+             <SidebarFooter></SidebarFooter>
+        </>
+    )
   }
 
   return (

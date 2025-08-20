@@ -19,6 +19,9 @@ import { collection, onSnapshot, query, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 
 const parsePlayerDoc = (doc: any): Player => {
@@ -68,7 +71,7 @@ const normalizeString = (str: string) => {
         .toLowerCase();
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const router = useRouter();
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
@@ -488,6 +491,18 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
   );
 }
 
-    
-
-    
+export default function Dashboard() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <DashboardContent />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    )
+}

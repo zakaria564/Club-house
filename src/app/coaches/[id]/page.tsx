@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -24,6 +25,9 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 const PrintHeader = () => (
   <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
@@ -75,7 +79,7 @@ const InfoRow = ({ icon: Icon, label, value, href, className }: { icon: React.El
   return <div className="rounded-md -m-2 p-2">{content}</div>;
 };
 
-export default function CoachDetailPage() {
+function CoachDetailContent() {
   const router = useRouter();
   const params = useParams();
   const coachId = params.id as string;
@@ -164,4 +168,20 @@ export default function CoachDetailPage() {
       </div>
     </>
   );
+}
+
+export default function CoachDetailPage() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <CoachDetailContent />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    )
 }

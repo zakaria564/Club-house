@@ -18,6 +18,9 @@ import { Calendar } from "@/components/ui/calendar"
 import Image from 'next/image';
 import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 
 const PrintHeader = ({ date }: { date?: Date }) => (
@@ -92,7 +95,7 @@ const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] =>
     return Array.from(combined.values());
 }
 
-export default function ResultsPage() {
+function ResultsPageContent() {
     const router = useRouter();
     const [events, setEvents] = React.useState<ClubEvent[]>([]);
     const [players, setPlayers] = React.useState<Player[]>([]);
@@ -416,7 +419,18 @@ function StatsTable({ title, stats }: StatsTableProps) {
     )
 }
 
-    
-
-    
-    
+export default function ResultsPage() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <ResultsPageContent />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    )
+}

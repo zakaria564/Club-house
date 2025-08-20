@@ -46,18 +46,8 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider>
-          <SidebarProvider>
-            <Sidebar>
-              <MainSidebar />
-            </Sidebar>
-            <SidebarInset>
-              <MobileHeader />
-              <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                {children}
-              </main>
-              <Toaster />
-            </SidebarInset>
-          </SidebarProvider>
+            <Toaster />
+            {children}
         </ThemeProvider>
       </body>
     </html>

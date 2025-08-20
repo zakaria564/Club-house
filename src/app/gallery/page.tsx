@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Player, Coach } from "@/types"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 
 const parsePlayerDoc = (doc: any): Player => {
@@ -45,8 +48,7 @@ const isValidUrl = (url: string | null | undefined): boolean => {
     }
 }
 
-
-export default function GalleryPage() {
+function GalleryPageContent() {
     const router = useRouter();
     const [players, setPlayers] = React.useState<Player[]>([]);
     const [coaches, setCoaches] = React.useState<Coach[]>([]);
@@ -170,5 +172,21 @@ function ImageGrid({ items, type, onImageClick }: ImageGridProps) {
                 )
             })}
         </div>
+    )
+}
+
+export default function GalleryPage() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <GalleryPageContent />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     )
 }

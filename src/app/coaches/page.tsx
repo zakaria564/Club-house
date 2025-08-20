@@ -27,6 +27,9 @@ import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 // Helper function to convert array of objects to CSV
 const convertToCSV = (objArray: any[]) => {
@@ -62,8 +65,7 @@ const downloadCSV = (csvStr: string, fileName: string) => {
   }
 }
 
-
-export default function CoachesPage() {
+function CoachesPageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
@@ -328,4 +330,18 @@ export default function CoachesPage() {
   )
 }
 
-    
+export default function CoachesPage() {
+    return (
+        <SidebarProvider>
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <SidebarInset>
+                <MobileHeader />
+                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                    <CoachesPageContent />
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    )
+}
