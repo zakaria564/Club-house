@@ -3,10 +3,8 @@ import type { Metadata, Viewport } from "next";
 import { Poppins, PT_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
-import { MainSidebar } from "@/components/layout/main-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { MobileHeader } from "@/components/layout/mobile-header";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const fontPoppins = Poppins({
@@ -46,8 +44,10 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider>
+          <SidebarProvider>
             <Toaster />
             {children}
+          </SidebarProvider>
         </ThemeProvider>
       </body>
     </html>

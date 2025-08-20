@@ -32,10 +32,6 @@ import { db } from "@/lib/firebase"
 import AddPartialPaymentDialog from "@/components/add-partial-payment-dialog"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
-import { MainSidebar } from "@/components/layout/main-sidebar"
-import { MobileHeader } from "@/components/layout/mobile-header"
-
 
 const parsePlayerDoc = (doc: any): Player => {
   const data = doc.data();
@@ -698,16 +694,6 @@ function PaymentsPageWrapper() {
 
 export default function PaymentsPage() {
     return (
-        <SidebarProvider>
-            <Sidebar>
-                <MainSidebar />
-            </Sidebar>
-            <SidebarInset>
-                <MobileHeader />
-                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                    <PaymentsPageWrapper />
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        <PaymentsPageWrapper />
     )
 }

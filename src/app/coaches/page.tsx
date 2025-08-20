@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search, DollarSign } from "lucide-react"
+import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search, DollarSign, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { collection, onSnapshot, deleteDoc, doc, query, where, getDocs, writeBatch, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import type { Coach, Payment } from "@/types"
+import type { Coach } from "@/types"
 import AddCoachDialog from "@/components/add-coach-dialog"
 import {
   AlertDialog,
@@ -27,45 +27,8 @@ import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
-import { MainSidebar } from "@/components/layout/main-sidebar"
-import { MobileHeader } from "@/components/layout/mobile-header"
 
-// Helper function to convert array of objects to CSV
-const convertToCSV = (objArray: any[]) => {
-  const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
-  if (array.length === 0) return '';
-  let str = '';
-  const header = Object.keys(array[0]).join(',') + '\r\n';
-  str += header;
-
-  for (let i = 0; i < array.length; i++) {
-    let line = '';
-    for (let index in array[i]) {
-      if (line !== '') line += ','
-      line += `"${array[i][index]}"`; // a little safer with quotes
-    }
-    str += line + '\r\n';
-  }
-  return str;
-}
-
-// Helper function to trigger download
-const downloadCSV = (csvStr: string, fileName: string) => {
-  const blob = new Blob([`\uFEFF${csvStr}`], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
-  const link = document.createElement("a");
-  if (link.download !== undefined) {
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-}
-
-function CoachesPageContent() {
+export default function CoachesPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
@@ -189,6 +152,40 @@ function CoachesPageContent() {
         default: return 'secondary';
     }
   }
+  
+    // Helper function to convert array of objects to CSV
+    const convertToCSV = (objArray: any[]) => {
+      const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+      if (array.length === 0) return '';
+      let str = '';
+      const header = Object.keys(array[0]).join(',') + '\r\n';
+      str += header;
+
+      for (let i = 0; i < array.length; i++) {
+        let line = '';
+        for (let index in array[i]) {
+          if (line !== '') line += ','
+          line += `"${array[i][index]}"`; // a little safer with quotes
+        }
+        str += line + '\r\n';
+      }
+      return str;
+    }
+
+    // Helper function to trigger download
+    const downloadCSV = (csvStr: string, fileName: string) => {
+      const blob = new Blob([`\uFEFF${csvStr}`], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
+      const link = document.createElement("a");
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
 
 
   return (
@@ -215,15 +212,23 @@ function CoachesPageContent() {
           <CardDescription>
             Gérez les entraîneurs de votre club et leurs informations.
           </CardDescription>
-          <div className="relative mt-4">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Rechercher par nom ou spécialité..." 
-              className="pl-8" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <div className="mt-4 flex flex-col md:flex-row gap-4">
+            <div className="relative flex-grow">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Rechercher par nom ou spécialité..." 
+                  className="pl-8" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            {searchQuery && (
+                 <Button variant="ghost" onClick={() => setSearchQuery("")}>
+                    <X className="mr-2 h-4 w-4" />
+                    Réinitialiser
+                </Button>
+            )}
+           </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -328,20 +333,4 @@ function CoachesPageContent() {
       </AlertDialog>
     </>
   )
-}
-
-export default function CoachesPage() {
-    return (
-        <SidebarProvider>
-            <Sidebar>
-                <MainSidebar />
-            </Sidebar>
-            <SidebarInset>
-                <MobileHeader />
-                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                    <CoachesPageContent />
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
-    )
 }

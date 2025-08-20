@@ -1,3 +1,4 @@
+
 import { ClubLogo } from "@/components/club-logo";
 
 export default function AuthLayout({

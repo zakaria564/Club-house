@@ -41,31 +41,28 @@ import { signOut, onAuthStateChanged, type User } from "firebase/auth";
 
 export function MainSidebar() {
   const pathname = usePathname();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, open } = useSidebar();
   const router = useRouter();
-  const [user, setUser] = React.useState<User | null>(null);
+  const [user, setUser] = React.useState<User | null>(auth.currentUser);
   const [loading, setLoading] = React.useState(true);
-
+  
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      const isAuthPage = pathname === '/login' || pathname === '/signup';
+      if (!currentUser && !isAuthPage) {
+        router.push('/login');
+      }
     });
     return () => unsubscribe();
-  }, []);
-
-  React.useEffect(() => {
-    if (!loading && !user) {
-        const isAuthPage = pathname === '/login' || pathname === '/signup';
-        if (!isAuthPage) {
-            router.push('/login');
-        }
-    }
-  }, [user, loading, pathname, router]);
-
+  }, [pathname, router]);
 
   const isActive = (path: string) => {
-    return pathname === path || (path !== "/" && pathname.startsWith(path));
+    if (path === '/') {
+        return pathname === path;
+    }
+    return pathname.startsWith(path);
   };
   
   const handleLinkClick = () => {
@@ -78,7 +75,6 @@ export function MainSidebar() {
       router.push('/login');
     } catch (error) {
       console.error("Error signing out: ", error);
-      // You could add a toast notification here for the user
     }
   };
 
@@ -102,7 +98,7 @@ export function MainSidebar() {
                 </div>
             </SidebarHeader>
              <SidebarContent className="p-2 flex items-center justify-center">
-                {/* You can add a spinner here if you like */}
+                {/* Spinner or skeleton loader can go here */}
              </SidebarContent>
              <SidebarFooter></SidebarFooter>
         </>

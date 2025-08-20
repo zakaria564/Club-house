@@ -29,15 +29,11 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
-import { MainSidebar } from "@/components/layout/main-sidebar"
-import { MobileHeader } from "@/components/layout/mobile-header"
-
 
 const categoryOrder: Player['category'][] = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"];
 const positionOrder = ["Gardien de but", "Défenseur central", "Arrière latéral gauche", "Arrière latéral droit", "Milieu défensif", "Milieu central", "Milieu relayeur", "Milieu offensif", "Ailier gauche", "Ailier droit", "Attaquant de pointe", "Attaquant de soutien"];
 
-function PlayersPageContent() {
+export default function PlayersPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [players, setPlayers] = React.useState<Player[]>([]);
@@ -388,20 +384,4 @@ function PlayersPageContent() {
       </AlertDialog>
     </>
   )
-}
-
-export default function PlayersPage() {
-    return (
-        <SidebarProvider>
-            <Sidebar>
-                <MainSidebar />
-            </Sidebar>
-            <SidebarInset>
-                <MobileHeader />
-                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                    <PlayersPageContent />
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
-    )
 }
