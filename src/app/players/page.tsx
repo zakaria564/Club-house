@@ -29,6 +29,8 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { PlayerMobileCard } from "@/components/player-mobile-card"
 
 
 const categoryOrder: Player['category'][] = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"];
@@ -38,6 +40,8 @@ const positionOrder = ["Gardien de but", "Défenseur central", "Arrière latéra
 export default function PlayersPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const [isClient, setIsClient] = React.useState(false);
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
 
@@ -52,6 +56,7 @@ export default function PlayersPage() {
 
 
   React.useEffect(() => {
+    setIsClient(true);
     const unsubscribePlayers = onSnapshot(collection(db, "players"), (snapshot) => {
         const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
         setPlayers(playersData);
@@ -265,7 +270,22 @@ export default function PlayersPage() {
           </div>
         </CardHeader>
         <CardContent>
-           {filteredPlayers.length > 0 ? (
+          {isClient && isMobile ? (
+             <div className="space-y-3">
+              {filteredPlayers.map(player => (
+                <PlayerMobileCard
+                  key={player.id}
+                  player={player}
+                  coachName={player.coachId ? coachMap.get(player.coachId) || null : null}
+                  statusBadgeVariant={statusBadgeVariant}
+                  onViewPlayer={handleViewPlayer}
+                  onEditPlayer={handleEditPlayer}
+                  onViewPayments={handleViewPayments}
+                  onDeleteInitiate={handleDeleteInitiate}
+                />
+              ))}
+            </div>
+           ) : filteredPlayers.length > 0 ? (
                 <div className="space-y-6">
                   {sortedCategories.map(category => (
                       <div key={category}>
