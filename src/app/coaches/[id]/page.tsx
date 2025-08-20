@@ -257,5 +257,4 @@ export default function CoachDetailPage() {
       />
     </>
   );
-
-    
+}
