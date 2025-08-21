@@ -152,8 +152,9 @@ function ResultsContent() {
 
 
     const allStats = combineStats(allPlayedMatches, players);
-    const topScorers = [...allStats].sort((a, b) => b.goals - a.goals).filter(s => s.goals > 0);
-    const topAssists = [...allStats].sort((a, b) => b.assists - a.assists).filter(s => s.assists > 0);
+    const topScorers = [...allStats].sort((a, b) => b.goals - a.goals || b.assists - a.assists).filter(s => s.goals > 0);
+    const topAssists = [...allStats].sort((a, b) => b.assists - a.assists || b.goals - a.goals).filter(s => s.assists > 0);
+
 
     const getCardTitle = () => {
         if (selectedMatchId) return "Détail du match";
@@ -229,7 +230,7 @@ function ResultsContent() {
                                     <CardDescription>Classement des buteurs du club.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <StatsTable title="Buteurs" stats={topScorers} />
+                                    <StatsTable type="goals" stats={topScorers} />
                                 </CardContent>
                             </Card>
                             <Card>
@@ -238,7 +239,7 @@ function ResultsContent() {
                                     <CardDescription>Classement des passeurs décisifs.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                <StatsTable title="Passeurs" stats={topAssists} />
+                                <StatsTable type="assists" stats={topAssists} />
                                 </CardContent>
                             </Card>
                         </div>
@@ -322,11 +323,11 @@ function ResultsContent() {
 }
 
 interface StatsTableProps {
-    title: string;
+    type: "goals" | "assists";
     stats: CombinedStat[];
 }
 
-function StatsTable({ title, stats }: StatsTableProps) {
+function StatsTable({ type, stats }: StatsTableProps) {
     if (stats.length === 0) {
         return <p className="text-sm text-muted-foreground text-center py-4">Aucune donnée disponible.</p>
     }
@@ -334,32 +335,21 @@ function StatsTable({ title, stats }: StatsTableProps) {
     const topThree = stats.slice(0, 3);
     const rest = stats.slice(3);
     const medalColors = ["text-yellow-400", "text-gray-400", "text-amber-600"];
-    const isScorers = title === 'Buteurs';
+    const isScorers = type === 'goals';
 
-    const renderStat = (stat: CombinedStat) => {
-        if (isScorers) {
-            return `${stat.goals} ${stat.goals > 1 ? 'buts' : 'but'}`;
-        }
-        return `${stat.assists} ${stat.assists > 1 ? 'passes' : 'passe'}`;
-    }
-    
     const renderDetailedStat = (stat: CombinedStat) => {
-         if (isScorers) {
-            return (
-                <div className="flex flex-col text-sm">
-                    <span className="font-semibold">{stat.goals} {stat.goals > 1 ? 'buts' : 'but'}</span>
-                    <span className="text-muted-foreground/80">{stat.assists} {stat.assists > 1 ? 'passes' : 'passe'}</span>
-                </div>
-            )
-        }
+        const primaryCount = isScorers ? stat.goals : stat.assists;
+        const secondaryCount = isScorers ? stat.assists : stat.goals;
+        const primaryLabel = isScorers ? (primaryCount > 1 ? 'buts' : 'but') : (primaryCount > 1 ? 'passes' : 'passe');
+        const secondaryLabel = isScorers ? (secondaryCount > 1 ? 'passes' : 'passe') : (secondaryCount > 1 ? 'buts' : 'but');
+
         return (
             <div className="flex flex-col text-sm">
-                <span className="font-semibold">{stat.assists} {stat.assists > 1 ? 'passes' : 'passe'}</span>
-                 <span className="text-muted-foreground/80">{stat.goals} {stat.goals > 1 ? 'buts' : 'but'}</span>
+                <span className="font-semibold">{primaryCount} {primaryLabel}</span>
+                <span className="text-muted-foreground/80">{secondaryCount} {secondaryLabel}</span>
             </div>
-        )
-    }
-
+        );
+    };
 
     return (
         <div className="space-y-4">
@@ -377,7 +367,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-10 w-10", medalColors[0])} />
                         <p className="font-bold text-xl truncate">{topThree[0].name}</p>
-                        <p className="font-semibold text-muted-foreground">{renderStat(topThree[0])}</p>
+                        <div className="font-semibold text-muted-foreground">{renderDetailedStat(topThree[0])}</div>
                         <div className="h-24 bg-primary/20 rounded-t-md mt-1"></div>
                     </div>
                 )}
@@ -385,7 +375,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                      <div className="w-1/3">
                         <Medal className={cn("mx-auto h-7 w-7", medalColors[2])} />
                         <p className="font-bold text-base truncate">{topThree[2].name}</p>
-                        <p className="font-semibold text-muted-foreground">{renderStat(topThree[2])}</p>
+                        <div className="font-semibold text-muted-foreground">{renderDetailedStat(topThree[2])}</div>
                         <div className="h-12 bg-muted rounded-t-md mt-1"></div>
                     </div>
                 )}
@@ -399,7 +389,8 @@ function StatsTable({ title, stats }: StatsTableProps) {
                         <TableRow>
                             <TableHead className="w-[40px]">#</TableHead>
                             <TableHead>Joueur</TableHead>
-                            <TableHead className="text-right">{title === 'Buteurs' ? 'Buts' : 'Passes'}</TableHead>
+                            <TableHead className="text-right">{isScorers ? 'Buts' : 'Passes'}</TableHead>
+                            <TableHead className="text-right">{isScorers ? 'Passes' : 'Buts'}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -408,6 +399,7 @@ function StatsTable({ title, stats }: StatsTableProps) {
                                 <TableCell className="font-medium">{index + 4}</TableCell>
                                 <TableCell>{item.name}</TableCell>
                                 <TableCell className="text-right font-bold">{isScorers ? item.goals : item.assists}</TableCell>
+                                <TableCell className="text-right text-muted-foreground">{isScorers ? item.assists : item.goals}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -431,3 +423,5 @@ export default function ResultsPage() {
         </SidebarInset>
     )
 }
+
+    
