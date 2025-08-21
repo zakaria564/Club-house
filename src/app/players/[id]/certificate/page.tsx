@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -21,10 +20,7 @@ const parsePlayerDoc = (doc: any): Player => {
 };
 
 
-const CertificatePage = () => {
-  const params = useParams();
-  const playerId = params.id as string;
-  
+const CertificateContent = ({ playerId }: { playerId: string }) => {
   const [player, setPlayer] = React.useState<Player | null>(null);
 
   React.useEffect(() => {
@@ -91,10 +87,10 @@ const CertificatePage = () => {
 };
 
 
-export default function CertificatePageWrapper() {
+export default function CertificatePage({ params }: { params: { id: string }}) {
   return (
     <React.Suspense fallback={<div>Chargement du certificat...</div>}>
-        <CertificatePage />
+        <CertificateContent playerId={params.id} />
     </React.Suspense>
   )
 }

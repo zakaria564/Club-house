@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Image from 'next/image';
@@ -52,10 +51,7 @@ type Member = {
     email: string;
 }
 
-const ReceiptPage = () => {
-  const params = useParams();
-  const paymentId = params.paymentId as string;
-  
+const ReceiptContent = ({ paymentId }: { paymentId: string }) => {
   const [payment, setPayment] = React.useState<Payment | null>(null);
   const [member, setMember] = React.useState<Member | null>(null);
 
@@ -258,10 +254,10 @@ const ReceiptPage = () => {
 };
 
 
-export default function ReceiptPageWrapper() {
+export default function ReceiptPage({ params }: { params: { paymentId: string } }) {
   return (
     <React.Suspense fallback={<div>Chargement du reçu...</div>}>
-        <ReceiptPage />
+        <ReceiptContent paymentId={params.paymentId} />
     </React.Suspense>
   )
 }
