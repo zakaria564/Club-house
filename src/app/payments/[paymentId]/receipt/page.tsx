@@ -10,6 +10,7 @@ import Image from 'next/image';
 import type { Payment, Player, Coach, Transaction } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { ClubLogo } from '@/components/club-logo';
 
 const parsePlayerDoc = (doc: any): Player => {
   const data = doc.data();
@@ -138,8 +139,8 @@ const ReceiptPage = () => {
 
   const isSalaryPayment = payment.paymentType === 'salary';
 
-  const payer = isSalaryPayment ? { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca, Maroc', email: 'contact@clubcaos2011.ma', phone: '' } : member;
-  const payee = isSalaryPayment ? member : { name: 'Club CAOS 2011', address: 'Adresse du club', city: 'Casablanca, Maroc', email: 'contact@clubcaos2011.ma', phone: '' };
+  const payer = isSalaryPayment ? { name: 'Nom du Club', address: 'Adresse du club', city: 'Ville, Pays', email: 'contact@example.com', phone: '' } : member;
+  const payee = isSalaryPayment ? member : { name: 'Nom du Club', address: 'Adresse du club', city: 'Ville, Pays', email: 'contact@example.com', phone: '' };
 
   const payerEncodedAddress = encodeURIComponent(`${payer.address}, ${payer.city}`);
   const payeeEncodedAddress = encodeURIComponent(`${payee.address}, ${payee.city}`);
@@ -150,7 +151,7 @@ const ReceiptPage = () => {
         {/* Header */}
         <header className="flex justify-between items-start pb-6 border-b border-gray-300">
           <div className="w-full">
-            <Image src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg" alt="Club Logo" width={80} height={80} className="h-20 w-auto" data-ai-hint="club logo" />
+            <ClubLogo className="h-20 w-auto" />
           </div>
           <div className="text-right flex-shrink-0">
             <h2 className="text-3xl font-bold text-gray-800 whitespace-nowrap">{isSalaryPayment ? 'ATTESTATION DE PAIEMENT' : 'REÇU DE PAIEMENT'}</h2>
@@ -249,7 +250,7 @@ const ReceiptPage = () => {
         
         {/* Footer */}
         <footer className="text-center mt-12 pt-6 border-t border-gray-300">
-          <p className="text-sm text-gray-500">Merci pour votre confiance !</p>
+          <p className="text-sm text-gray-500">Merci de votre confiance !</p>
         </footer>
       </div>
     </div>

@@ -28,20 +28,14 @@ import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
+import { ClubLogo } from '@/components/club-logo';
 
 const PrintHeader = () => (
   <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
-    <Image
-      src="https://image.noelshack.com/fichiers/2025/32/7/1754814584-whatsapp-image-2025-02-02-03-31-09-1c4bc2b3.jpg"
-      alt="Club Logo"
-      width={96}
-      height={96}
-      className="h-24 w-auto"
-      data-ai-hint="club logo"
-    />
+    <ClubLogo className="h-24 w-auto" />
     <div className="text-center mt-4">
-      <h1 className="text-3xl font-bold font-headline text-primary">Club CAOS 2011</h1>
-      <p className="text-lg text-muted-foreground mt-1">ligue du grand Casablanca de football</p>
+      <h1 className="text-3xl font-bold font-headline text-primary">Nom du Club</h1>
+      <p className="text-lg text-muted-foreground mt-1">Ligue / Association</p>
       <p className="text-2xl font-semibold mt-4 text-gray-800">Fiche d'identification de l'entraîneur</p>
     </div>
     <hr className="w-full mt-4 border-t-2 border-primary" />
