@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Edit, Printer, Mail, Phone, User, Calendar, MapPin, BadgeCheck, Cake } from 'lucide-react';
 import type { Coach } from '@/types';
 import { PageHeader } from '@/components/page-header';
@@ -265,7 +265,6 @@ function CoachDetailContent({ coachId }: { coachId: string }) {
 }
 
 export default function CoachDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
     return (
         <SidebarInset>
             <MobileHeader />
@@ -273,7 +272,7 @@ export default function CoachDetailPage({ params }: { params: { id: string } }) 
                 <MainSidebar />
             </Sidebar>
             <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                <CoachDetailContent coachId={id} />
+                <CoachDetailContent coachId={params.id} />
             </main>
         </SidebarInset>
     )
