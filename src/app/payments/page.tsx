@@ -1,3 +1,4 @@
+
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -172,6 +173,9 @@ function PaymentsPageContent() {
     'Overdue': 'En retard'
   }
 
+  const basePlayerPayments = payments.filter(p => p.paymentType === 'membership');
+  const baseCoachPayments = payments.filter(p => p.paymentType === 'salary');
+
   const groupAndFilterPayments = (baseList: Payment[]): GroupedPayments => {
     let filteredList = baseList;
 
@@ -190,20 +194,20 @@ function PaymentsPageContent() {
         return acc;
     }, {} as GroupedPayments);
     
-    // Sort payments within each group by date
     for(const memberId in grouped){
         grouped[memberId].payments.sort((a,b) => b.date.getTime() - a.date.getTime());
     }
 
     return grouped;
   }
-
-  const basePlayerPayments = payments.filter(p => p.paymentType === 'membership');
-  const baseCoachPayments = payments.filter(p => p.paymentType === 'salary');
   
-  const groupedPlayerPayments = groupAndFilterPayments(basePlayerPayments);
-  const groupedCoachPayments = groupAndFilterPayments(baseCoachPayments);
+  const filteredPlayerPayments = groupAndFilterPayments(basePlayerPayments);
+  const filteredCoachPayments = groupAndFilterPayments(baseCoachPayments);
 
+  const getBaseMemberCount = (baseList: Payment[]) => {
+      const memberIds = new Set(baseList.map(p => p.memberId));
+      return memberIds.size;
+  }
 
   const handleExport = (type: 'membership' | 'salary') => {
     const dataToExport = type === 'membership' ? basePlayerPayments : baseCoachPayments;
@@ -366,9 +370,9 @@ function PaymentsPageContent() {
                 <PaymentCategoryContent
                     title="Historique des cotisations des joueurs"
                     description="Suivez et gérez les cotisations des joueurs."
-                    groupedPayments={groupedPlayerPayments}
-                    totalMembers={Object.keys(groupedPlayerPayments).length}
-                    baseTotalMembers={basePlayerPayments.length}
+                    groupedPayments={filteredPlayerPayments}
+                    totalFilteredMembers={Object.keys(filteredPlayerPayments).length}
+                    totalBaseMembers={getBaseMemberCount(basePlayerPayments)}
                     statusTranslations={statusTranslations}
                     onMarkAsPaid={handleMarkAsPaid}
                     onAddPartialPayment={setPaymentToUpdate}
@@ -386,9 +390,9 @@ function PaymentsPageContent() {
                 <PaymentCategoryContent
                     title="Historique des salaires des entraîneurs"
                     description="Suivez et gérez les salaires des entraîneurs."
-                    groupedPayments={groupedCoachPayments}
-                    totalMembers={Object.keys(groupedCoachPayments).length}
-                    baseTotalMembers={baseCoachPayments.length}
+                    groupedPayments={filteredCoachPayments}
+                    totalFilteredMembers={Object.keys(filteredCoachPayments).length}
+                    totalBaseMembers={getBaseMemberCount(baseCoachPayments)}
                     statusTranslations={statusTranslations}
                     onMarkAsPaid={handleMarkAsPaid}
                     onAddPartialPayment={setPaymentToUpdate}
@@ -436,8 +440,8 @@ interface PaymentCategoryContentProps {
     title: string;
     description: string;
     groupedPayments: GroupedPayments;
-    totalMembers: number;
-    baseTotalMembers: number;
+    totalFilteredMembers: number;
+    totalBaseMembers: number;
     statusTranslations: { [key in Payment['status']]: string };
     onMarkAsPaid: (paymentId: string) => void;
     onAddPartialPayment: (payment: Payment) => void;
@@ -455,8 +459,8 @@ function PaymentCategoryContent({
     title,
     description,
     groupedPayments,
-    totalMembers,
-    baseTotalMembers,
+    totalFilteredMembers,
+    totalBaseMembers,
     statusTranslations,
     onMarkAsPaid,
     onAddPartialPayment,
@@ -522,8 +526,8 @@ function PaymentCategoryContent({
                 </Accordion>
             </CardContent>
             <CardFooter>
-                <div className="text-xs text-muted-foreground">
-                    Affichage de <strong>{totalMembers}</strong> sur <strong>{Object.keys(groupAndFilterPayments).length}</strong> membres
+                 <div className="text-xs text-muted-foreground">
+                    Affichage de <strong>{totalFilteredMembers}</strong> sur <strong>{totalBaseMembers}</strong> membres
                 </div>
             </CardFooter>
         </Card>
@@ -716,3 +720,4 @@ export default function PaymentsPage() {
         </SidebarInset>
     )
 }
+
