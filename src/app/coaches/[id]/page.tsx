@@ -81,10 +81,8 @@ const InfoRow = ({ icon: Icon, label, value, href, className }: { icon: React.El
   return <div className="rounded-md -m-2 p-2">{content}</div>;
 };
 
-function CoachDetailContent() {
+function CoachDetailContent({ coachId }: { coachId: string }) {
   const router = useRouter();
-  const { id } = useParams();
-  const coachId = id as string;
   const { toast } = useToast();
 
   const [coach, setCoach] = React.useState<Coach | null>(null);
@@ -272,7 +270,8 @@ function CoachDetailContent() {
   );
 }
 
-export default function CoachDetailPage() {
+export default function CoachDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     return (
         <SidebarInset>
             <MobileHeader />
@@ -280,7 +279,7 @@ export default function CoachDetailPage() {
                 <MainSidebar />
             </Sidebar>
             <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                <CoachDetailContent />
+                <CoachDetailContent coachId={id} />
             </main>
         </SidebarInset>
     )
