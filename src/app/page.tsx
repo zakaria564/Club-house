@@ -1,3 +1,4 @@
+
 "use client"
 import * as React from "react"
 import { useRouter } from "next/navigation"
@@ -149,18 +150,13 @@ export default function App() {
     const authUnsubscribe = auth.onAuthStateChanged((u) => {
       if (u) {
         setUser(u);
-        setLoading(true);
-
-        // Clean up previous team listener if it exists
-        if (teamUnsubscribe) {
-          teamUnsubscribe();
-        }
+        
+        if (teamUnsubscribe) teamUnsubscribe();
 
         teamUnsubscribe = onSnapshot(doc(db, "users", u.uid), (snap) => {
           if (snap.exists() && snap.data().teamId) {
             setTeamId(snap.data().teamId);
           } else {
-            // User doc might not be created yet, keep listening
             setTeamId(null);
           }
           setLoading(false);
@@ -171,12 +167,9 @@ export default function App() {
         });
 
       } else {
-        // User is signed out
         setUser(null);
         setTeamId(null);
-        if (teamUnsubscribe) {
-          teamUnsubscribe();
-        }
+        if (teamUnsubscribe) teamUnsubscribe();
         setLoading(false);
         router.push('/login');
       }
@@ -184,13 +177,11 @@ export default function App() {
 
     return () => {
       authUnsubscribe();
-      if (teamUnsubscribe) {
-        teamUnsubscribe();
-      }
+      if (teamUnsubscribe) teamUnsubscribe();
     };
   }, [router]);
 
-  if (loading || (!teamId && user)) {
+  if (loading) {
       return (
           <div className="flex items-center justify-center min-h-screen bg-background">
               <p>Chargement des données de votre club...</p>
@@ -198,14 +189,18 @@ export default function App() {
       )
   }
 
-  if(!user) {
-    // This case is handled by the redirect in useEffect, but as a fallback:
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-background">
-            <p>Redirection vers la page de connexion...</p>
-        </div>
-    )
+  if (!user) {
+    return null; // or a login page component if not using redirect
   }
+  
+  if (!teamId) {
+     return (
+          <div className="flex items-center justify-center min-h-screen bg-background">
+              <p>Création de votre équipe en cours...</p>
+          </div>
+      )
+  }
+
 
   return <DashboardContent teamId={teamId}/>
 }
