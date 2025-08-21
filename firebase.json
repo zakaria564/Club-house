@@ -3,5 +3,18 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
-  }
+  },
+  "functions": [
+    {
+      "source": "genkit",
+      "codebase": "genkit",
+      "runtime": "nodejs20",
+      "trigger": {
+        "authentication": {
+          "event": "CREATE"
+        }
+      },
+      "name": "teamOnboarder"
+    }
+  ]
 }
