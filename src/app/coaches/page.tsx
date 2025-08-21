@@ -27,6 +27,9 @@ import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 export default function CoachesPage() {
   const router = useRouter();
@@ -187,150 +190,163 @@ export default function CoachesPage() {
       }
     }
 
-
-  return (
-    <>
-      <PageHeader title="Entraîneurs">
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour
-            </Button>
-            <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
-                <File className="mr-2 h-4 w-4" />
-                Exporter
-            </Button>
-            <Button onClick={handleAddNewCoach} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Ajouter un entraîneur
-            </Button>
-        </div>
-      </PageHeader>
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des entraîneurs</CardTitle>
-          <CardDescription>
-            Gérez les entraîneurs de votre club et leurs informations.
-          </CardDescription>
-          <div className="mt-4 flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Rechercher par nom ou spécialité..." 
-                  className="pl-8" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-            </div>
-            {searchQuery && (
-                 <Button variant="ghost" onClick={() => setSearchQuery("")}>
-                    <X className="mr-2 h-4 w-4" />
-                    Réinitialiser
+    function PageContent() {
+      return (
+        <>
+          <PageHeader title="Entraîneurs">
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Retour
                 </Button>
-            )}
-           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredCoaches.map(coach => (
-              <Card 
-                key={coach.id} 
-                className="flex flex-col transition-all bg-green-50 dark:bg-green-900/30"
-              >
-                <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewCoach(coach.id)}>
-                    <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              aria-haspopup="true"
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Ouvrir le menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => handleViewCoach(coach.id)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Voir/Modifier
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}>
-                              <DollarSign className="mr-2 h-4 w-4" />
-                              Voir les paiements
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-4 pt-0 flex-grow space-y-2">
-                    <div className="flex flex-col cursor-pointer" onClick={() => handleViewCoach(coach.id)}>
-                        <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium truncate hover:underline">{coach.email}</a>
-                        <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:underline">{coach.phone}</a>
-                    </div>
-                      <div className="flex items-center justify-between">
-                          <Badge variant="secondary" className="cursor-pointer" onClick={() => handleViewCoach(coach.id)}>{coach.specialty}</Badge>
-                          <DropdownMenu>
+                <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
+                    <File className="mr-2 h-4 w-4" />
+                    Exporter
+                </Button>
+                <Button onClick={handleAddNewCoach} className="w-full sm:w-auto">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Ajouter un entraîneur
+                </Button>
+            </div>
+          </PageHeader>
+          <Card>
+            <CardHeader>
+              <CardTitle>Liste des entraîneurs</CardTitle>
+              <CardDescription>
+                Gérez les entraîneurs de votre club et leurs informations.
+              </CardDescription>
+              <div className="mt-4 flex flex-col md:flex-row gap-4">
+                <div className="relative flex-grow">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Rechercher par nom ou spécialité..." 
+                      className="pl-8" 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+                {searchQuery && (
+                    <Button variant="ghost" onClick={() => setSearchQuery("")}>
+                        <X className="mr-2 h-4 w-4" />
+                        Réinitialiser
+                    </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredCoaches.map(coach => (
+                  <Card 
+                    key={coach.id} 
+                    className="flex flex-col transition-all bg-green-50 dark:bg-green-900/30"
+                  >
+                    <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewCoach(coach.id)}>
+                        <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                  <Button 
-                                    variant="outline"
-                                    className={cn("whitespace-nowrap h-auto py-0.5 px-2.5 text-xs border-dashed", statusBadgeVariant(coach.status))}
-                                  >
-                                    {coach.status}
-                                  </Button>
+                                <Button
+                                  aria-haspopup="true"
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Ouvrir le menu</span>
+                                </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
-                                  <DropdownMenuRadioGroup value={coach.status} onValueChange={(newStatus) => handleStatusChange(coach.id, newStatus as Coach['status'])}>
-                                    {coachStatuses.map(status => (
-                                        <DropdownMenuRadioItem key={status} value={status}>
-                                          {status}
-                                        </DropdownMenuRadioItem>
-                                    ))}
-                                  </DropdownMenuRadioGroup>
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem onClick={() => handleViewCoach(coach.id)}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Voir/Modifier
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}>
+                                  <DollarSign className="mr-2 h-4 w-4" />
+                                  Voir les paiements
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Supprimer
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
-                    </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-        <CardFooter>
-            <div className="text-xs text-muted-foreground">
-                Affichage de <strong>{filteredCoaches.length}</strong> sur <strong>{coaches.length}</strong> entraîneurs
-            </div>
-        </CardFooter>
-      </Card>
-      
-      <AddCoachDialog 
-        open={isCoachDialogOpen} 
-        onOpenChange={setCoachDialogOpen} 
-        coach={selectedCoach} 
-        />
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 flex-grow space-y-2">
+                        <div className="flex flex-col cursor-pointer" onClick={() => handleViewCoach(coach.id)}>
+                            <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium truncate hover:underline">{coach.email}</a>
+                            <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:underline">{coach.phone}</a>
+                        </div>
+                          <div className="flex items-center justify-between">
+                              <Badge variant="secondary" className="cursor-pointer" onClick={() => handleViewCoach(coach.id)}>{coach.specialty}</Badge>
+                              <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                      <Button 
+                                        variant="outline"
+                                        className={cn("whitespace-nowrap h-auto py-0.5 px-2.5 text-xs border-dashed", statusBadgeVariant(coach.status))}
+                                      >
+                                        {coach.status}
+                                      </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                      <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                                      <DropdownMenuRadioGroup value={coach.status} onValueChange={(newStatus) => handleStatusChange(coach.id, newStatus as Coach['status'])}>
+                                        {coachStatuses.map(status => (
+                                            <DropdownMenuRadioItem key={status} value={status}>
+                                              {status}
+                                            </DropdownMenuRadioItem>
+                                        ))}
+                                      </DropdownMenuRadioGroup>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                        </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+            <CardFooter>
+                <div className="text-xs text-muted-foreground">
+                    Affichage de <strong>{filteredCoaches.length}</strong> sur <strong>{coaches.length}</strong> entraîneurs
+                </div>
+            </CardFooter>
+          </Card>
+          
+          <AddCoachDialog 
+            open={isCoachDialogOpen} 
+            onOpenChange={setCoachDialogOpen} 
+            coach={selectedCoach} 
+            />
+    
+          <AlertDialog open={!!coachToDelete} onOpenChange={(open) => !open && setCoachToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Cette action est irréversible. Elle supprimera définitivement le profil de l'entraîneur et tous ses paiements associés.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setCoachToDelete(null)}>Annuler</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteConfirm}>Supprimer</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )
+    }
 
-      <AlertDialog open={!!coachToDelete} onOpenChange={(open) => !open && setCoachToDelete(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Cette action est irréversible. Elle supprimera définitivement le profil de l'entraîneur et tous ses paiements associés.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setCoachToDelete(null)}>Annuler</AlertDialogCancel>
-                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteConfirm}>Supprimer</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-      </AlertDialog>
-    </>
+  return (
+    <SidebarInset>
+        <MobileHeader />
+        <Sidebar>
+            <MainSidebar />
+        </Sidebar>
+        <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+            <PageContent />
+        </main>
+    </SidebarInset>
   )
 }

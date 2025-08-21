@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, Coins, Users, Shield } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, File, Printer, ArrowLeft, Trash2, Coins, Users, Shield, X } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -347,6 +347,11 @@ function PaymentsPageContent() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
+            {searchQuery && (
+                <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>
+                    <X className="mr-2 h-4 w-4" /> Effacer
+                </Button>
+            )}
             <Button onClick={() => setAddPaymentOpen(true)} className="w-full sm:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
             Ajouter un paiement
@@ -364,7 +369,7 @@ function PaymentsPageContent() {
                     description="Suivez et gérez les cotisations des joueurs."
                     groupedPayments={groupedPlayerPayments}
                     totalMembers={Object.keys(groupedPlayerPayments).length}
-                    baseTotalMembers={Object.keys(groupAndFilterPayments(basePlayerPayments)).length}
+                    baseTotalMembers={basePlayerPayments.length}
                     statusTranslations={statusTranslations}
                     onMarkAsPaid={handleMarkAsPaid}
                     onAddPartialPayment={setPaymentToUpdate}
@@ -384,7 +389,7 @@ function PaymentsPageContent() {
                     description="Suivez et gérez les salaires des entraîneurs."
                     groupedPayments={groupedCoachPayments}
                     totalMembers={Object.keys(groupedCoachPayments).length}
-                    baseTotalMembers={Object.keys(groupAndFilterPayments(baseCoachPayments)).length}
+                    baseTotalMembers={baseCoachPayments.length}
                     statusTranslations={statusTranslations}
                     onMarkAsPaid={handleMarkAsPaid}
                     onAddPartialPayment={setPaymentToUpdate}
@@ -519,7 +524,7 @@ function PaymentCategoryContent({
             </CardContent>
             <CardFooter>
                 <div className="text-xs text-muted-foreground">
-                    Affichage de <strong>{totalMembers}</strong> sur <strong>{baseTotalMembers}</strong> membres
+                    Affichage de <strong>{totalMembers}</strong> sur <strong>{Object.keys(groupAndFilterPayments).length}</strong> membres
                 </div>
             </CardFooter>
         </Card>
@@ -656,25 +661,29 @@ function PaymentTable({
                             <TableCell colSpan={6} className="p-0">
                                 <div className="p-4 bg-muted/50">
                                     <h4 className="font-semibold mb-2">Historique des versements</h4>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead className="text-right">Avance</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                        {payment.history?.map((transaction, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
-                                                <TableCell className="text-right">
-                                                    {transaction.amount.toFixed(2)} DH
-                                                    <span className="text-muted-foreground text-xs ml-2">{getAdvanceLabel(index)}</span>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        </TableBody>
-                                    </Table>
+                                    {payment.history && payment.history.length > 0 ? (
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Date</TableHead>
+                                                    <TableHead className="text-right">Avance</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                            {payment.history?.map((transaction, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{format(transaction.date, 'PPP p', { locale: fr })}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        {transaction.amount.toFixed(2)} DH
+                                                        <span className="text-muted-foreground text-xs ml-2">{getAdvanceLabel(index)}</span>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            </TableBody>
+                                        </Table>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">Aucun versement enregistré pour cette transaction.</p>
+                                    )}
                                 </div>
                             </TableCell>
                         </TableRow>
