@@ -74,10 +74,8 @@ const InfoRow = ({ icon: Icon, label, value, href, className }: { icon: React.El
 };
 
 
-function PlayerDetailContent() {
+function PlayerDetailContent({ playerId }: { playerId: string }) {
   const router = useRouter();
-  const params = useParams();
-  const playerId = params.id as string;
 
   const [player, setPlayer] = React.useState<Player | null>(null);
   const [coach, setCoach] = React.useState<Coach | null>(null);
@@ -288,7 +286,8 @@ function PlayerDetailContent() {
   );
 }
 
-export default function PlayerDetailPage() {
+export default function PlayerDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     return (
         <SidebarInset>
             <MobileHeader />
@@ -296,7 +295,7 @@ export default function PlayerDetailPage() {
                 <MainSidebar />
             </Sidebar>
             <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                <PlayerDetailContent />
+                <PlayerDetailContent playerId={id} />
             </main>
         </SidebarInset>
     )
