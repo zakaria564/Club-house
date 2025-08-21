@@ -1,12 +1,15 @@
 "use client"
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
+import { getAuth } from "firebase/auth"
 import { collection, query, where, onSnapshot, doc, getDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { format, isAfter, isSameMonth, isToday, startOfMonth } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Users, AlertTriangle, Ban, UserX, Shield, UserCheck, UserMinus, Calendar, DollarSign, Wallet } from "lucide-react"
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/components/layout/main-sidebar"
+import { MobileHeader } from "@/components/layout/mobile-header"
 
 // ===== Types =====
 type Player = { id: string; firstName: string; lastName: string; status: string; category?: string; clubExitDate?: Date; date: Date; }
@@ -71,8 +74,8 @@ function DashboardContent({ teamId }: { teamId: string }) {
   const monthString = format(new Date(), "MMMM yyyy", { locale: fr })
   const paidMemberships = payments.filter(p => p.status === "Paid" && p.paymentType==="membership" && p.date && isSameMonth(p.date, new Date())).length
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
+  const content = (
+    <>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold font-headline text-primary">Tableau de bord</h1>
         <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2" onClick={()=>setPlayerDialogOpen(true)}>
@@ -116,22 +119,33 @@ function DashboardContent({ teamId }: { teamId: string }) {
       </div>
 
       <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen}/>
-    </div>
+    </>
+  );
+
+  return (
+    <SidebarInset>
+        <MobileHeader />
+        <Sidebar>
+            <MainSidebar />
+        </Sidebar>
+        <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+            {content}
+        </main>
+    </SidebarInset>
   )
 }
 
 // ===== Main App =====
 export default function App() {
+  const router = useRouter()
   const [user, setUser] = React.useState<any>(null)
   const [teamId, setTeamId] = React.useState<string|null>(null)
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [error, setError] = React.useState("")
   const [loading, setLoading] = React.useState(true)
 
   React.useEffect(()=>{
     const auth = getAuth()
     const unsubscribe = auth.onAuthStateChanged(async (u) => {
+        setLoading(true);
         if(u) {
             setUser(u)
             try {
@@ -139,39 +153,22 @@ export default function App() {
                 if(snap.exists()) {
                     setTeamId(snap.data().teamId)
                 } else {
-                    setError("Aucune équipe n'est associée à cet utilisateur.")
+                    console.error("No team associated with this user.");
+                    setTeamId(null);
                 }
             } catch (err) {
-                setError("Erreur lors de la récupération des données de l'équipe.")
+                console.error("Error fetching team data:", err);
+                setTeamId(null);
             }
         } else {
             setUser(null)
             setTeamId(null)
+            router.push('/login');
         }
         setLoading(false)
     });
     return () => unsubscribe();
-  },[])
-
-  const handleLogin = async ()=>{
-    setError("")
-    if(!email || !password) {
-        setError("Veuillez remplir tous les champs.")
-        return
-    }
-    const auth = getAuth()
-    try{
-      await signInWithEmailAndPassword(auth,email,password)
-      // onAuthStateChanged will handle setting user and teamId
-    }catch(err:any){ 
-        if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-            setError("Email ou mot de passe incorrect.")
-        } else {
-            setError("Une erreur de connexion est survenue.")
-            console.error(err)
-        }
-    }
-  }
+  },[router])
   
   if(loading) {
       return (
@@ -182,19 +179,11 @@ export default function App() {
   }
 
   if(!user || !teamId) {
+    // This case is mostly handled by the redirect, but as a fallback:
     return (
-      <div className="flex items-center justify-center min-h-screen bg-muted/40">
-        <div className="p-8 bg-card rounded-lg shadow-lg w-full max-w-sm border">
-          <h1 className="text-2xl font-bold mb-1">Connexion</h1>
-          <p className="text-muted-foreground mb-6">Accédez au tableau de bord de votre club.</p>
-          <div className="space-y-4">
-             <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full p-2 border rounded-md bg-transparent"/>
-             <input type="password" placeholder="Mot de passe" value={password} onChange={e=>setPassword(e.target.value)} className="w-full p-2 border rounded-md bg-transparent"/>
-          </div>
-          <button onClick={handleLogin} className="w-full bg-primary text-primary-foreground p-2 rounded-md mt-6 hover:bg-primary/90">Se connecter</button>
-          {error && <p className="text-sm text-red-500 mt-4 text-center">{error}</p>}
+        <div className="flex items-center justify-center min-h-screen bg-background">
+            <p>Redirection vers la page de connexion...</p>
         </div>
-      </div>
     )
   }
 
