@@ -260,13 +260,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
     router.push(`/${path}/${memberId}`);
   };
   
-  const count = data ? data.count : 0;
-  const members = data ? data.members : [];
+  const count = data?.count ?? 0;
+  const members = data?.members ?? [];
+  const canOpenPopover = count > 0 || !!children;
 
   return (
     <Popover>
-        <PopoverTrigger asChild disabled={count === 0 && !children}>
-            <Card className={cn("flex flex-col", bgColor, (count > 0 || children) && "cursor-pointer hover:shadow-md transition-shadow")}>
+        <PopoverTrigger asChild disabled={!canOpenPopover}>
+            <Card className={cn("flex flex-col", bgColor, canOpenPopover && "cursor-pointer hover:shadow-md transition-shadow")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
                     <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     <Icon className={cn("h-4 w-4", count > 0 ? iconColor : "text-muted-foreground")} />
@@ -277,7 +278,7 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
                 </CardContent>
             </Card>
         </PopoverTrigger>
-        {(count > 0 || children) && (
+        {canOpenPopover && (
             <PopoverContent className="w-auto max-w-[300px]">
                 <div className="text-sm font-semibold mb-2">Liste</div>
                 <div className="space-y-1">
