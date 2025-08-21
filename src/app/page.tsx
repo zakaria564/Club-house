@@ -137,49 +137,69 @@ function DashboardContent({ teamId }: { teamId: string }) {
 
 // ===== Main App =====
 export default function App() {
-  const router = useRouter()
-  const [user, setUser] = React.useState<any>(null)
-  const [teamId, setTeamId] = React.useState<string|null>(null)
-  const [loading, setLoading] = React.useState(true)
+  const router = useRouter();
+  const [user, setUser] = React.useState<any>(null);
+  const [teamId, setTeamId] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(()=>{
-    const auth = getAuth()
-    const unsubscribe = auth.onAuthStateChanged(async (u) => {
+  React.useEffect(() => {
+    const auth = getAuth();
+    let teamUnsubscribe: (() => void) | null = null;
+
+    const authUnsubscribe = auth.onAuthStateChanged((u) => {
+      if (u) {
+        setUser(u);
         setLoading(true);
-        if(u) {
-            setUser(u)
-            try {
-                const snap = await getDoc(doc(db, "users", u.uid))
-                if(snap.exists()) {
-                    setTeamId(snap.data().teamId)
-                } else {
-                    console.error("No team associated with this user.");
-                    setTeamId(null);
-                }
-            } catch (err) {
-                console.error("Error fetching team data:", err);
-                setTeamId(null);
-            }
-        } else {
-            setUser(null)
-            setTeamId(null)
-            router.push('/login');
+
+        // Clean up previous team listener if it exists
+        if (teamUnsubscribe) {
+          teamUnsubscribe();
         }
-        setLoading(false)
+
+        teamUnsubscribe = onSnapshot(doc(db, "users", u.uid), (snap) => {
+          if (snap.exists() && snap.data().teamId) {
+            setTeamId(snap.data().teamId);
+          } else {
+            // User doc might not be created yet, keep listening
+            setTeamId(null);
+          }
+          setLoading(false);
+        }, (error) => {
+          console.error("Error listening to user document:", error);
+          setTeamId(null);
+          setLoading(false);
+        });
+
+      } else {
+        // User is signed out
+        setUser(null);
+        setTeamId(null);
+        if (teamUnsubscribe) {
+          teamUnsubscribe();
+        }
+        setLoading(false);
+        router.push('/login');
+      }
     });
-    return () => unsubscribe();
-  },[router])
-  
-  if(loading) {
+
+    return () => {
+      authUnsubscribe();
+      if (teamUnsubscribe) {
+        teamUnsubscribe();
+      }
+    };
+  }, [router]);
+
+  if (loading || (!teamId && user)) {
       return (
           <div className="flex items-center justify-center min-h-screen bg-background">
-              <p>Chargement...</p>
+              <p>Chargement des données de votre club...</p>
           </div>
       )
   }
 
-  if(!user || !teamId) {
-    // This case is mostly handled by the redirect, but as a fallback:
+  if(!user) {
+    // This case is handled by the redirect in useEffect, but as a fallback:
     return (
         <div className="flex items-center justify-center min-h-screen bg-background">
             <p>Redirection vers la page de connexion...</p>
