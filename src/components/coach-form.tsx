@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
-import { collection, doc, setDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
+import { collection, doc, setDoc, onSnapshot, query, Timestamp, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 
@@ -25,6 +25,7 @@ import type { Coach } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { cn, handleEnterKeyDown } from "@/lib/utils"
 import { Loader2, Eye, EyeOff } from "lucide-react"
+import { useTeamId } from "@/hooks/use-team-id"
 
 const coachFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit comporter au moins 2 caractères."),
@@ -83,6 +84,7 @@ const specialties = [
 
 export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const { toast } = useToast()
+  const teamId = useTeamId();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isPhotoUrlVisible, setPhotoUrlVisible] = React.useState(!coach);
   const [allCoaches, setAllCoaches] = React.useState<Coach[]>([]);
@@ -90,13 +92,14 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
   const [coachId] = React.useState(() => coach?.id || doc(collection(db, "coaches")).id);
 
   React.useEffect(() => {
-    const qCoaches = query(collection(db, "coaches"));
+    if (!teamId) return;
+    const qCoaches = query(collection(db, "coaches"), where("teamId", "==", teamId));
     const unsubscribe = onSnapshot(qCoaches, (snapshot) => {
         const coachesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coach));
         setAllCoaches(coachesData);
     });
     return () => unsubscribe();
-  }, []);
+  }, [teamId]);
   
   const defaultValues = React.useMemo(() => ({
       firstName: coach?.firstName || '',
@@ -126,6 +129,11 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
 
   async function onSubmit(data: CoachFormValues) {
     setIsSubmitting(true);
+    if (!teamId) {
+      toast({ variant: "destructive", title: "Erreur", description: "ID d'équipe non trouvé." });
+      setIsSubmitting(false);
+      return;
+    }
     try {
       const formattedFullName = `${data.firstName.trim()} ${data.lastName.trim()}`.toLowerCase().replace(/\s+/g, ' ');
       
@@ -144,8 +152,9 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
           return;
       }
 
-      const newCoachData = {
+      const newCoachData: Omit<Coach, 'id'> = {
         ...data,
+        teamId,
         photoUrl: data.photoUrl || null,
         clubEntryDate: Timestamp.fromDate(new Date(data.clubEntryDate)),
         clubExitDate: data.clubExitDate ? Timestamp.fromDate(new Date(data.clubExitDate)) : null,
@@ -432,3 +441,5 @@ export function CoachForm({ onFinished, coach }: CoachFormProps) {
       </Form>
   )
 }
+
+    

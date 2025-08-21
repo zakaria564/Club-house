@@ -1,3 +1,4 @@
+
 "use client"
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
@@ -12,8 +13,9 @@ import { cn, handleEnterKeyDown } from "@/lib/utils"
 import type { Player, Payment, Coach, Transaction } from "@/types"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { collection, addDoc, onSnapshot, query, Timestamp } from "firebase/firestore"
+import { collection, addDoc, onSnapshot, query, Timestamp, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { useTeamId } from "@/hooks/use-team-id"
 
 interface AddPaymentDialogProps {
   open: boolean;
@@ -32,6 +34,7 @@ const dateToInputFormat = (date?: Date | null): string => {
 
 export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialogProps) {
   const { toast } = useToast();
+  const teamId = useTeamId();
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [memberType, setMemberType] = React.useState<'player' | 'coach'>('player');
@@ -41,17 +44,19 @@ export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialo
   const [date, setDate] = React.useState<string>(dateToInputFormat(new Date()));
   
   React.useEffect(() => {
-    const unsubscribePlayers = onSnapshot(query(collection(db, "players")), (snapshot) => {
+    if (!teamId) return;
+
+    const unsubscribePlayers = onSnapshot(query(collection(db, "players"), where("teamId", "==", teamId)), (snapshot) => {
         setPlayers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player)));
     });
-    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches")), (snapshot) => {
+    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches"), where("teamId", "==", teamId)), (snapshot) => {
         setCoaches(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coach)));
     });
     return () => {
         unsubscribePlayers();
         unsubscribeCoaches();
     };
-  }, []);
+  }, [teamId]);
 
   const members = React.useMemo(() => {
     if (memberType === 'player') {
@@ -86,6 +91,10 @@ export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialo
 
   const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
+    if (!teamId) {
+      toast({ variant: "destructive", title: "Erreur", description: "ID d'équipe non trouvé." });
+      return;
+    }
     const totalAmountNum = parseFloat(totalAmount);
     const advanceNum = parseFloat(advance);
     if (!selectedMemberId || isNaN(totalAmountNum) || isNaN(advanceNum) || !date) {
@@ -103,9 +112,10 @@ export default function AddPaymentDialog({ open, onOpenChange }: AddPaymentDialo
     }
     const paymentDate = new Date(date);
     const remaining = totalAmountNum - advanceNum;
-    const status: Payment['status'] = remaining === 0 ? 'Paid' : (new Date() > paymentDate ? 'Overdue' : 'Pending');
+    const status: Payment['status'] = remaining <= 0 ? 'Paid' : (new Date() > paymentDate ? 'Overdue' : 'Pending');
     const history: Transaction[] = advanceNum > 0 ? [{ date: new Date(), amount: advanceNum }] : [];
     const newPayment: Omit<Payment, 'id'> = {
+      teamId,
       memberId: selectedMemberId,
       memberName: selectedMember.name,
       paymentType: memberType === 'player' ? 'membership' : 'salary',
@@ -213,3 +223,5 @@ function MemberCombobox({ members, value, onValueChange, memberType }: MemberCom
     </Popover>
   )
 }
+
+    

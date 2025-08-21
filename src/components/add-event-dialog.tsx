@@ -1,7 +1,7 @@
 
 "use client"
 import * as React from "react"
-import { addDoc, collection, doc, setDoc, Timestamp, onSnapshot, query } from "firebase/firestore"
+import { addDoc, collection, doc, setDoc, Timestamp, onSnapshot, query, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 import {
@@ -23,6 +23,7 @@ import { handleEnterKeyDown } from "@/lib/utils"
 import { Textarea } from "./ui/textarea"
 import { Separator } from "./ui/separator"
 import { MatchStatsForm } from "./match-stats-form"
+import { useTeamId } from "@/hooks/use-team-id"
 
 interface AddEventDialogProps {
   open: boolean;
@@ -64,17 +65,19 @@ const dateToInputFormat = (date?: Date | null): string => {
 
 export function AddEventDialog({ open, onOpenChange, event, selectedDate }: AddEventDialogProps) {
     const { toast } = useToast();
+    const teamId = useTeamId();
     const isEditing = !!event;
 
     const [players, setPlayers] = React.useState<Player[]>([]);
 
     React.useEffect(() => {
-        const playersQuery = query(collection(db, "players"));
+        if (!teamId) return;
+        const playersQuery = query(collection(db, "players"), where("teamId", "==", teamId));
         const unsubscribe = onSnapshot(playersQuery, (snapshot) => {
             setPlayers(snapshot.docs.map(parsePlayerDoc));
         });
         return () => unsubscribe();
-    }, []);
+    }, [teamId]);
 
     const [title, setTitle] = React.useState(event?.title && !event.opponent ? event.title : "");
     const [customTitle, setCustomTitle] = React.useState("");
@@ -146,6 +149,11 @@ export function AddEventDialog({ open, onOpenChange, event, selectedDate }: AddE
         e?.preventDefault();
         const finalTitle = title === "Autre..." ? customTitle : title;
 
+        if (!teamId) {
+            toast({ variant: "destructive", title: "Erreur", description: "Impossible de déterminer l'équipe." });
+            return;
+        }
+
         if (!type || !date || !time || !location || (type !== 'Match' && !finalTitle) || (type === 'Match' && !opponent)) {
             toast({
                 variant: "destructive",
@@ -155,7 +163,8 @@ export function AddEventDialog({ open, onOpenChange, event, selectedDate }: AddE
             return;
         }
 
-        const eventData = {
+        const eventData: Omit<ClubEvent, 'id'> = {
+            teamId,
             title: finalTitle,
             date: Timestamp.fromDate(new Date(date)),
             type,

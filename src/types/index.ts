@@ -1,6 +1,7 @@
 
 export type Player = {
   id: string;
+  teamId: string;
   firstName: string;
   lastName: string;
   gender: 'Homme' | 'Femme';
@@ -30,6 +31,7 @@ export type Transaction = {
 
 export type Payment = {
   id: string;
+  teamId: string;
   memberId: string; // Can be playerId or coachId
   memberName: string;
   paymentType: 'membership' | 'salary'; // 'membership' for players, 'salary' for coaches
@@ -48,6 +50,7 @@ export type StatEvent = {
 
 export type ClubEvent = {
   id: string;
+  teamId: string;
   title: string;
   type: 'Match' | 'Entraînement' | 'Réunion' | 'Événement' | 'Autre';
   date: Date;
@@ -63,6 +66,7 @@ export type ClubEvent = {
 
 export type Coach = {
   id: string;
+  teamId: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -83,3 +87,5 @@ export type PerformanceStats = {
   goalsScored: number;
   assistsMade: number;
 };
+
+    

@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -19,11 +20,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { DayEventsSheet } from "@/components/day-events-sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { collection, onSnapshot, query, doc, deleteDoc, Timestamp } from "firebase/firestore"
+import { collection, onSnapshot, query, doc, deleteDoc, Timestamp, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
+import { useTeamId } from "@/hooks/use-team-id"
 
 
 const parseEventDoc = (doc: any): ClubEvent => {
@@ -40,6 +42,7 @@ function SchedulePageContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const teamId = useTeamId();
   
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [events, setEvents] = React.useState<ClubEvent[]>([])
@@ -53,12 +56,13 @@ function SchedulePageContent() {
   const [selectedDateForSheet, setSelectedDateForSheet] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
-    const q = query(collection(db, "events"));
+    if (!teamId) return;
+    const q = query(collection(db, "events"), where("teamId", "==", teamId));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         setEvents(querySnapshot.docs.map(parseEventDoc));
     });
     return () => unsubscribe();
-  }, []);
+  }, [teamId]);
 
   React.useEffect(() => {
     const dateParam = searchParams.get('date');
@@ -245,3 +249,5 @@ export default function SchedulePage() {
         </SidebarInset>
     )
 }
+
+    

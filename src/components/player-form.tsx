@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
-import { collection, doc, setDoc, onSnapshot, query, Timestamp, writeBatch } from "firebase/firestore"
+import { collection, doc, setDoc, onSnapshot, query, Timestamp, writeBatch, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Player, Coach, Payment, Transaction } from "@/types"
 import { Loader2, Eye, EyeOff } from "lucide-react"
 import { Label } from "./ui/label"
+import { useTeamId } from "@/hooks/use-team-id"
 
 const basePlayerFormSchema = z.object({
   firstName: z.string().min(2, "Le prénom est requis."),
@@ -80,6 +81,7 @@ const statuses: Player['status'][] = ["En forme","Blessé","Suspendu","Indisponi
 
 export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormProps) {
   const { toast } = useToast()
+  const teamId = useTeamId();
   const [coaches, setCoaches] = React.useState<Coach[]>([])
   const [allPlayers, setAllPlayers] = React.useState<Player[]>([])
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -130,19 +132,25 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
   }, [player, form])
 
   React.useEffect(() => {
-    const qCoaches = query(collection(db, "coaches"))
+    if (!teamId) return;
+    const qCoaches = query(collection(db, "coaches"), where("teamId", "==", teamId));
     const unsubscribeCoaches = onSnapshot(qCoaches, snapshot => {
       const coachesData: Coach[] = []
       snapshot.forEach(doc => coachesData.push({ id: doc.id, ...doc.data() } as Coach))
       setCoaches(coachesData)
     })
-    const qPlayers = query(collection(db, "players"))
+    const qPlayers = query(collection(db, "players"), where("teamId", "==", teamId));
     const unsubscribePlayers = onSnapshot(qPlayers, snapshot => setAllPlayers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player))))
     return () => { unsubscribeCoaches(); unsubscribePlayers() }
-  }, [])
+  }, [teamId])
 
   async function onSubmit(data: PlayerFormValues) {
     setIsSubmitting(true)
+    if (!teamId) {
+      toast({ variant: "destructive", title: "Erreur", description: "ID d'équipe non trouvé." });
+      setIsSubmitting(false);
+      return;
+    }
     try {
       const isUrlValid = (url?: string | null) => {
         if (!url) return true
@@ -159,8 +167,9 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
       if (isDuplicate) { toast({ variant: "destructive", title: "Joueur en double", description: `Un joueur nommé ${data.firstName} ${data.lastName} existe déjà.` }); setIsSubmitting(false); return }
 
       const { initialTotalAmount, initialAdvanceAmount, ...playerData } = data
-      const newPlayerData = {
+      const newPlayerData: Omit<Player, 'id'> = {
         ...playerData,
+        teamId,
         playerNumber: Number(data.playerNumber) || 0,
         photoUrl: data.photoUrl || null,
         dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
@@ -182,6 +191,7 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
           const status: Payment['status'] = remaining <= 0 ? 'Paid' : 'Pending'
           const history: Transaction[] = advance > 0 ? [{ date: new Date(), amount: advance }] : []
           const newPayment: Omit<Payment,'id'> = {
+            teamId,
             memberId: playerId,
             memberName: `${data.firstName} ${data.lastName}`,
             paymentType: 'membership',
@@ -315,3 +325,5 @@ export function PlayerForm({ onFinished, player, isDialog = false }: PlayerFormP
     </Form>
   )
 }
+
+    

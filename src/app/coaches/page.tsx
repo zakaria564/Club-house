@@ -5,6 +5,7 @@ import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search, Doll
 import { useRouter } from "next/navigation"
 import { collection, onSnapshot, deleteDoc, doc, query, where, getDocs, writeBatch, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { useTeamId } from "@/hooks/use-team-id"
 
 
 import { Badge } from "@/components/ui/badge"
@@ -31,9 +32,10 @@ import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
 
-export default function CoachesPage() {
+function CoachesPageContent() {
   const router = useRouter();
   const { toast } = useToast();
+  const teamId = useTeamId();
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
   const [selectedCoach, setSelectedCoach] = React.useState<Coach | null>(null);
@@ -42,7 +44,8 @@ export default function CoachesPage() {
   const coachStatuses: Coach['status'][] = ["Actif", "Inactif"];
 
   React.useEffect(() => {
-    const q = query(collection(db, "coaches"));
+    if (!teamId) return;
+    const q = query(collection(db, "coaches"), where("teamId", "==", teamId));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const coachesData: Coach[] = [];
         querySnapshot.forEach((doc) => {
@@ -52,7 +55,7 @@ export default function CoachesPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [teamId]);
 
   const handleEditCoach = (coach: Coach) => {
     setSelectedCoach(coach);
@@ -190,8 +193,7 @@ export default function CoachesPage() {
       }
     }
 
-    function PageContent() {
-      return (
+    return (
         <>
           <PageHeader title="Entraîneurs">
             <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
@@ -335,18 +337,21 @@ export default function CoachesPage() {
                 </AlertDialogContent>
           </AlertDialog>
         </>
-      )
-    }
-
-  return (
-    <SidebarInset>
-        <MobileHeader />
-        <Sidebar>
-            <MainSidebar />
-        </Sidebar>
-        <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-            <PageContent />
-        </main>
-    </SidebarInset>
-  )
+    )
 }
+
+export default function CoachesPage() {
+    return (
+        <SidebarInset>
+            <MobileHeader />
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                <CoachesPageContent />
+            </main>
+        </SidebarInset>
+    )
+}
+
+    
