@@ -2,10 +2,9 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { ClubLogo } from '@/components/club-logo';
 
-const BlankRegistrationFormPage = () => {
+const BlankRegistrationFormPageContent = () => {
   
   React.useEffect(() => {
     const originalTitle = document.title;
@@ -109,10 +108,10 @@ const BlankRegistrationFormPage = () => {
 };
 
 
-export default function BlankRegistrationFormPageWrapper() {
+export default function BlankRegistrationFormPage() {
   return (
     <React.Suspense fallback={<div>Chargement...</div>}>
-        <BlankRegistrationFormPage />
+        <BlankRegistrationFormPageContent />
     </React.Suspense>
   )
 }
