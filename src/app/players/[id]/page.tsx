@@ -290,16 +290,14 @@ function PlayerDetailContent() {
 
 export default function PlayerDetailPage() {
     return (
-        <SidebarProvider>
+        <SidebarInset>
+            <MobileHeader />
             <Sidebar>
                 <MainSidebar />
             </Sidebar>
-            <SidebarInset>
-                <MobileHeader />
-                <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-                    <PlayerDetailContent />
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+            <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                <PlayerDetailContent />
+            </main>
+        </SidebarInset>
     )
 }

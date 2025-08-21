@@ -493,14 +493,14 @@ const StatusCard = ({ title, data, icon: Icon, iconColor, description, memberTyp
 
 export default function Dashboard() {
     return (
-      <SidebarInset>
-        <MobileHeader />
-        <Sidebar>
-            <MainSidebar />
-        </Sidebar>
-        <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
-            <DashboardContent />
-        </main>
-      </SidebarInset>
+        <SidebarInset>
+            <MobileHeader />
+            <Sidebar>
+                <MainSidebar />
+            </Sidebar>
+            <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+                <DashboardContent />
+            </main>
+        </SidebarInset>
     )
 }
