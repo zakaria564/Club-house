@@ -1,4 +1,3 @@
-
 "use client"
 import * as React from "react"
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -121,7 +120,7 @@ function PaymentsPageContent() {
   const searchParams = useSearchParams()
   const { toast } = useToast();
   
-  const [initialMemberId, setInitialMemberId] = React.useState(searchParams.get('memberId'));
+  const initialMemberId = searchParams.get('memberId');
   
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isAddPaymentOpen, setAddPaymentOpen] = React.useState(false);
@@ -134,15 +133,6 @@ function PaymentsPageContent() {
 
   const [expandedPaymentId, setExpandedPaymentId] = React.useState<string | null>(null);
   
-  React.useEffect(() => {
-    const memberId = searchParams.get('memberId');
-    if (memberId) {
-      setInitialMemberId(memberId);
-      // Automatically expand the accordion for the selected member
-      setExpandedAccordionItems([memberId]);
-    }
-  }, [searchParams]);
-
   const [expandedAccordionItems, setExpandedAccordionItems] = React.useState<string[]>(initialMemberId ? [initialMemberId] : []);
 
 
@@ -720,4 +710,3 @@ export default function PaymentsPage() {
         </SidebarInset>
     )
 }
-
