@@ -5,6 +5,7 @@ import * as React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 
 import type { Payment, Player, Coach, Transaction } from '@/types';
 import { db } from '@/lib/firebase';
@@ -254,10 +255,12 @@ const ReceiptContent = ({ paymentId }: { paymentId: string }) => {
 };
 
 
-export default function ReceiptPage({ params }: { params: { paymentId: string } }) {
+export default function ReceiptPage() {
+  const params = useParams();
+  const paymentId = params.paymentId as string;
   return (
     <React.Suspense fallback={<div>Chargement du reçu...</div>}>
-        <ReceiptContent paymentId={params.paymentId} />
+        <ReceiptContent paymentId={paymentId} />
     </React.Suspense>
   )
 }

@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Player } from '@/types';
@@ -87,12 +88,12 @@ const CertificateContent = ({ playerId }: { playerId: string }) => {
 };
 
 
-export default function CertificatePage({ params }: { params: { id: string }}) {
-  return (
-    <React.Suspense fallback={<div>Chargement du certificat...</div>}>
-        <CertificateContent playerId={params.id} />
-    </React.Suspense>
-  )
+export default function CertificatePage() {
+    const params = useParams();
+    const playerId = params.id as string;
+    return (
+        <React.Suspense fallback={<div>Chargement du certificat...</div>}>
+            <CertificateContent playerId={playerId} />
+        </React.Suspense>
+    )
 }
-
-    
