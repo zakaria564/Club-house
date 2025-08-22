@@ -15,12 +15,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const formSchema = z.object({
+  username: z
+    .string()
+    .min(3, { message: "Le nom d'utilisateur doit faire au moins 3 caractères." }),
   email: z.string().email({ message: 'Adresse email invalide.' }),
   password: z
     .string()
@@ -35,6 +38,7 @@ export default function SignupPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username: '',
       email: '',
       password: '',
     },
@@ -43,10 +47,19 @@ export default function SignupPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+      
+      await updateProfile(userCredential.user, {
+        displayName: values.username,
+      });
+
       toast({
         title: 'Compte créé avec succès',
-        description: "Vous pouvez maintenant vous connecter.",
+        description: 'Vous pouvez maintenant vous connecter.',
       });
       router.push('/login');
     } catch (error: any) {
@@ -73,6 +86,23 @@ export default function SignupPage() {
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom d'utilisateur</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Votre nom"
+                    {...field}
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="email"
