@@ -66,10 +66,7 @@ export default function SignupPage() {
       toast({
         variant: 'destructive',
         title: "Erreur lors de l'inscription",
-        description:
-          error.code === 'auth/email-already-in-use'
-            ? 'Cet email est déjà utilisé.'
-            : "Une erreur s'est produite. Veuillez réessayer.",
+        description: `Erreur: ${error.message} (code: ${error.code})`
       });
     } finally {
       setIsLoading(false);
