@@ -15,7 +15,6 @@ import type { Player, Coach } from "@/types"
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
-import { useTeamId } from "@/hooks/use-team-id"
 
 const parsePlayerDoc = (doc: any): Player => {
   const data = doc.data();
@@ -50,20 +49,17 @@ const isValidUrl = (url: string | null | undefined): boolean => {
 
 function GalleryContent() {
     const router = useRouter();
-    const teamId = useTeamId();
     const [players, setPlayers] = React.useState<Player[]>([]);
     const [coaches, setCoaches] = React.useState<Coach[]>([]);
 
     React.useEffect(() => {
-        if (!teamId) return;
-
-        const playersQuery = query(collection(db, "players"), where("teamId", "==", teamId));
+        const playersQuery = query(collection(db, "players"));
         const unsubscribePlayers = onSnapshot(playersQuery, (querySnapshot) => {
             const playersData = querySnapshot.docs.map(parsePlayerDoc);
             setPlayers(playersData);
         });
 
-        const coachesQuery = query(collection(db, "coaches"), where("teamId", "==", teamId));
+        const coachesQuery = query(collection(db, "coaches"));
         const unsubscribeCoaches = onSnapshot(coachesQuery, (querySnapshot) => {
             const coachesData = querySnapshot.docs.map(parseCoachDoc);
             setCoaches(coachesData);
@@ -73,7 +69,7 @@ function GalleryContent() {
             unsubscribePlayers();
             unsubscribeCoaches();
         };
-    }, [teamId]);
+    }, []);
 
     const certificates = players.filter(p => p.medicalCertificateUrl);
 

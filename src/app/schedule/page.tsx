@@ -25,7 +25,6 @@ import { db } from "@/lib/firebase"
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
-import { useTeamId } from "@/hooks/use-team-id"
 
 
 const parseEventDoc = (doc: any): ClubEvent => {
@@ -42,7 +41,6 @@ function SchedulePageContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const teamId = useTeamId();
   
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [events, setEvents] = React.useState<ClubEvent[]>([])
@@ -56,13 +54,12 @@ function SchedulePageContent() {
   const [selectedDateForSheet, setSelectedDateForSheet] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
-    if (!teamId) return;
-    const q = query(collection(db, "events"), where("teamId", "==", teamId));
+    const q = query(collection(db, "events"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         setEvents(querySnapshot.docs.map(parseEventDoc));
     });
     return () => unsubscribe();
-  }, [teamId]);
+  }, []);
 
   React.useEffect(() => {
     const dateParam = searchParams.get('date');

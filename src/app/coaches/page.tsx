@@ -5,7 +5,6 @@ import { MoreHorizontal, PlusCircle, ArrowLeft, File, Trash2, Edit, Search, Doll
 import { useRouter } from "next/navigation"
 import { collection, onSnapshot, deleteDoc, doc, query, where, getDocs, writeBatch, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import { useTeamId } from "@/hooks/use-team-id"
 
 
 import { Badge } from "@/components/ui/badge"
@@ -35,7 +34,6 @@ import { MobileHeader } from "@/components/layout/mobile-header"
 function CoachesPageContent() {
   const router = useRouter();
   const { toast } = useToast();
-  const teamId = useTeamId();
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
   const [selectedCoach, setSelectedCoach] = React.useState<Coach | null>(null);
@@ -44,8 +42,7 @@ function CoachesPageContent() {
   const coachStatuses: Coach['status'][] = ["Actif", "Inactif"];
 
   React.useEffect(() => {
-    if (!teamId) return;
-    const q = query(collection(db, "coaches"), where("teamId", "==", teamId));
+    const q = query(collection(db, "coaches"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const coachesData: Coach[] = [];
         querySnapshot.forEach((doc) => {
@@ -55,7 +52,7 @@ function CoachesPageContent() {
     });
 
     return () => unsubscribe();
-  }, [teamId]);
+  }, []);
 
   const handleEditCoach = (coach: Coach) => {
     setSelectedCoach(coach);

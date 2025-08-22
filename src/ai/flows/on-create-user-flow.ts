@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview This file contains the logic for creating a new team for a user when they sign up.
  * This is a trigger-based flow that runs on Firebase Auth events.

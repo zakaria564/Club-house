@@ -22,7 +22,6 @@ import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
 import { ClubLogo } from "@/components/club-logo"
-import { useTeamId } from "@/hooks/use-team-id"
 
 const PrintHeader = ({ date }: { date?: Date }) => (
     <div className="hidden print:flex print:flex-col print:items-center print:mb-8">
@@ -98,7 +97,6 @@ const combineStats = (events: ClubEvent[], players: Player[]): CombinedStat[] =>
 
 function ResultsContent() {
     const router = useRouter();
-    const teamId = useTeamId();
     const [events, setEvents] = React.useState<ClubEvent[]>([]);
     const [players, setPlayers] = React.useState<Player[]>([]);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
@@ -106,14 +104,12 @@ function ResultsContent() {
     const [isDatePickerOpen, setDatePickerOpen] = React.useState(false);
 
     React.useEffect(() => {
-        if (!teamId) return;
-
-        const eventsQuery = query(collection(db, "events"), where("teamId", "==", teamId));
+        const eventsQuery = query(collection(db, "events"));
         const unsubscribeEvents = onSnapshot(eventsQuery, (snapshot) => {
             setEvents(snapshot.docs.map(parseEventDoc));
         });
 
-        const playersQuery = query(collection(db, "players"), where("teamId", "==", teamId));
+        const playersQuery = query(collection(db, "players"));
         const unsubscribePlayers = onSnapshot(playersQuery, (snapshot) => {
             setPlayers(snapshot.docs.map(parsePlayerDoc));
         });
@@ -122,7 +118,7 @@ function ResultsContent() {
             unsubscribeEvents();
             unsubscribePlayers();
         };
-    }, [teamId]);
+    }, []);
 
     const allPlayedMatches = events
         .filter(event => event.type === 'Match' && event.result)

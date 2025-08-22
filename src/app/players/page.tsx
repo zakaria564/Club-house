@@ -32,7 +32,6 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
-import { useTeamId } from "@/hooks/use-team-id"
 
 const categoryOrder: Player['category'][] = ["U7", "U9", "U11", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U23", "Senior", "Vétéran"];
 const positionOrder = ["Gardien de but", "Défenseur central", "Arrière latéral gauche", "Arrière latéral droit", "Milieu défensif", "Milieu central", "Milieu relayeur", "Milieu offensif", "Ailier gauche", "Ailier droit", "Attaquant de pointe", "Attaquant de soutien"];
@@ -40,7 +39,6 @@ const positionOrder = ["Gardien de but", "Défenseur central", "Arrière latéra
 function PlayersPageContent() {
   const router = useRouter();
   const { toast } = useToast();
-  const teamId = useTeamId();
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
 
@@ -55,14 +53,12 @@ function PlayersPageContent() {
 
 
   React.useEffect(() => {
-    if (!teamId) return;
-
-    const unsubscribePlayers = onSnapshot(query(collection(db, "players"), where("teamId", "==", teamId)), (snapshot) => {
+    const unsubscribePlayers = onSnapshot(query(collection(db, "players")), (snapshot) => {
         const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
         setPlayers(playersData);
     });
 
-    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches"), where("teamId", "==", teamId)), (snapshot) => {
+    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches")), (snapshot) => {
         const coachesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coach));
         setCoaches(coachesData);
     });
@@ -71,7 +67,7 @@ function PlayersPageContent() {
         unsubscribePlayers();
         unsubscribeCoaches();
     };
-  }, [teamId]);
+  }, []);
 
   const handleDeleteInitiate = (playerId: string) => {
     setPlayerToDelete(playerId);

@@ -39,7 +39,7 @@ function AddPlayerDialog({ open, onOpenChange }: { open: boolean, onOpenChange: 
 }
 
 // ===== DashboardContent =====
-function DashboardContent({ teamId }: { teamId: string }) {
+function DashboardContent() {
   const router = useRouter()
   const [players, setPlayers] = React.useState<Player[]>([])
   const [coaches, setCoaches] = React.useState<Coach[]>([])
@@ -48,17 +48,12 @@ function DashboardContent({ teamId }: { teamId: string }) {
   const [isPlayerDialogOpen, setPlayerDialogOpen] = React.useState(false)
 
   React.useEffect(() => {
-    if (!teamId) return;
-    const playersQuery = query(collection(db, "players"), where("teamId", "==", teamId))
-    const unsubscribePlayers = onSnapshot(playersQuery, snapshot => setPlayers(snapshot.docs.map(parsePlayerDoc)))
-    const coachesQuery = query(collection(db, "coaches"), where("teamId", "==", teamId))
-    const unsubscribeCoaches = onSnapshot(coachesQuery, snapshot => setCoaches(snapshot.docs.map(parseCoachDoc)))
-    const paymentsQuery = query(collection(db, "payments"), where("teamId", "==", teamId))
-    const unsubscribePayments = onSnapshot(paymentsQuery, snapshot => setPayments(snapshot.docs.map(parsePaymentDoc)))
-    const eventsQuery = query(collection(db, "events"), where("teamId", "==", teamId))
-    const unsubscribeEvents = onSnapshot(eventsQuery, snapshot => setEvents(snapshot.docs.map(parseEventDoc)))
+    const unsubscribePlayers = onSnapshot(query(collection(db, "players")), snapshot => setPlayers(snapshot.docs.map(parsePlayerDoc)))
+    const unsubscribeCoaches = onSnapshot(query(collection(db, "coaches")), snapshot => setCoaches(snapshot.docs.map(parseCoachDoc)))
+    const unsubscribePayments = onSnapshot(query(collection(db, "payments")), snapshot => setPayments(snapshot.docs.map(parsePaymentDoc)))
+    const unsubscribeEvents = onSnapshot(query(collection(db, "events")), snapshot => setEvents(snapshot.docs.map(parseEventDoc)))
     return () => { unsubscribePlayers(); unsubscribeCoaches(); unsubscribePayments(); unsubscribeEvents() }
-  }, [teamId])
+  }, [])
 
   // ===== Stats calculation (example) =====
   const totalPlayers = players.length
@@ -140,69 +135,35 @@ function DashboardContent({ teamId }: { teamId: string }) {
 export default function App() {
   const router = useRouter();
   const [user, setUser] = React.useState<any>(null);
-  const [teamId, setTeamId] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const auth = getAuth();
-    let teamUnsubscribe: (() => void) | null = null;
-
-    const authUnsubscribe = auth.onAuthStateChanged((u) => {
-      if (u) {
-        setUser(u);
-        
-        if (teamUnsubscribe) teamUnsubscribe();
-
-        teamUnsubscribe = onSnapshot(doc(db, "users", u.uid), (snap) => {
-          if (snap.exists() && snap.data().teamId) {
-            setTeamId(snap.data().teamId);
-          } else {
-            setTeamId(null);
-          }
-          setLoading(false);
-        }, (error) => {
-          console.error("Error listening to user document:", error);
-          setTeamId(null);
-          setLoading(false);
-        });
-
-      } else {
-        setUser(null);
-        setTeamId(null);
-        if (teamUnsubscribe) teamUnsubscribe();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUser(user);
         setLoading(false);
+      } else {
         router.push('/login');
       }
     });
 
-    return () => {
-      authUnsubscribe();
-      if (teamUnsubscribe) teamUnsubscribe();
-    };
+    return () => unsubscribe();
   }, [router]);
 
   if (loading) {
       return (
           <div className="flex items-center justify-center min-h-screen bg-background">
-              <p>Chargement des données de votre club...</p>
+              <p>Chargement...</p>
           </div>
       )
   }
 
   if (!user) {
-    return null; // or a login page component if not using redirect
+    return null; 
   }
   
-  if (!teamId) {
-     return (
-          <div className="flex items-center justify-center min-h-screen bg-background">
-              <p>Création de votre équipe en cours...</p>
-          </div>
-      )
-  }
-
-
-  return <DashboardContent teamId={teamId}/>
+  return <DashboardContent />
 }
 
     
