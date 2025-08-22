@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Adresse email invalide.' }),
@@ -113,6 +114,12 @@ export default function LoginPage() {
             {isLoading ? 'Connexion en cours...' : 'Se connecter'}
           </Button>
         </form>
+        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+          Vous n'avez pas de compte ?{' '}
+          <Link href="/signup" className="font-medium text-primary hover:underline">
+            Inscrivez-vous
+          </Link>
+        </p>
       </Form>
     </>
   );
