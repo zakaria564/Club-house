@@ -34,10 +34,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const isAuthPage = pathname === '/login' || pathname === '/signup';
     
+    // Si l'utilisateur n'est pas connecté et n'est pas sur une page d'authentification, on le redirige vers la page de connexion
     if (!user && !isAuthPage) {
       router.push('/login');
     }
 
+    // Si l'utilisateur est connecté et sur une page d'authentification, on le redirige vers l'accueil
     if (user && isAuthPage) {
       router.push('/');
     }
@@ -64,11 +66,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const isAuthPage = pathname === '/login' || pathname === '/signup';
+
+  // Pendant que la redirection s'effectue, on ne rend rien pour éviter un flash de contenu
   if (!user && !isAuthPage) {
-    return null; // The redirect is happening, don't render children
+    return null; 
   }
    if (user && isAuthPage) {
-    return null; // The redirect is happening, don't render children
+    return null;
   }
 
   return (
