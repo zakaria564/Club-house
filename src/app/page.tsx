@@ -11,6 +11,7 @@ import { Users, AlertTriangle, Ban, UserX, Shield, UserCheck, UserMinus, Calenda
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
+import AddPlayerDialog from "@/components/add-player-dialog";
 
 // ===== Types =====
 type Player = { id: string; firstName: string; lastName: string; status: string; category?: string; clubExitDate?: Date; date: Date; }
@@ -24,19 +25,6 @@ const parseCoachDoc = (doc: any): Coach => { const data = doc.data(); return { .
 const parsePaymentDoc = (doc: any): Payment => { const data = doc.data(); return { ...data, id: doc.id, remaining: data.remaining, date: data.date.toDate() } }
 const parseEventDoc = (doc: any): ClubEvent => { const data = doc.data(); return { ...data, id: doc.id, date: data.date.toDate() } }
 
-// ===== AddPlayerDialog placeholder =====
-function AddPlayerDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (val: boolean) => void }) {
-  if (!open) return null
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
-        <h2 className="font-bold text-lg mb-4">Ajouter un joueur (Espace réservé)</h2>
-        <p className="mb-4">Le formulaire complet d'ajout de joueur serait implémenté ici.</p>
-        <button className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90" onClick={() => onOpenChange(false)}>Fermer</button>
-      </div>
-    </div>
-  )
-}
 
 // ===== DashboardContent =====
 function DashboardContent() {
@@ -74,7 +62,7 @@ function DashboardContent() {
     <>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold font-headline text-primary">Tableau de bord</h1>
-        <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2" onClick={()=>setPlayerDialogOpen(true)}>
+        <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2" onClick={()=>router.push('/players/new')}>
             <Users className="w-4 h-4" />
             Ajouter un joueur
         </button>
@@ -114,7 +102,10 @@ function DashboardContent() {
         </div>
       </div>
 
-      <AddPlayerDialog open={isPlayerDialogOpen} onOpenChange={setPlayerDialogOpen}/>
+      <AddPlayerDialog 
+        open={isPlayerDialogOpen} 
+        onOpenChange={setPlayerDialogOpen} 
+      />
     </>
   );
 

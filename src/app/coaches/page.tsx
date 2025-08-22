@@ -30,10 +30,14 @@ import { cn } from "@/lib/utils"
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
+import { useIsMobile } from "@/hooks/use-is-mobile"
+import { CoachMobileCard } from "@/components/coach-mobile-card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 function CoachesPageContent() {
   const router = useRouter();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [coaches, setCoaches] = React.useState<Coach[]>([]);
   const [isCoachDialogOpen, setCoachDialogOpen] = React.useState(false);
   const [selectedCoach, setSelectedCoach] = React.useState<Coach | null>(null);
@@ -194,10 +198,6 @@ function CoachesPageContent() {
         <>
           <PageHeader title="Entraîneurs">
             <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Retour
-                </Button>
                 <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
                     <File className="mr-2 h-4 w-4" />
                     Exporter
@@ -233,78 +233,76 @@ function CoachesPageContent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredCoaches.map(coach => (
-                  <Card 
-                    key={coach.id} 
-                    className="flex flex-col transition-all bg-green-50 dark:bg-green-900/30"
-                  >
-                    <CardHeader className="flex-row items-center justify-between p-4 cursor-pointer hover:bg-muted/50" onClick={() => handleViewCoach(coach.id)}>
-                        <div className="font-medium truncate">{coach.firstName} {coach.lastName}</div>
-                          <div onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  aria-haspopup="true"
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Ouvrir le menu</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                  <DropdownMenuItem onClick={() => handleViewCoach(coach.id)}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Voir/Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}>
-                                  <DollarSign className="mr-2 h-4 w-4" />
-                                  Voir les paiements
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}>
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0 flex-grow space-y-2">
-                        <div className="flex flex-col cursor-pointer" onClick={() => handleViewCoach(coach.id)}>
-                            <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium truncate hover:underline">{coach.email}</a>
-                            <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:underline">{coach.phone}</a>
-                        </div>
-                          <div className="flex items-center justify-between">
-                              <Badge variant="secondary" className="cursor-pointer" onClick={() => handleViewCoach(coach.id)}>{coach.specialty}</Badge>
-                              <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                      <Button 
-                                        variant="outline"
-                                        className={cn("whitespace-nowrap h-auto py-0.5 px-2.5 text-xs border-dashed", statusBadgeVariant(coach.status))}
-                                      >
-                                        {coach.status}
-                                      </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                      <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
-                                      <DropdownMenuRadioGroup value={coach.status} onValueChange={(newStatus) => handleStatusChange(coach.id, newStatus as Coach['status'])}>
-                                        {coachStatuses.map(status => (
-                                            <DropdownMenuRadioItem key={status} value={status}>
-                                              {status}
-                                            </DropdownMenuRadioItem>
-                                        ))}
-                                      </DropdownMenuRadioGroup>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                        </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {isMobile ? (
+                  <div className="space-y-3">
+                      {filteredCoaches.map(coach => (
+                          <CoachMobileCard 
+                              key={coach.id}
+                              coach={coach}
+                              onViewCoach={handleViewCoach}
+                              onEditCoach={handleEditCoach}
+                              onViewPayments={handleViewPayments}
+                              onDeleteInitiate={handleDeleteInitiate}
+                          />
+                      ))}
+                  </div>
+              ) : (
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Nom</TableHead>
+                            <TableHead>Spécialité</TableHead>
+                            <TableHead>Statut</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredCoaches.map(coach => (
+                            <TableRow key={coach.id} className="cursor-pointer" onClick={() => handleViewCoach(coach.id)}>
+                                <TableCell className="font-medium">{coach.firstName} {coach.lastName}</TableCell>
+                                <TableCell><Badge variant="secondary">{coach.specialty}</Badge></TableCell>
+                                <TableCell>
+                                     <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                           <Badge className={cn("cursor-pointer", statusBadgeVariant(coach.status))} onClick={(e) => e.stopPropagation()}>
+                                                {coach.status}
+                                            </Badge>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                                            <DropdownMenuRadioGroup value={coach.status} onValueChange={(newStatus) => handleStatusChange(coach.id, newStatus as Coach['status'])}>
+                                                {coachStatuses.map(status => (
+                                                    <DropdownMenuRadioItem key={status} value={status}>{status}</DropdownMenuRadioItem>
+                                                ))}
+                                            </DropdownMenuRadioGroup>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <a href={`mailto:${coach.email}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium truncate hover:underline">{coach.email}</a>
+                                        <a href={`tel:${coach.phone}`} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:underline">{coach.phone}</a>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => handleEditCoach(coach)}><Edit className="mr-2 h-4 w-4" /> Modifier</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleViewPayments(coach.id)}><DollarSign className="mr-2 h-4 w-4" /> Voir les paiements</DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteInitiate(coach.id)}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+              )}
             </CardContent>
             <CardFooter>
                 <div className="text-xs text-muted-foreground">

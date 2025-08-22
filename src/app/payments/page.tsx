@@ -35,6 +35,8 @@ import { Input } from "@/components/ui/input"
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { MainSidebar } from "@/components/layout/main-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
+import { useIsMobile } from "@/hooks/use-is-mobile"
+import { PaymentMobileCard } from "@/components/payment-mobile-card"
 
 const parsePlayerDoc = (doc: any): Player => {
   const data = doc.data();
@@ -120,6 +122,7 @@ function PaymentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams()
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const initialMemberId = searchParams.get('memberId');
   
@@ -375,6 +378,7 @@ function PaymentsPageContent() {
                     onExport={() => handleExport('membership')}
                     accordionState={expandedAccordionItems}
                     onAccordionChange={setExpandedAccordionItems}
+                    isMobile={isMobile}
                 />
             </TabsContent>
             <TabsContent value="coaches">
@@ -395,6 +399,7 @@ function PaymentsPageContent() {
                     onExport={() => handleExport('salary')}
                     accordionState={expandedAccordionItems}
                     onAccordionChange={setExpandedAccordionItems}
+                    isMobile={isMobile}
                 />
             </TabsContent>
         </Tabs>
@@ -444,6 +449,7 @@ interface PaymentCategoryContentProps {
     onExport: () => void;
     accordionState: string[];
     onAccordionChange: (value: string[]) => void;
+    isMobile: boolean;
 }
 
 function PaymentCategoryContent({
@@ -462,7 +468,8 @@ function PaymentCategoryContent({
     onToggleExpand,
     onExport,
     accordionState,
-    onAccordionChange
+    onAccordionChange,
+    isMobile
 }: PaymentCategoryContentProps) {
     const memberIds = Object.keys(groupedPayments);
     
@@ -479,6 +486,27 @@ function PaymentCategoryContent({
                 </Button>
             </CardHeader>
             <CardContent>
+                {isMobile ? (
+                     <div className="space-y-3">
+                        {memberIds.map(memberId => {
+                            const { payments } = groupedPayments[memberId];
+                            return payments.map(payment => (
+                                 <PaymentMobileCard
+                                    key={payment.id}
+                                    payment={payment}
+                                    statusTranslations={statusTranslations}
+                                    onMarkAsPaid={onMarkAsPaid}
+                                    onAddPartialPayment={onAddPartialPayment}
+                                    onViewMember={onViewMember}
+                                    onPrintReceipt={onPrintReceipt}
+                                    onDelete={onDelete}
+                                    expanded={expandedPaymentId === payment.id}
+                                    onToggleExpand={() => onToggleExpand(payment.id)}
+                                />
+                            ))
+                        })}
+                     </div>
+                ) : (
                 <Accordion type="multiple" value={accordionState} onValueChange={onAccordionChange} className="w-full">
                     {memberIds.length > 0 ? (
                         memberIds.map(memberId => {
@@ -515,6 +543,7 @@ function PaymentCategoryContent({
                         </div>
                     )}
                 </Accordion>
+                )}
             </CardContent>
             <CardFooter>
                  <div className="text-xs text-muted-foreground">

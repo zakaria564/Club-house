@@ -8,11 +8,12 @@ import { PlayerForm } from '@/components/player-form';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { SidebarInset, Sidebar, MainSidebar, MobileHeader } from '@/components/layout';
 
 export default function NewPlayerPage() {
   const router = useRouter();
 
-  return (
+  const content = (
     <>
       <PageHeader title="Nouvelle Inscription">
         <Button variant="outline" onClick={() => router.back()}>
@@ -31,4 +32,16 @@ export default function NewPlayerPage() {
       </Card>
     </>
   );
+
+  return (
+    <SidebarInset>
+        <MobileHeader />
+        <Sidebar>
+            <MainSidebar />
+        </Sidebar>
+        <main className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6">
+            {content}
+        </main>
+    </SidebarInset>
+  )
 }
