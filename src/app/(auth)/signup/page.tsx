@@ -63,6 +63,7 @@ export default function SignupPage() {
       });
       router.push('/login');
     } catch (error: any) {
+      console.error("Erreur d'inscription :", error);
       toast({
         variant: 'destructive',
         title: "Erreur lors de l'inscription",
