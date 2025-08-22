@@ -2,79 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'PT Sans', sans-serif;
-}
-
 @layer base {
   :root {
-    --background: 231 48% 97%; /* Very light blue, almost white */
-    --foreground: 224 71.4% 4.1%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 222.2 84% 4.9%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 231 48% 48%; /* Deep blue */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 231 48% 92%;
-    --secondary-foreground: 231 48% 20%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 275 76% 52%; /* Vibrant purple */
-    --accent-foreground: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 231 48% 48%;
-    --chart-1: 231 48% 48%; /* Deep blue */
-    --chart-2: 142 71% 45%; /* Green */
-    --chart-3: 30 95% 54%;  /* Orange */
-    --chart-4: 45 93% 47%;  /* Yellow */
-    --chart-5: 275 76% 52%; /* Vibrant purple */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
     --radius: 0.5rem;
-    --sidebar-background: 231 48% 48%; /* Deep Blue */
-    --sidebar-foreground: 0 0% 100%; /* White */
-    --sidebar-primary: 0 0% 100%; /* White */
-    --sidebar-primary-foreground: 231 48% 48%; /* Deep Blue */
-    --sidebar-accent: 231 48% 40%; /* Darker Blue for hover/active */
-    --sidebar-accent-foreground: 0 0% 100%; /* White */
-    --sidebar-border: 231 48% 40%;
-    --sidebar-ring: 0 0% 100%;
   }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
+
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
+
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 231 48% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 231 48% 15%;
-    --secondary-foreground: 0 0% 100%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 275 76% 60%;
-    --accent-foreground: 0 0% 100%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 85.7% 97.3%;
+    --destructive-foreground: 210 40% 98%;
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 231 48% 55%;
-    --chart-1: 231 48% 55%; /* Deep blue */
-    --chart-2: 142 71% 45%; /* Green */
-    --chart-3: 30 95% 54%;  /* Orange */
-    --chart-4: 45 93% 47%;  /* Yellow */
-    --chart-5: 275 76% 60%; /* Vibrant purple */
-    --sidebar-background: 231 48% 48%; /* Deep Blue */
-    --sidebar-foreground: 0 0% 100%; /* White */
-    --sidebar-primary: 0 0% 100%; /* White */
-    --sidebar-primary-foreground: 231 48% 48%; /* Deep Blue */
-    --sidebar-accent: 231 48% 40%; /* Darker Blue for hover/active */
-    --sidebar-accent-foreground: 0 0% 100%; /* White */
-    --sidebar-border: 231 48% 40%;
-    --sidebar-ring: 0 0% 100%;
+    --ring: 210 40% 98%;
   }
 }
 
@@ -84,70 +72,5 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-body);
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-headline);
-  }
-}
-
-@page {
-  size: A4;
-  margin: 0;
-}
-
-@media print {
-  body {
-    margin: 1.5cm !important;
-  }
-  
-  main {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
-    color: black !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .no-print, .no-print * {
-      display: none !important;
-  }
-  
-  .printable-area {
-    display: block !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .printable-area > * {
-    display: block !important;
-  }
-  
-  body.print-receipt .no-print,
-  body.print-receipt [data-sidebar],
-  body.print-receipt header,
-  body.print-receipt > div[data-provider] > div > div[class*="peer"] {
-    display: none !important;
-  }
-
-  body.print-receipt main, body.print-receipt > div[data-provider] > main {
-    padding: 0 !important;
-    margin: 0 !important;
-    height: 100%;
-  }
-  
-  body.print-receipt {
-    margin: 0 !important;
-  }
-
-  body.print-receipt .printable-area {
-    display: block;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    margin: 0;
   }
 }
