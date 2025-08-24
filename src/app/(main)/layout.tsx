@@ -13,7 +13,6 @@ import {
   SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { useAuth } from '@/components/providers/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Home,
@@ -28,16 +27,32 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged, User } from 'firebase/auth';
+import React, { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      } else {
+        router.push('/login');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -51,6 +66,27 @@ export default function MainLayout({
     { href: '/schedule', label: 'Calendrier', icon: Calendar },
     { href: '/payments', label: 'Paiements', icon: CreditCard },
   ];
+
+  if (loading) {
+    return (
+       <div className="flex flex-col min-h-screen">
+           <header className="p-4 border-b">
+               <Skeleton className="h-8 w-48" />
+           </header>
+           <div className="flex flex-1">
+               <aside className="w-64 p-4 border-r">
+                   <Skeleton className="h-8 w-full mb-4" />
+                   <Skeleton className="h-8 w-full mb-4" />
+                   <Skeleton className="h-8 w-full mb-4" />
+               </aside>
+               <main className="flex-1 p-6">
+                   <Skeleton className="h-96 w-full" />
+               </main>
+           </div>
+       </div>
+    )
+  }
+
 
   return (
     <SidebarProvider>
