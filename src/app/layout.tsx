@@ -6,8 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Clubhouse",
-  description: "Gérez votre club de football",
+  title: "Clubhouse Hub",
+  description: "Gérez votre club de football simplement.",
 };
 
 export default function RootLayout({

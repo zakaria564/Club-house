@@ -1,5 +1,20 @@
-
 'use client';
+
+import React, { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import {
+  Home,
+  Users,
+  Calendar,
+  CreditCard,
+  LogOut,
+  Settings,
+  Shield,
+  Trophy,
+} from 'lucide-react';
+import Link from 'next/link';
 
 import {
   SidebarProvider,
@@ -14,21 +29,6 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Home,
-  Users,
-  Calendar,
-  CreditCard,
-  LogOut,
-  Settings,
-  Shield,
-  Trophy,
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
-import { signOut, onAuthStateChanged, User } from 'firebase/auth';
-import React, { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MainLayout({
@@ -45,10 +45,10 @@ export default function MainLayout({
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
+        setLoading(false);
       } else {
         router.push('/login');
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -69,30 +69,20 @@ export default function MainLayout({
 
   if (loading) {
     return (
-       <div className="flex flex-col min-h-screen">
-           <header className="p-4 border-b">
-               <Skeleton className="h-8 w-48" />
-           </header>
-           <div className="flex flex-1">
-               <aside className="w-64 p-4 border-r">
-                   <Skeleton className="h-8 w-full mb-4" />
-                   <Skeleton className="h-8 w-full mb-4" />
-                   <Skeleton className="h-8 w-full mb-4" />
-               </aside>
-               <main className="flex-1 p-6">
-                   <Skeleton className="h-96 w-full" />
-               </main>
-           </div>
+       <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Trophy className="size-16 animate-pulse text-yellow-400" />
+          <p className="text-muted-foreground">Chargement de votre espace...</p>
+        </div>
        </div>
-    )
+    );
   }
-
 
   return (
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 p-2">
             <Trophy className="size-8 text-yellow-400" />
             <div className="flex flex-col">
               <span className="text-lg font-semibold text-sidebar-foreground">
@@ -118,8 +108,8 @@ export default function MainLayout({
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-           <div className="flex items-center gap-2 border-t border-sidebar-border p-2">
-            <Avatar className="size-8">
+           <div className="flex items-center gap-3 border-t p-2">
+            <Avatar className="size-9">
               <AvatarImage
                 src={user?.photoURL}
                 alt={user?.displayName || 'User'}
@@ -152,10 +142,12 @@ export default function MainLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 items-center justify-end border-b px-4 lg:hidden">
+        <header className="flex h-14 items-center justify-end border-b bg-background px-4 lg:hidden">
             <SidebarTrigger />
         </header>
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 bg-gray-50 dark:bg-gray-950/20">
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

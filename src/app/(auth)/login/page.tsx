@@ -19,6 +19,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Trophy } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Adresse email invalide.' }),
@@ -44,21 +45,13 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({
-        title: 'Connexion réussie',
-        description: 'Vous allez être redirigé vers votre tableau de bord.',
-      });
       router.push('/');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Erreur de connexion',
         description:
-          error.code === 'auth/user-not-found' ||
-          error.code === 'auth/wrong-password' ||
-          error.code === 'auth/invalid-credential'
-            ? 'Email ou mot de passe incorrect.'
-            : "Une erreur s'est produite. Veuillez réessayer.",
+          'Email ou mot de passe incorrect. Veuillez réessayer.',
       });
     } finally {
       setIsLoading(false);
@@ -67,14 +60,15 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="text-center">
+      <div className="text-center space-y-4">
+        <Trophy className="mx-auto size-12 text-yellow-400" />
         <h1 className="text-3xl font-bold">Connexion</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-muted-foreground">
           Accédez à votre espace club
         </p>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
           <FormField
             control={form.control}
             name="email"
@@ -114,7 +108,7 @@ export default function LoginPage() {
             {isLoading ? 'Connexion en cours...' : 'Se connecter'}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Vous n'avez pas de compte ?{' '}
           <Link href="/signup" className="font-medium text-primary hover:underline">
             Inscrivez-vous

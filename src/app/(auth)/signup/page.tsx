@@ -19,6 +19,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Trophy } from 'lucide-react';
 
 const formSchema = z.object({
   username: z
@@ -59,7 +60,7 @@ export default function SignupPage() {
 
       toast({
         title: 'Compte créé avec succès',
-        description: 'Vous pouvez maintenant vous connecter.',
+        description: 'Vous allez être redirigé vers la page de connexion.',
       });
       router.push('/login');
     } catch (error: any) {
@@ -67,7 +68,9 @@ export default function SignupPage() {
       toast({
         variant: 'destructive',
         title: "Erreur lors de l'inscription",
-        description: `Erreur: ${error.message} (code: ${error.code})`
+        description: error.code === 'auth/email-already-in-use' 
+            ? 'Cette adresse email est déjà utilisée.'
+            : `Une erreur s'est produite. Veuillez réessayer.`,
       });
     } finally {
       setIsLoading(false);
@@ -76,23 +79,24 @@ export default function SignupPage() {
 
   return (
     <>
-      <div className="text-center">
+      <div className="text-center space-y-4">
+        <Trophy className="mx-auto size-12 text-yellow-400" />
         <h1 className="text-3xl font-bold">Inscription</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-muted-foreground">
           Créez votre compte pour gérer votre club
         </p>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
           <FormField
             control={form.control}
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nom d'utilisateur</FormLabel>
+                <FormLabel>Nom de votre club</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Votre nom"
+                    placeholder="Ex: Paris St-Germain"
                     {...field}
                     disabled={isLoading}
                   />
@@ -140,7 +144,7 @@ export default function SignupPage() {
             {isLoading ? 'Création en cours...' : "S'inscrire"}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Vous avez déjà un compte ?{' '}
           <Link href="/login" className="font-medium text-primary hover:underline">
             Connectez-vous
