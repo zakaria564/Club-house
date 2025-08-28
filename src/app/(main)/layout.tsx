@@ -41,10 +41,10 @@ export default function MainLayout({
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        setLoading(false);
       } else {
         router.push('/login');
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -69,6 +69,10 @@ export default function MainLayout({
         </div>
        </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
