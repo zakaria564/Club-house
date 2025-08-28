@@ -18,7 +18,7 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -27,10 +27,6 @@ export default function Home() {
         </div>
       </div>
     );
-  }
-  
-  if (!user) {
-    return null; 
   }
 
   return (

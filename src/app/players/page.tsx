@@ -63,27 +63,27 @@ export default function PlayersPage() {
   });
 
   useEffect(() => {
-    if (loadingAuth) return;
-    if (!user) {
+    if (!loadingAuth && !user) {
         router.push('/login');
         return;
     }
 
-    const q = query(collection(db, 'players'), where('userId', '==', user.uid));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const playersData: Player[] = [];
-      querySnapshot.forEach((doc) => {
-        playersData.push({ id: doc.id, ...doc.data() } as Player);
-      });
-      setPlayers(playersData);
-      setLoadingPlayers(false);
-    }, (error) => {
-        console.error("Error fetching players: ", error);
-        setLoadingPlayers(false);
-    });
+    if (user) {
+        const q = query(collection(db, 'players'), where('userId', '==', user.uid));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+          const playersData: Player[] = [];
+          querySnapshot.forEach((doc) => {
+            playersData.push({ id: doc.id, ...doc.data() } as Player);
+          });
+          setPlayers(playersData);
+          setLoadingPlayers(false);
+        }, (error) => {
+            console.error("Error fetching players: ", error);
+            setLoadingPlayers(false);
+        });
 
-    return () => unsubscribe();
-    
+        return () => unsubscribe();
+    }
   }, [user, loadingAuth, router]);
 
   const onSubmit = async (values: z.infer<typeof playerSchema>) => {
@@ -100,7 +100,7 @@ export default function PlayersPage() {
     }
   };
 
-  if (loadingAuth || loadingPlayers) {
+  if (loadingAuth || loadingPlayers || !user) {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -121,10 +121,6 @@ export default function PlayersPage() {
             </Card>
         </div>
     );
-  }
-  
-  if (!user) {
-    return null;
   }
 
   return (
