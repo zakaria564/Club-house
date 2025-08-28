@@ -6,8 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, query, where, onSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +31,7 @@ import {
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Trophy } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,7 @@ type Player = z.infer<typeof playerSchema> & { id: string };
 
 export default function PlayersPage() {
   const [user, loadingAuth] = useAuthState(auth);
+  const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -61,19 +63,28 @@ export default function PlayersPage() {
   });
 
   useEffect(() => {
-    if (user) {
-      const q = query(collection(db, 'players'), where('userId', '==', user.uid));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const playersData: Player[] = [];
-        querySnapshot.forEach((doc) => {
-          playersData.push({ id: doc.id, ...doc.data() } as Player);
-        });
-        setPlayers(playersData);
-        setLoadingPlayers(false);
-      });
-      return () => unsubscribe();
+    if (loadingAuth) return;
+    if (!user) {
+        router.push('/login');
+        return;
     }
-  }, [user]);
+
+    const q = query(collection(db, 'players'), where('userId', '==', user.uid));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const playersData: Player[] = [];
+      querySnapshot.forEach((doc) => {
+        playersData.push({ id: doc.id, ...doc.data() } as Player);
+      });
+      setPlayers(playersData);
+      setLoadingPlayers(false);
+    }, (error) => {
+        console.error("Error fetching players: ", error);
+        setLoadingPlayers(false);
+    });
+
+    return () => unsubscribe();
+    
+  }, [user, loadingAuth, router]);
 
   const onSubmit = async (values: z.infer<typeof playerSchema>) => {
     if (!user) return;
@@ -93,12 +104,12 @@ export default function PlayersPage() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <Skeleton className="h-10 w-48" />
+                <h1 className="text-3xl font-bold">Gestion des Joueurs</h1>
                 <Skeleton className="h-10 w-32" />
             </div>
             <Card>
                 <CardHeader>
-                    <Skeleton className="h-8 w-1/2" />
+                    <CardTitle>Liste des joueurs</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
@@ -110,6 +121,10 @@ export default function PlayersPage() {
             </Card>
         </div>
     );
+  }
+  
+  if (!user) {
+    return null;
   }
 
   return (

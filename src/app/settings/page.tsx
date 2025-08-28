@@ -20,6 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { updateProfile } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const settingsSchema = z.object({
   clubName: z.string().min(3, { message: 'Le nom du club doit contenir au moins 3 caractères.' }),
@@ -27,6 +29,7 @@ const settingsSchema = z.object({
 
 export default function SettingsPage() {
   const [user, loading] = useAuthState(auth);
+  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,10 +41,13 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    if (user) {
+    if (loading) return;
+    if (!user) {
+      router.push('/login');
+    } else {
       form.reset({ clubName: user.displayName || '' });
     }
-  }, [user, form]);
+  }, [user, loading, router, form]);
 
   const onSubmit = async (values: z.infer<typeof settingsSchema>) => {
     if (!user) return;
@@ -67,7 +73,32 @@ export default function SettingsPage() {
   };
   
   if (loading) {
-    return <div>Chargement...</div>;
+    return (
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Paramètres</h1>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Profil du Club</CardTitle>
+                    <CardDescription>
+                        Gérez les informations de base de votre club ici.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                           <Skeleton className="h-4 w-20" />
+                           <Skeleton className="h-10 w-full" />
+                        </div>
+                        <Skeleton className="h-10 w-40" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
