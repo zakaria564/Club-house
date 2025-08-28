@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -10,9 +11,6 @@ import {
   LogOut,
   Settings,
   Trophy,
-  Calendar,
-  Euro,
-  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,6 +27,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MainLayout({
   children,
@@ -42,16 +41,11 @@ export default function MainLayout({
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        router.push('/login');
-      }
+      setUser(user);
       setLoading(false);
     });
-
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -69,6 +63,21 @@ export default function MainLayout({
         <div className="flex flex-col items-center gap-4">
           <Trophy className="size-16 animate-pulse text-yellow-400" />
           <p className="text-muted-foreground">Chargement de votre espace...</p>
+        </div>
+       </div>
+    );
+  }
+
+  // This check ensures that the main layout is only rendered for authenticated users
+  // and redirects to login if no user is found after loading.
+  if (!user) {
+    // A useEffect inside a child component will handle the redirection.
+    // We return a loader here to prevent rendering children for a brief moment.
+     return (
+       <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Trophy className="size-16 animate-pulse text-yellow-400" />
+          <p className="text-muted-foreground">Redirection...</p>
         </div>
        </div>
     );

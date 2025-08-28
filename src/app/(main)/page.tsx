@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -29,7 +30,8 @@ export default function Home() {
   }
   
   if (!user) {
-    return null; // or a login prompt
+    // This will be shown briefly before redirection
+    return null; 
   }
 
   return (

@@ -92,6 +92,10 @@ export default function SettingsPage() {
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Paramètres</h1>
