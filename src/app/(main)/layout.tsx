@@ -39,16 +39,12 @@ export default function MainLayout({
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        router.push('/login');
-      }
+      setUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -57,9 +53,10 @@ export default function MainLayout({
 
   const menuItems = [
     { href: '/', label: 'Dashboard', icon: Home },
-    { href: '/players', label: 'Joueurs', icon: Users },
+    // Temporarily remove links causing 404s
+    // { href: '/players', label: 'Joueurs', icon: Users },
   ];
-
+  
   if (loading) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
@@ -71,9 +68,19 @@ export default function MainLayout({
     );
   }
 
-  if (!user) {
-    return null;
+  // Children will handle redirection if user is null
+  if (!user && pathname !== '/login') {
+     router.push('/login');
+     return (
+       <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Trophy className="size-16 animate-pulse text-yellow-400" />
+          <p className="text-muted-foreground">Redirection...</p>
+        </div>
+       </div>
+    );
   }
+
 
   return (
     <SidebarProvider>
@@ -125,6 +132,7 @@ export default function MainLayout({
             </div>
           </div>
           <SidebarMenu>
+            {/*
             <SidebarMenuItem>
                 <Link href="/settings" passHref legacyBehavior>
                     <SidebarMenuButton isActive={pathname === '/settings'} icon={<Settings />}>
@@ -132,6 +140,7 @@ export default function MainLayout({
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
+            */}
             <SidebarMenuItem>
               <SidebarMenuButton onClick={handleSignOut} icon={<LogOut />}>
                 Déconnexion

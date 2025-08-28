@@ -1,7 +1,37 @@
+'use client';
+
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Users, Calendar, Euro, Shield } from "lucide-react";
+import { Users, Calendar, Euro, Shield, Trophy } from "lucide-react";
 
 export default function Home() {
+  const [user, loading] = useAuthState(auth);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Trophy className="size-16 animate-pulse text-yellow-400" />
+          <p className="text-muted-foreground">Chargement des données...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return null; // or a login prompt
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Tableau de bord</h1>
@@ -12,8 +42,8 @@ export default function Home() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-muted-foreground">+5 depuis le mois dernier</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">À vous de jouer !</p>
           </CardContent>
         </Card>
         <Card>
@@ -22,8 +52,8 @@ export default function Home() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-semibold">vs. FC Lions</div>
-            <p className="text-xs text-muted-foreground">25 Juillet 2024 - 18:00</p>
+            <div className="text-lg font-semibold">vs. À définir</div>
+            <p className="text-xs text-muted-foreground">Planifiez votre saison</p>
           </CardContent>
         </Card>
         <Card>
@@ -32,8 +62,8 @@ export default function Home() {
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Total: 1200 €</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Total: 0 €</p>
           </CardContent>
         </Card>
         <Card>
@@ -42,7 +72,7 @@ export default function Home() {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">0</div>
              <p className="text-xs text-muted-foreground">Actifs</p>
           </CardContent>
         </Card>
