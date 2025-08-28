@@ -29,7 +29,6 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MainLayout({
   children,
