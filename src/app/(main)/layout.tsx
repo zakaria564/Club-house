@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -7,11 +8,8 @@ import { auth } from '@/lib/firebase';
 import {
   Home,
   Users,
-  Calendar,
-  CreditCard,
   LogOut,
   Settings,
-  Shield,
   Trophy,
 } from 'lucide-react';
 import Link from 'next/link';
