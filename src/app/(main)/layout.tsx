@@ -129,9 +129,11 @@ export default function MainLayout({
           </div>
           <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton icon={<Settings />}>
-                    Paramètres
-                </SidebarMenuButton>
+                <Link href="/settings" passHref legacyBehavior>
+                    <SidebarMenuButton isActive={pathname === '/settings'} icon={<Settings />}>
+                        Paramètres
+                    </SidebarMenuButton>
+                </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={handleSignOut} icon={<LogOut />}>
