@@ -62,9 +62,6 @@ export default function MainLayout({
   const menuItems = [
     { href: '/', label: 'Dashboard', icon: Home },
     { href: '/players', label: 'Joueurs', icon: Users },
-    { href: '/coaches', label: 'Entraîneurs', icon: Shield },
-    { href: '/schedule', label: 'Calendrier', icon: Calendar },
-    { href: '/payments', label: 'Paiements', icon: CreditCard },
   ];
 
   if (loading) {
