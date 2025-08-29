@@ -78,9 +78,9 @@ function MainLayout({ children, user }: { children: React.ReactNode; user: User 
                 <Link href={item.href} passHref legacyBehavior>
                   <SidebarMenuButton
                     isActive={pathname === item.href}
-                    icon={<item.icon />}
                   >
-                    {item.label}
+                    <item.icon />
+                    <span>{item.label}</span>
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
@@ -110,14 +110,16 @@ function MainLayout({ children, user }: { children: React.ReactNode; user: User 
           <SidebarMenu>
             <SidebarMenuItem>
                 <Link href="/settings" passHref legacyBehavior>
-                    <SidebarMenuButton isActive={pathname === '/settings'} icon={<Settings />}>
-                        Paramètres
+                    <SidebarMenuButton isActive={pathname === '/settings'}>
+                        <Settings />
+                        <span>Paramètres</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleSignOut} icon={<LogOut />}>
-                Déconnexion
+              <SidebarMenuButton onClick={handleSignOut}>
+                <LogOut />
+                <span>Déconnexion</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
