@@ -109,13 +109,13 @@ export default function LoginPage() {
             {isLoading ? 'Connexion en cours...' : 'Se connecter'}
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Vous n'avez pas de compte ?{' '}
-          <Link href="/signup" className="font-medium text-primary hover:underline">
-            Inscrivez-vous
-          </Link>
-        </p>
       </Form>
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Vous n'avez pas de compte ?{' '}
+        <Link href="/signup" className="font-medium text-primary hover:underline">
+          Inscrivez-vous
+        </Link>
+      </p>
     </>
   );
 }
